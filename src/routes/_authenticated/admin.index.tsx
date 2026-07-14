@@ -69,7 +69,7 @@ function AdminHome() {
             <Wallet className="absolute right-4 top-4 h-10 w-10 text-gold/30" />
             <div className="text-xs uppercase tracking-widest text-gold font-semibold">Receita Total (Pix/Dinheiro)</div>
             <div className="mt-2 text-2xl font-bold font-serif text-primary">
-              R$ {data?.totalRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              R$ {(data?.totalRevenue ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">Pagamentos aprovados no sistema</p>
           </CardContent>
