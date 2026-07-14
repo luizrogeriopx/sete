@@ -83,16 +83,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Formação teológica sólida e acessível. Cursos online e presenciais no SETE — Seminário Teológico Esperança.",
+          "Formação teológica sólida, com cursos online e presenciais. Matricule-se no SETE — Seminário Teológico Esperança.",
       },
       { name: "author", content: "SETE" },
       { property: "og:title", content: "SETE — Seminário Teológico Esperança" },
       {
         property: "og:description",
-        content: "Formação teológica sólida e acessível — cursos, matrículas e certificação.",
+        content: "Formação teológica sólida, com cursos online e presenciais. Matricule-se no SETE — Seminário Teológico Esperança.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "SETE — Seminário Teológico Esperança" },
+      { name: "twitter:description", content: "Formação teológica sólida, com cursos online e presenciais. Matricule-se no SETE — Seminário Teológico Esperança." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/166f9f35-bc58-451d-8b74-f088fa924ec1/id-preview-16080032--4b8df892-2563-4122-b107-83d75103115a.lovable.app-1783994940174.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/166f9f35-bc58-451d-8b74-f088fa924ec1/id-preview-16080032--4b8df892-2563-4122-b107-83d75103115a.lovable.app-1783994940174.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
