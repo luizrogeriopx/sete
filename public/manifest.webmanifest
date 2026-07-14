@@ -1,0 +1,12 @@
+{
+  "name": "SETE — Seminário Teológico Esperança",
+  "short_name": "SETE",
+  "description": "Portal do aluno, professor e administração do SETE.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f4ec",
+  "theme_color": "#1a2340",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "any", "type": "image/x-icon" }
+  ]
+}
