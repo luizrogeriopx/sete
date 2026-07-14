@@ -21,6 +21,7 @@ import { Route as CertificadoValidarIndexRouteImport } from './routes/certificad
 import { Route as AuthenticatedAlunoIndexRouteImport } from './routes/_authenticated/aluno.index'
 import { Route as CertificadoValidarCodigoRouteImport } from './routes/certificado.validar.$codigo'
 import { Route as AuthenticatedAlunoMeusCursosRouteImport } from './routes/_authenticated/aluno.meus-cursos'
+import { Route as AuthenticatedAlunoCursosDisponiveisRouteImport } from './routes/_authenticated/aluno.cursos-disponiveis'
 import { Route as AuthenticatedAlunoCursoIdRouteImport } from './routes/_authenticated/aluno.curso.$id'
 
 const SobreRoute = SobreRouteImport.update({
@@ -84,6 +85,12 @@ const AuthenticatedAlunoMeusCursosRoute =
     path: '/meus-cursos',
     getParentRoute: () => AuthenticatedAlunoRoute,
   } as any)
+const AuthenticatedAlunoCursosDisponiveisRoute =
+  AuthenticatedAlunoCursosDisponiveisRouteImport.update({
+    id: '/cursos-disponiveis',
+    path: '/cursos-disponiveis',
+    getParentRoute: () => AuthenticatedAlunoRoute,
+  } as any)
 const AuthenticatedAlunoCursoIdRoute =
   AuthenticatedAlunoCursoIdRouteImport.update({
     id: '/curso/$id',
@@ -99,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/aluno': typeof AuthenticatedAlunoRouteWithChildren
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos/': typeof CursosIndexRoute
+  '/aluno/cursos-disponiveis': typeof AuthenticatedAlunoCursosDisponiveisRoute
   '/aluno/meus-cursos': typeof AuthenticatedAlunoMeusCursosRoute
   '/certificado/validar/$codigo': typeof CertificadoValidarCodigoRoute
   '/aluno/': typeof AuthenticatedAlunoIndexRoute
@@ -112,6 +120,7 @@ export interface FileRoutesByTo {
   '/sobre': typeof SobreRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos': typeof CursosIndexRoute
+  '/aluno/cursos-disponiveis': typeof AuthenticatedAlunoCursosDisponiveisRoute
   '/aluno/meus-cursos': typeof AuthenticatedAlunoMeusCursosRoute
   '/certificado/validar/$codigo': typeof CertificadoValidarCodigoRoute
   '/aluno': typeof AuthenticatedAlunoIndexRoute
@@ -128,6 +137,7 @@ export interface FileRoutesById {
   '/_authenticated/aluno': typeof AuthenticatedAlunoRouteWithChildren
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos/': typeof CursosIndexRoute
+  '/_authenticated/aluno/cursos-disponiveis': typeof AuthenticatedAlunoCursosDisponiveisRoute
   '/_authenticated/aluno/meus-cursos': typeof AuthenticatedAlunoMeusCursosRoute
   '/certificado/validar/$codigo': typeof CertificadoValidarCodigoRoute
   '/_authenticated/aluno/': typeof AuthenticatedAlunoIndexRoute
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/aluno'
     | '/cursos/$slug'
     | '/cursos/'
+    | '/aluno/cursos-disponiveis'
     | '/aluno/meus-cursos'
     | '/certificado/validar/$codigo'
     | '/aluno/'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/cursos/$slug'
     | '/cursos'
+    | '/aluno/cursos-disponiveis'
     | '/aluno/meus-cursos'
     | '/certificado/validar/$codigo'
     | '/aluno'
@@ -172,6 +184,7 @@ export interface FileRouteTypes {
     | '/_authenticated/aluno'
     | '/cursos/$slug'
     | '/cursos/'
+    | '/_authenticated/aluno/cursos-disponiveis'
     | '/_authenticated/aluno/meus-cursos'
     | '/certificado/validar/$codigo'
     | '/_authenticated/aluno/'
@@ -277,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlunoMeusCursosRouteImport
       parentRoute: typeof AuthenticatedAlunoRoute
     }
+    '/_authenticated/aluno/cursos-disponiveis': {
+      id: '/_authenticated/aluno/cursos-disponiveis'
+      path: '/cursos-disponiveis'
+      fullPath: '/aluno/cursos-disponiveis'
+      preLoaderRoute: typeof AuthenticatedAlunoCursosDisponiveisRouteImport
+      parentRoute: typeof AuthenticatedAlunoRoute
+    }
     '/_authenticated/aluno/curso/$id': {
       id: '/_authenticated/aluno/curso/$id'
       path: '/curso/$id'
@@ -288,12 +308,15 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAlunoRouteChildren {
+  AuthenticatedAlunoCursosDisponiveisRoute: typeof AuthenticatedAlunoCursosDisponiveisRoute
   AuthenticatedAlunoMeusCursosRoute: typeof AuthenticatedAlunoMeusCursosRoute
   AuthenticatedAlunoIndexRoute: typeof AuthenticatedAlunoIndexRoute
   AuthenticatedAlunoCursoIdRoute: typeof AuthenticatedAlunoCursoIdRoute
 }
 
 const AuthenticatedAlunoRouteChildren: AuthenticatedAlunoRouteChildren = {
+  AuthenticatedAlunoCursosDisponiveisRoute:
+    AuthenticatedAlunoCursosDisponiveisRoute,
   AuthenticatedAlunoMeusCursosRoute: AuthenticatedAlunoMeusCursosRoute,
   AuthenticatedAlunoIndexRoute: AuthenticatedAlunoIndexRoute,
   AuthenticatedAlunoCursoIdRoute: AuthenticatedAlunoCursoIdRoute,
