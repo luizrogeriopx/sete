@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CursosIndexRouteImport } from './routes/cursos.index'
 import { Route as CursosSlugRouteImport } from './routes/cursos.$slug'
+import { Route as CertificadoValidarCodigoRouteImport } from './routes/certificado.validar.$codigo'
 
 const SobreRoute = SobreRouteImport.update({
   id: '/sobre',
@@ -46,6 +47,12 @@ const CursosSlugRoute = CursosSlugRouteImport.update({
   path: '/cursos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CertificadoValidarCodigoRoute =
+  CertificadoValidarCodigoRouteImport.update({
+    id: '/certificado/validar/$codigo',
+    path: '/certificado/validar/$codigo',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByFullPath {
   '/sobre': typeof SobreRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos/': typeof CursosIndexRoute
+  '/certificado/validar/$codigo': typeof CertificadoValidarCodigoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +70,7 @@ export interface FileRoutesByTo {
   '/sobre': typeof SobreRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos': typeof CursosIndexRoute
+  '/certificado/validar/$codigo': typeof CertificadoValidarCodigoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +80,7 @@ export interface FileRoutesById {
   '/sobre': typeof SobreRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos/': typeof CursosIndexRoute
+  '/certificado/validar/$codigo': typeof CertificadoValidarCodigoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,8 +91,16 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/cursos/$slug'
     | '/cursos/'
+    | '/certificado/validar/$codigo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/contato' | '/sobre' | '/cursos/$slug' | '/cursos'
+  to:
+    | '/'
+    | '/auth'
+    | '/contato'
+    | '/sobre'
+    | '/cursos/$slug'
+    | '/cursos'
+    | '/certificado/validar/$codigo'
   id:
     | '__root__'
     | '/'
@@ -91,6 +109,7 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/cursos/$slug'
     | '/cursos/'
+    | '/certificado/validar/$codigo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -100,6 +119,7 @@ export interface RootRouteChildren {
   SobreRoute: typeof SobreRoute
   CursosSlugRoute: typeof CursosSlugRoute
   CursosIndexRoute: typeof CursosIndexRoute
+  CertificadoValidarCodigoRoute: typeof CertificadoValidarCodigoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -146,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CursosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/certificado/validar/$codigo': {
+      id: '/certificado/validar/$codigo'
+      path: '/certificado/validar/$codigo'
+      fullPath: '/certificado/validar/$codigo'
+      preLoaderRoute: typeof CertificadoValidarCodigoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -156,6 +183,7 @@ const rootRouteChildren: RootRouteChildren = {
   SobreRoute: SobreRoute,
   CursosSlugRoute: CursosSlugRoute,
   CursosIndexRoute: CursosIndexRoute,
+  CertificadoValidarCodigoRoute: CertificadoValidarCodigoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
