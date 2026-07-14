@@ -16,14 +16,46 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CursosIndexRouteImport } from './routes/cursos.index'
 import { Route as CursosSlugRouteImport } from './routes/cursos.$slug'
+import { Route as AuthenticatedSuperAdminRouteImport } from './routes/_authenticated/super-admin'
+import { Route as AuthenticatedSecretariaRouteImport } from './routes/_authenticated/secretaria'
+import { Route as AuthenticatedProfessorRouteImport } from './routes/_authenticated/professor'
 import { Route as AuthenticatedAlunoRouteImport } from './routes/_authenticated/aluno'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as CertificadoValidarIndexRouteImport } from './routes/certificado.validar.index'
+import { Route as AuthenticatedSuperAdminIndexRouteImport } from './routes/_authenticated/super-admin.index'
+import { Route as AuthenticatedSecretariaIndexRouteImport } from './routes/_authenticated/secretaria.index'
+import { Route as AuthenticatedProfessorIndexRouteImport } from './routes/_authenticated/professor.index'
 import { Route as AuthenticatedAlunoIndexRouteImport } from './routes/_authenticated/aluno.index'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as CertificadoValidarCodigoRouteImport } from './routes/certificado.validar.$codigo'
+import { Route as AuthenticatedSuperAdminUsuariosRouteImport } from './routes/_authenticated/super-admin.usuarios'
+import { Route as AuthenticatedSuperAdminSuporteRouteImport } from './routes/_authenticated/super-admin.suporte'
+import { Route as AuthenticatedSuperAdminRelatoriosRouteImport } from './routes/_authenticated/super-admin.relatorios'
+import { Route as AuthenticatedSuperAdminCursosRouteImport } from './routes/_authenticated/super-admin.cursos'
+import { Route as AuthenticatedSuperAdminConfiguracoesRouteImport } from './routes/_authenticated/super-admin.configuracoes'
+import { Route as AuthenticatedSecretariaSolicitacoesRouteImport } from './routes/_authenticated/secretaria.solicitacoes'
+import { Route as AuthenticatedSecretariaPagamentosDinheiroRouteImport } from './routes/_authenticated/secretaria.pagamentos-dinheiro'
+import { Route as AuthenticatedSecretariaMatriculasRouteImport } from './routes/_authenticated/secretaria.matriculas'
+import { Route as AuthenticatedSecretariaAlunosRouteImport } from './routes/_authenticated/secretaria.alunos'
+import { Route as AuthenticatedProfessorCursosRouteImport } from './routes/_authenticated/professor.cursos'
+import { Route as AuthenticatedProfessorCronogramaRouteImport } from './routes/_authenticated/professor.cronograma'
+import { Route as AuthenticatedProfessorChamadaRouteImport } from './routes/_authenticated/professor.chamada'
+import { Route as AuthenticatedProfessorAlunosRouteImport } from './routes/_authenticated/professor.alunos'
+import { Route as AuthenticatedAlunoSuporteRouteImport } from './routes/_authenticated/aluno.suporte'
+import { Route as AuthenticatedAlunoSecretariaRouteImport } from './routes/_authenticated/aluno.secretaria'
+import { Route as AuthenticatedAlunoNotificacoesRouteImport } from './routes/_authenticated/aluno.notificacoes'
 import { Route as AuthenticatedAlunoMeusCursosRouteImport } from './routes/_authenticated/aluno.meus-cursos'
+import { Route as AuthenticatedAlunoFinanceiroRouteImport } from './routes/_authenticated/aluno.financeiro'
 import { Route as AuthenticatedAlunoCursosDisponiveisRouteImport } from './routes/_authenticated/aluno.cursos-disponiveis'
 import { Route as AuthenticatedAlunoCertificadosRouteImport } from './routes/_authenticated/aluno.certificados'
 import { Route as AuthenticatedAlunoCarteirinhaRouteImport } from './routes/_authenticated/aluno.carteirinha'
+import { Route as AuthenticatedAdminProfessoresRouteImport } from './routes/_authenticated/admin.professores'
+import { Route as AuthenticatedAdminNotificacoesRouteImport } from './routes/_authenticated/admin.notificacoes'
+import { Route as AuthenticatedAdminMatriculasRouteImport } from './routes/_authenticated/admin.matriculas'
+import { Route as AuthenticatedAdminFinanceiroRouteImport } from './routes/_authenticated/admin.financeiro'
+import { Route as AuthenticatedAdminCursosRouteImport } from './routes/_authenticated/admin.cursos'
+import { Route as AuthenticatedAdminCertificadosRouteImport } from './routes/_authenticated/admin.certificados'
+import { Route as AuthenticatedAdminAlunosRouteImport } from './routes/_authenticated/admin.alunos'
 import { Route as AuthenticatedAlunoCursoIdRouteImport } from './routes/_authenticated/aluno.curso.$id'
 
 const SobreRoute = SobreRouteImport.update({
@@ -60,9 +92,29 @@ const CursosSlugRoute = CursosSlugRouteImport.update({
   path: '/cursos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSuperAdminRoute = AuthenticatedSuperAdminRouteImport.update({
+  id: '/super-admin',
+  path: '/super-admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSecretariaRoute = AuthenticatedSecretariaRouteImport.update({
+  id: '/secretaria',
+  path: '/secretaria',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProfessorRoute = AuthenticatedProfessorRouteImport.update({
+  id: '/professor',
+  path: '/professor',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAlunoRoute = AuthenticatedAlunoRouteImport.update({
   id: '/aluno',
   path: '/aluno',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const CertificadoValidarIndexRoute = CertificadoValidarIndexRouteImport.update({
@@ -70,10 +122,33 @@ const CertificadoValidarIndexRoute = CertificadoValidarIndexRouteImport.update({
   path: '/certificado/validar/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSuperAdminIndexRoute =
+  AuthenticatedSuperAdminIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSuperAdminRoute,
+  } as any)
+const AuthenticatedSecretariaIndexRoute =
+  AuthenticatedSecretariaIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSecretariaRoute,
+  } as any)
+const AuthenticatedProfessorIndexRoute =
+  AuthenticatedProfessorIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedProfessorRoute,
+  } as any)
 const AuthenticatedAlunoIndexRoute = AuthenticatedAlunoIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAlunoRoute,
+} as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const CertificadoValidarCodigoRoute =
   CertificadoValidarCodigoRouteImport.update({
@@ -81,10 +156,112 @@ const CertificadoValidarCodigoRoute =
     path: '/certificado/validar/$codigo',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedSuperAdminUsuariosRoute =
+  AuthenticatedSuperAdminUsuariosRouteImport.update({
+    id: '/usuarios',
+    path: '/usuarios',
+    getParentRoute: () => AuthenticatedSuperAdminRoute,
+  } as any)
+const AuthenticatedSuperAdminSuporteRoute =
+  AuthenticatedSuperAdminSuporteRouteImport.update({
+    id: '/suporte',
+    path: '/suporte',
+    getParentRoute: () => AuthenticatedSuperAdminRoute,
+  } as any)
+const AuthenticatedSuperAdminRelatoriosRoute =
+  AuthenticatedSuperAdminRelatoriosRouteImport.update({
+    id: '/relatorios',
+    path: '/relatorios',
+    getParentRoute: () => AuthenticatedSuperAdminRoute,
+  } as any)
+const AuthenticatedSuperAdminCursosRoute =
+  AuthenticatedSuperAdminCursosRouteImport.update({
+    id: '/cursos',
+    path: '/cursos',
+    getParentRoute: () => AuthenticatedSuperAdminRoute,
+  } as any)
+const AuthenticatedSuperAdminConfiguracoesRoute =
+  AuthenticatedSuperAdminConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => AuthenticatedSuperAdminRoute,
+  } as any)
+const AuthenticatedSecretariaSolicitacoesRoute =
+  AuthenticatedSecretariaSolicitacoesRouteImport.update({
+    id: '/solicitacoes',
+    path: '/solicitacoes',
+    getParentRoute: () => AuthenticatedSecretariaRoute,
+  } as any)
+const AuthenticatedSecretariaPagamentosDinheiroRoute =
+  AuthenticatedSecretariaPagamentosDinheiroRouteImport.update({
+    id: '/pagamentos-dinheiro',
+    path: '/pagamentos-dinheiro',
+    getParentRoute: () => AuthenticatedSecretariaRoute,
+  } as any)
+const AuthenticatedSecretariaMatriculasRoute =
+  AuthenticatedSecretariaMatriculasRouteImport.update({
+    id: '/matriculas',
+    path: '/matriculas',
+    getParentRoute: () => AuthenticatedSecretariaRoute,
+  } as any)
+const AuthenticatedSecretariaAlunosRoute =
+  AuthenticatedSecretariaAlunosRouteImport.update({
+    id: '/alunos',
+    path: '/alunos',
+    getParentRoute: () => AuthenticatedSecretariaRoute,
+  } as any)
+const AuthenticatedProfessorCursosRoute =
+  AuthenticatedProfessorCursosRouteImport.update({
+    id: '/cursos',
+    path: '/cursos',
+    getParentRoute: () => AuthenticatedProfessorRoute,
+  } as any)
+const AuthenticatedProfessorCronogramaRoute =
+  AuthenticatedProfessorCronogramaRouteImport.update({
+    id: '/cronograma',
+    path: '/cronograma',
+    getParentRoute: () => AuthenticatedProfessorRoute,
+  } as any)
+const AuthenticatedProfessorChamadaRoute =
+  AuthenticatedProfessorChamadaRouteImport.update({
+    id: '/chamada',
+    path: '/chamada',
+    getParentRoute: () => AuthenticatedProfessorRoute,
+  } as any)
+const AuthenticatedProfessorAlunosRoute =
+  AuthenticatedProfessorAlunosRouteImport.update({
+    id: '/alunos',
+    path: '/alunos',
+    getParentRoute: () => AuthenticatedProfessorRoute,
+  } as any)
+const AuthenticatedAlunoSuporteRoute =
+  AuthenticatedAlunoSuporteRouteImport.update({
+    id: '/suporte',
+    path: '/suporte',
+    getParentRoute: () => AuthenticatedAlunoRoute,
+  } as any)
+const AuthenticatedAlunoSecretariaRoute =
+  AuthenticatedAlunoSecretariaRouteImport.update({
+    id: '/secretaria',
+    path: '/secretaria',
+    getParentRoute: () => AuthenticatedAlunoRoute,
+  } as any)
+const AuthenticatedAlunoNotificacoesRoute =
+  AuthenticatedAlunoNotificacoesRouteImport.update({
+    id: '/notificacoes',
+    path: '/notificacoes',
+    getParentRoute: () => AuthenticatedAlunoRoute,
+  } as any)
 const AuthenticatedAlunoMeusCursosRoute =
   AuthenticatedAlunoMeusCursosRouteImport.update({
     id: '/meus-cursos',
     path: '/meus-cursos',
+    getParentRoute: () => AuthenticatedAlunoRoute,
+  } as any)
+const AuthenticatedAlunoFinanceiroRoute =
+  AuthenticatedAlunoFinanceiroRouteImport.update({
+    id: '/financeiro',
+    path: '/financeiro',
     getParentRoute: () => AuthenticatedAlunoRoute,
   } as any)
 const AuthenticatedAlunoCursosDisponiveisRoute =
@@ -105,6 +282,48 @@ const AuthenticatedAlunoCarteirinhaRoute =
     path: '/carteirinha',
     getParentRoute: () => AuthenticatedAlunoRoute,
   } as any)
+const AuthenticatedAdminProfessoresRoute =
+  AuthenticatedAdminProfessoresRouteImport.update({
+    id: '/professores',
+    path: '/professores',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminNotificacoesRoute =
+  AuthenticatedAdminNotificacoesRouteImport.update({
+    id: '/notificacoes',
+    path: '/notificacoes',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminMatriculasRoute =
+  AuthenticatedAdminMatriculasRouteImport.update({
+    id: '/matriculas',
+    path: '/matriculas',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminFinanceiroRoute =
+  AuthenticatedAdminFinanceiroRouteImport.update({
+    id: '/financeiro',
+    path: '/financeiro',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminCursosRoute =
+  AuthenticatedAdminCursosRouteImport.update({
+    id: '/cursos',
+    path: '/cursos',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminCertificadosRoute =
+  AuthenticatedAdminCertificadosRouteImport.update({
+    id: '/certificados',
+    path: '/certificados',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminAlunosRoute =
+  AuthenticatedAdminAlunosRouteImport.update({
+    id: '/alunos',
+    path: '/alunos',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAlunoCursoIdRoute =
   AuthenticatedAlunoCursoIdRouteImport.update({
     id: '/curso/$id',
@@ -117,15 +336,47 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/contato': typeof ContatoRoute
   '/sobre': typeof SobreRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/aluno': typeof AuthenticatedAlunoRouteWithChildren
+  '/professor': typeof AuthenticatedProfessorRouteWithChildren
+  '/secretaria': typeof AuthenticatedSecretariaRouteWithChildren
+  '/super-admin': typeof AuthenticatedSuperAdminRouteWithChildren
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos/': typeof CursosIndexRoute
+  '/admin/alunos': typeof AuthenticatedAdminAlunosRoute
+  '/admin/certificados': typeof AuthenticatedAdminCertificadosRoute
+  '/admin/cursos': typeof AuthenticatedAdminCursosRoute
+  '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
+  '/admin/matriculas': typeof AuthenticatedAdminMatriculasRoute
+  '/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
+  '/admin/professores': typeof AuthenticatedAdminProfessoresRoute
   '/aluno/carteirinha': typeof AuthenticatedAlunoCarteirinhaRoute
   '/aluno/certificados': typeof AuthenticatedAlunoCertificadosRoute
   '/aluno/cursos-disponiveis': typeof AuthenticatedAlunoCursosDisponiveisRoute
+  '/aluno/financeiro': typeof AuthenticatedAlunoFinanceiroRoute
   '/aluno/meus-cursos': typeof AuthenticatedAlunoMeusCursosRoute
+  '/aluno/notificacoes': typeof AuthenticatedAlunoNotificacoesRoute
+  '/aluno/secretaria': typeof AuthenticatedAlunoSecretariaRoute
+  '/aluno/suporte': typeof AuthenticatedAlunoSuporteRoute
+  '/professor/alunos': typeof AuthenticatedProfessorAlunosRoute
+  '/professor/chamada': typeof AuthenticatedProfessorChamadaRoute
+  '/professor/cronograma': typeof AuthenticatedProfessorCronogramaRoute
+  '/professor/cursos': typeof AuthenticatedProfessorCursosRoute
+  '/secretaria/alunos': typeof AuthenticatedSecretariaAlunosRoute
+  '/secretaria/matriculas': typeof AuthenticatedSecretariaMatriculasRoute
+  '/secretaria/pagamentos-dinheiro': typeof AuthenticatedSecretariaPagamentosDinheiroRoute
+  '/secretaria/solicitacoes': typeof AuthenticatedSecretariaSolicitacoesRoute
+  '/super-admin/configuracoes': typeof AuthenticatedSuperAdminConfiguracoesRoute
+  '/super-admin/cursos': typeof AuthenticatedSuperAdminCursosRoute
+  '/super-admin/relatorios': typeof AuthenticatedSuperAdminRelatoriosRoute
+  '/super-admin/suporte': typeof AuthenticatedSuperAdminSuporteRoute
+  '/super-admin/usuarios': typeof AuthenticatedSuperAdminUsuariosRoute
   '/certificado/validar/$codigo': typeof CertificadoValidarCodigoRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/aluno/': typeof AuthenticatedAlunoIndexRoute
+  '/professor/': typeof AuthenticatedProfessorIndexRoute
+  '/secretaria/': typeof AuthenticatedSecretariaIndexRoute
+  '/super-admin/': typeof AuthenticatedSuperAdminIndexRoute
   '/certificado/validar/': typeof CertificadoValidarIndexRoute
   '/aluno/curso/$id': typeof AuthenticatedAlunoCursoIdRoute
 }
@@ -136,12 +387,40 @@ export interface FileRoutesByTo {
   '/sobre': typeof SobreRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos': typeof CursosIndexRoute
+  '/admin/alunos': typeof AuthenticatedAdminAlunosRoute
+  '/admin/certificados': typeof AuthenticatedAdminCertificadosRoute
+  '/admin/cursos': typeof AuthenticatedAdminCursosRoute
+  '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
+  '/admin/matriculas': typeof AuthenticatedAdminMatriculasRoute
+  '/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
+  '/admin/professores': typeof AuthenticatedAdminProfessoresRoute
   '/aluno/carteirinha': typeof AuthenticatedAlunoCarteirinhaRoute
   '/aluno/certificados': typeof AuthenticatedAlunoCertificadosRoute
   '/aluno/cursos-disponiveis': typeof AuthenticatedAlunoCursosDisponiveisRoute
+  '/aluno/financeiro': typeof AuthenticatedAlunoFinanceiroRoute
   '/aluno/meus-cursos': typeof AuthenticatedAlunoMeusCursosRoute
+  '/aluno/notificacoes': typeof AuthenticatedAlunoNotificacoesRoute
+  '/aluno/secretaria': typeof AuthenticatedAlunoSecretariaRoute
+  '/aluno/suporte': typeof AuthenticatedAlunoSuporteRoute
+  '/professor/alunos': typeof AuthenticatedProfessorAlunosRoute
+  '/professor/chamada': typeof AuthenticatedProfessorChamadaRoute
+  '/professor/cronograma': typeof AuthenticatedProfessorCronogramaRoute
+  '/professor/cursos': typeof AuthenticatedProfessorCursosRoute
+  '/secretaria/alunos': typeof AuthenticatedSecretariaAlunosRoute
+  '/secretaria/matriculas': typeof AuthenticatedSecretariaMatriculasRoute
+  '/secretaria/pagamentos-dinheiro': typeof AuthenticatedSecretariaPagamentosDinheiroRoute
+  '/secretaria/solicitacoes': typeof AuthenticatedSecretariaSolicitacoesRoute
+  '/super-admin/configuracoes': typeof AuthenticatedSuperAdminConfiguracoesRoute
+  '/super-admin/cursos': typeof AuthenticatedSuperAdminCursosRoute
+  '/super-admin/relatorios': typeof AuthenticatedSuperAdminRelatoriosRoute
+  '/super-admin/suporte': typeof AuthenticatedSuperAdminSuporteRoute
+  '/super-admin/usuarios': typeof AuthenticatedSuperAdminUsuariosRoute
   '/certificado/validar/$codigo': typeof CertificadoValidarCodigoRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/aluno': typeof AuthenticatedAlunoIndexRoute
+  '/professor': typeof AuthenticatedProfessorIndexRoute
+  '/secretaria': typeof AuthenticatedSecretariaIndexRoute
+  '/super-admin': typeof AuthenticatedSuperAdminIndexRoute
   '/certificado/validar': typeof CertificadoValidarIndexRoute
   '/aluno/curso/$id': typeof AuthenticatedAlunoCursoIdRoute
 }
@@ -152,15 +431,47 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/contato': typeof ContatoRoute
   '/sobre': typeof SobreRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/aluno': typeof AuthenticatedAlunoRouteWithChildren
+  '/_authenticated/professor': typeof AuthenticatedProfessorRouteWithChildren
+  '/_authenticated/secretaria': typeof AuthenticatedSecretariaRouteWithChildren
+  '/_authenticated/super-admin': typeof AuthenticatedSuperAdminRouteWithChildren
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos/': typeof CursosIndexRoute
+  '/_authenticated/admin/alunos': typeof AuthenticatedAdminAlunosRoute
+  '/_authenticated/admin/certificados': typeof AuthenticatedAdminCertificadosRoute
+  '/_authenticated/admin/cursos': typeof AuthenticatedAdminCursosRoute
+  '/_authenticated/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
+  '/_authenticated/admin/matriculas': typeof AuthenticatedAdminMatriculasRoute
+  '/_authenticated/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
+  '/_authenticated/admin/professores': typeof AuthenticatedAdminProfessoresRoute
   '/_authenticated/aluno/carteirinha': typeof AuthenticatedAlunoCarteirinhaRoute
   '/_authenticated/aluno/certificados': typeof AuthenticatedAlunoCertificadosRoute
   '/_authenticated/aluno/cursos-disponiveis': typeof AuthenticatedAlunoCursosDisponiveisRoute
+  '/_authenticated/aluno/financeiro': typeof AuthenticatedAlunoFinanceiroRoute
   '/_authenticated/aluno/meus-cursos': typeof AuthenticatedAlunoMeusCursosRoute
+  '/_authenticated/aluno/notificacoes': typeof AuthenticatedAlunoNotificacoesRoute
+  '/_authenticated/aluno/secretaria': typeof AuthenticatedAlunoSecretariaRoute
+  '/_authenticated/aluno/suporte': typeof AuthenticatedAlunoSuporteRoute
+  '/_authenticated/professor/alunos': typeof AuthenticatedProfessorAlunosRoute
+  '/_authenticated/professor/chamada': typeof AuthenticatedProfessorChamadaRoute
+  '/_authenticated/professor/cronograma': typeof AuthenticatedProfessorCronogramaRoute
+  '/_authenticated/professor/cursos': typeof AuthenticatedProfessorCursosRoute
+  '/_authenticated/secretaria/alunos': typeof AuthenticatedSecretariaAlunosRoute
+  '/_authenticated/secretaria/matriculas': typeof AuthenticatedSecretariaMatriculasRoute
+  '/_authenticated/secretaria/pagamentos-dinheiro': typeof AuthenticatedSecretariaPagamentosDinheiroRoute
+  '/_authenticated/secretaria/solicitacoes': typeof AuthenticatedSecretariaSolicitacoesRoute
+  '/_authenticated/super-admin/configuracoes': typeof AuthenticatedSuperAdminConfiguracoesRoute
+  '/_authenticated/super-admin/cursos': typeof AuthenticatedSuperAdminCursosRoute
+  '/_authenticated/super-admin/relatorios': typeof AuthenticatedSuperAdminRelatoriosRoute
+  '/_authenticated/super-admin/suporte': typeof AuthenticatedSuperAdminSuporteRoute
+  '/_authenticated/super-admin/usuarios': typeof AuthenticatedSuperAdminUsuariosRoute
   '/certificado/validar/$codigo': typeof CertificadoValidarCodigoRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/aluno/': typeof AuthenticatedAlunoIndexRoute
+  '/_authenticated/professor/': typeof AuthenticatedProfessorIndexRoute
+  '/_authenticated/secretaria/': typeof AuthenticatedSecretariaIndexRoute
+  '/_authenticated/super-admin/': typeof AuthenticatedSuperAdminIndexRoute
   '/certificado/validar/': typeof CertificadoValidarIndexRoute
   '/_authenticated/aluno/curso/$id': typeof AuthenticatedAlunoCursoIdRoute
 }
@@ -171,15 +482,47 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contato'
     | '/sobre'
+    | '/admin'
     | '/aluno'
+    | '/professor'
+    | '/secretaria'
+    | '/super-admin'
     | '/cursos/$slug'
     | '/cursos/'
+    | '/admin/alunos'
+    | '/admin/certificados'
+    | '/admin/cursos'
+    | '/admin/financeiro'
+    | '/admin/matriculas'
+    | '/admin/notificacoes'
+    | '/admin/professores'
     | '/aluno/carteirinha'
     | '/aluno/certificados'
     | '/aluno/cursos-disponiveis'
+    | '/aluno/financeiro'
     | '/aluno/meus-cursos'
+    | '/aluno/notificacoes'
+    | '/aluno/secretaria'
+    | '/aluno/suporte'
+    | '/professor/alunos'
+    | '/professor/chamada'
+    | '/professor/cronograma'
+    | '/professor/cursos'
+    | '/secretaria/alunos'
+    | '/secretaria/matriculas'
+    | '/secretaria/pagamentos-dinheiro'
+    | '/secretaria/solicitacoes'
+    | '/super-admin/configuracoes'
+    | '/super-admin/cursos'
+    | '/super-admin/relatorios'
+    | '/super-admin/suporte'
+    | '/super-admin/usuarios'
     | '/certificado/validar/$codigo'
+    | '/admin/'
     | '/aluno/'
+    | '/professor/'
+    | '/secretaria/'
+    | '/super-admin/'
     | '/certificado/validar/'
     | '/aluno/curso/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -190,12 +533,40 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/cursos/$slug'
     | '/cursos'
+    | '/admin/alunos'
+    | '/admin/certificados'
+    | '/admin/cursos'
+    | '/admin/financeiro'
+    | '/admin/matriculas'
+    | '/admin/notificacoes'
+    | '/admin/professores'
     | '/aluno/carteirinha'
     | '/aluno/certificados'
     | '/aluno/cursos-disponiveis'
+    | '/aluno/financeiro'
     | '/aluno/meus-cursos'
+    | '/aluno/notificacoes'
+    | '/aluno/secretaria'
+    | '/aluno/suporte'
+    | '/professor/alunos'
+    | '/professor/chamada'
+    | '/professor/cronograma'
+    | '/professor/cursos'
+    | '/secretaria/alunos'
+    | '/secretaria/matriculas'
+    | '/secretaria/pagamentos-dinheiro'
+    | '/secretaria/solicitacoes'
+    | '/super-admin/configuracoes'
+    | '/super-admin/cursos'
+    | '/super-admin/relatorios'
+    | '/super-admin/suporte'
+    | '/super-admin/usuarios'
     | '/certificado/validar/$codigo'
+    | '/admin'
     | '/aluno'
+    | '/professor'
+    | '/secretaria'
+    | '/super-admin'
     | '/certificado/validar'
     | '/aluno/curso/$id'
   id:
@@ -205,15 +576,47 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contato'
     | '/sobre'
+    | '/_authenticated/admin'
     | '/_authenticated/aluno'
+    | '/_authenticated/professor'
+    | '/_authenticated/secretaria'
+    | '/_authenticated/super-admin'
     | '/cursos/$slug'
     | '/cursos/'
+    | '/_authenticated/admin/alunos'
+    | '/_authenticated/admin/certificados'
+    | '/_authenticated/admin/cursos'
+    | '/_authenticated/admin/financeiro'
+    | '/_authenticated/admin/matriculas'
+    | '/_authenticated/admin/notificacoes'
+    | '/_authenticated/admin/professores'
     | '/_authenticated/aluno/carteirinha'
     | '/_authenticated/aluno/certificados'
     | '/_authenticated/aluno/cursos-disponiveis'
+    | '/_authenticated/aluno/financeiro'
     | '/_authenticated/aluno/meus-cursos'
+    | '/_authenticated/aluno/notificacoes'
+    | '/_authenticated/aluno/secretaria'
+    | '/_authenticated/aluno/suporte'
+    | '/_authenticated/professor/alunos'
+    | '/_authenticated/professor/chamada'
+    | '/_authenticated/professor/cronograma'
+    | '/_authenticated/professor/cursos'
+    | '/_authenticated/secretaria/alunos'
+    | '/_authenticated/secretaria/matriculas'
+    | '/_authenticated/secretaria/pagamentos-dinheiro'
+    | '/_authenticated/secretaria/solicitacoes'
+    | '/_authenticated/super-admin/configuracoes'
+    | '/_authenticated/super-admin/cursos'
+    | '/_authenticated/super-admin/relatorios'
+    | '/_authenticated/super-admin/suporte'
+    | '/_authenticated/super-admin/usuarios'
     | '/certificado/validar/$codigo'
+    | '/_authenticated/admin/'
     | '/_authenticated/aluno/'
+    | '/_authenticated/professor/'
+    | '/_authenticated/secretaria/'
+    | '/_authenticated/super-admin/'
     | '/certificado/validar/'
     | '/_authenticated/aluno/curso/$id'
   fileRoutesById: FileRoutesById
@@ -281,11 +684,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CursosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/super-admin': {
+      id: '/_authenticated/super-admin'
+      path: '/super-admin'
+      fullPath: '/super-admin'
+      preLoaderRoute: typeof AuthenticatedSuperAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/secretaria': {
+      id: '/_authenticated/secretaria'
+      path: '/secretaria'
+      fullPath: '/secretaria'
+      preLoaderRoute: typeof AuthenticatedSecretariaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/professor': {
+      id: '/_authenticated/professor'
+      path: '/professor'
+      fullPath: '/professor'
+      preLoaderRoute: typeof AuthenticatedProfessorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/aluno': {
       id: '/_authenticated/aluno'
       path: '/aluno'
       fullPath: '/aluno'
       preLoaderRoute: typeof AuthenticatedAlunoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/certificado/validar/': {
@@ -295,12 +726,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CertificadoValidarIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/super-admin/': {
+      id: '/_authenticated/super-admin/'
+      path: '/'
+      fullPath: '/super-admin/'
+      preLoaderRoute: typeof AuthenticatedSuperAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedSuperAdminRoute
+    }
+    '/_authenticated/secretaria/': {
+      id: '/_authenticated/secretaria/'
+      path: '/'
+      fullPath: '/secretaria/'
+      preLoaderRoute: typeof AuthenticatedSecretariaIndexRouteImport
+      parentRoute: typeof AuthenticatedSecretariaRoute
+    }
+    '/_authenticated/professor/': {
+      id: '/_authenticated/professor/'
+      path: '/'
+      fullPath: '/professor/'
+      preLoaderRoute: typeof AuthenticatedProfessorIndexRouteImport
+      parentRoute: typeof AuthenticatedProfessorRoute
+    }
     '/_authenticated/aluno/': {
       id: '/_authenticated/aluno/'
       path: '/'
       fullPath: '/aluno/'
       preLoaderRoute: typeof AuthenticatedAlunoIndexRouteImport
       parentRoute: typeof AuthenticatedAlunoRoute
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/certificado/validar/$codigo': {
       id: '/certificado/validar/$codigo'
@@ -309,11 +768,130 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CertificadoValidarCodigoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/super-admin/usuarios': {
+      id: '/_authenticated/super-admin/usuarios'
+      path: '/usuarios'
+      fullPath: '/super-admin/usuarios'
+      preLoaderRoute: typeof AuthenticatedSuperAdminUsuariosRouteImport
+      parentRoute: typeof AuthenticatedSuperAdminRoute
+    }
+    '/_authenticated/super-admin/suporte': {
+      id: '/_authenticated/super-admin/suporte'
+      path: '/suporte'
+      fullPath: '/super-admin/suporte'
+      preLoaderRoute: typeof AuthenticatedSuperAdminSuporteRouteImport
+      parentRoute: typeof AuthenticatedSuperAdminRoute
+    }
+    '/_authenticated/super-admin/relatorios': {
+      id: '/_authenticated/super-admin/relatorios'
+      path: '/relatorios'
+      fullPath: '/super-admin/relatorios'
+      preLoaderRoute: typeof AuthenticatedSuperAdminRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedSuperAdminRoute
+    }
+    '/_authenticated/super-admin/cursos': {
+      id: '/_authenticated/super-admin/cursos'
+      path: '/cursos'
+      fullPath: '/super-admin/cursos'
+      preLoaderRoute: typeof AuthenticatedSuperAdminCursosRouteImport
+      parentRoute: typeof AuthenticatedSuperAdminRoute
+    }
+    '/_authenticated/super-admin/configuracoes': {
+      id: '/_authenticated/super-admin/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/super-admin/configuracoes'
+      preLoaderRoute: typeof AuthenticatedSuperAdminConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedSuperAdminRoute
+    }
+    '/_authenticated/secretaria/solicitacoes': {
+      id: '/_authenticated/secretaria/solicitacoes'
+      path: '/solicitacoes'
+      fullPath: '/secretaria/solicitacoes'
+      preLoaderRoute: typeof AuthenticatedSecretariaSolicitacoesRouteImport
+      parentRoute: typeof AuthenticatedSecretariaRoute
+    }
+    '/_authenticated/secretaria/pagamentos-dinheiro': {
+      id: '/_authenticated/secretaria/pagamentos-dinheiro'
+      path: '/pagamentos-dinheiro'
+      fullPath: '/secretaria/pagamentos-dinheiro'
+      preLoaderRoute: typeof AuthenticatedSecretariaPagamentosDinheiroRouteImport
+      parentRoute: typeof AuthenticatedSecretariaRoute
+    }
+    '/_authenticated/secretaria/matriculas': {
+      id: '/_authenticated/secretaria/matriculas'
+      path: '/matriculas'
+      fullPath: '/secretaria/matriculas'
+      preLoaderRoute: typeof AuthenticatedSecretariaMatriculasRouteImport
+      parentRoute: typeof AuthenticatedSecretariaRoute
+    }
+    '/_authenticated/secretaria/alunos': {
+      id: '/_authenticated/secretaria/alunos'
+      path: '/alunos'
+      fullPath: '/secretaria/alunos'
+      preLoaderRoute: typeof AuthenticatedSecretariaAlunosRouteImport
+      parentRoute: typeof AuthenticatedSecretariaRoute
+    }
+    '/_authenticated/professor/cursos': {
+      id: '/_authenticated/professor/cursos'
+      path: '/cursos'
+      fullPath: '/professor/cursos'
+      preLoaderRoute: typeof AuthenticatedProfessorCursosRouteImport
+      parentRoute: typeof AuthenticatedProfessorRoute
+    }
+    '/_authenticated/professor/cronograma': {
+      id: '/_authenticated/professor/cronograma'
+      path: '/cronograma'
+      fullPath: '/professor/cronograma'
+      preLoaderRoute: typeof AuthenticatedProfessorCronogramaRouteImport
+      parentRoute: typeof AuthenticatedProfessorRoute
+    }
+    '/_authenticated/professor/chamada': {
+      id: '/_authenticated/professor/chamada'
+      path: '/chamada'
+      fullPath: '/professor/chamada'
+      preLoaderRoute: typeof AuthenticatedProfessorChamadaRouteImport
+      parentRoute: typeof AuthenticatedProfessorRoute
+    }
+    '/_authenticated/professor/alunos': {
+      id: '/_authenticated/professor/alunos'
+      path: '/alunos'
+      fullPath: '/professor/alunos'
+      preLoaderRoute: typeof AuthenticatedProfessorAlunosRouteImport
+      parentRoute: typeof AuthenticatedProfessorRoute
+    }
+    '/_authenticated/aluno/suporte': {
+      id: '/_authenticated/aluno/suporte'
+      path: '/suporte'
+      fullPath: '/aluno/suporte'
+      preLoaderRoute: typeof AuthenticatedAlunoSuporteRouteImport
+      parentRoute: typeof AuthenticatedAlunoRoute
+    }
+    '/_authenticated/aluno/secretaria': {
+      id: '/_authenticated/aluno/secretaria'
+      path: '/secretaria'
+      fullPath: '/aluno/secretaria'
+      preLoaderRoute: typeof AuthenticatedAlunoSecretariaRouteImport
+      parentRoute: typeof AuthenticatedAlunoRoute
+    }
+    '/_authenticated/aluno/notificacoes': {
+      id: '/_authenticated/aluno/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/aluno/notificacoes'
+      preLoaderRoute: typeof AuthenticatedAlunoNotificacoesRouteImport
+      parentRoute: typeof AuthenticatedAlunoRoute
+    }
     '/_authenticated/aluno/meus-cursos': {
       id: '/_authenticated/aluno/meus-cursos'
       path: '/meus-cursos'
       fullPath: '/aluno/meus-cursos'
       preLoaderRoute: typeof AuthenticatedAlunoMeusCursosRouteImport
+      parentRoute: typeof AuthenticatedAlunoRoute
+    }
+    '/_authenticated/aluno/financeiro': {
+      id: '/_authenticated/aluno/financeiro'
+      path: '/financeiro'
+      fullPath: '/aluno/financeiro'
+      preLoaderRoute: typeof AuthenticatedAlunoFinanceiroRouteImport
       parentRoute: typeof AuthenticatedAlunoRoute
     }
     '/_authenticated/aluno/cursos-disponiveis': {
@@ -337,6 +915,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlunoCarteirinhaRouteImport
       parentRoute: typeof AuthenticatedAlunoRoute
     }
+    '/_authenticated/admin/professores': {
+      id: '/_authenticated/admin/professores'
+      path: '/professores'
+      fullPath: '/admin/professores'
+      preLoaderRoute: typeof AuthenticatedAdminProfessoresRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/notificacoes': {
+      id: '/_authenticated/admin/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/admin/notificacoes'
+      preLoaderRoute: typeof AuthenticatedAdminNotificacoesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/matriculas': {
+      id: '/_authenticated/admin/matriculas'
+      path: '/matriculas'
+      fullPath: '/admin/matriculas'
+      preLoaderRoute: typeof AuthenticatedAdminMatriculasRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/financeiro': {
+      id: '/_authenticated/admin/financeiro'
+      path: '/financeiro'
+      fullPath: '/admin/financeiro'
+      preLoaderRoute: typeof AuthenticatedAdminFinanceiroRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/cursos': {
+      id: '/_authenticated/admin/cursos'
+      path: '/cursos'
+      fullPath: '/admin/cursos'
+      preLoaderRoute: typeof AuthenticatedAdminCursosRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/certificados': {
+      id: '/_authenticated/admin/certificados'
+      path: '/certificados'
+      fullPath: '/admin/certificados'
+      preLoaderRoute: typeof AuthenticatedAdminCertificadosRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/alunos': {
+      id: '/_authenticated/admin/alunos'
+      path: '/alunos'
+      fullPath: '/admin/alunos'
+      preLoaderRoute: typeof AuthenticatedAdminAlunosRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/aluno/curso/$id': {
       id: '/_authenticated/aluno/curso/$id'
       path: '/curso/$id'
@@ -347,11 +974,40 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAlunosRoute: typeof AuthenticatedAdminAlunosRoute
+  AuthenticatedAdminCertificadosRoute: typeof AuthenticatedAdminCertificadosRoute
+  AuthenticatedAdminCursosRoute: typeof AuthenticatedAdminCursosRoute
+  AuthenticatedAdminFinanceiroRoute: typeof AuthenticatedAdminFinanceiroRoute
+  AuthenticatedAdminMatriculasRoute: typeof AuthenticatedAdminMatriculasRoute
+  AuthenticatedAdminNotificacoesRoute: typeof AuthenticatedAdminNotificacoesRoute
+  AuthenticatedAdminProfessoresRoute: typeof AuthenticatedAdminProfessoresRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAlunosRoute: AuthenticatedAdminAlunosRoute,
+  AuthenticatedAdminCertificadosRoute: AuthenticatedAdminCertificadosRoute,
+  AuthenticatedAdminCursosRoute: AuthenticatedAdminCursosRoute,
+  AuthenticatedAdminFinanceiroRoute: AuthenticatedAdminFinanceiroRoute,
+  AuthenticatedAdminMatriculasRoute: AuthenticatedAdminMatriculasRoute,
+  AuthenticatedAdminNotificacoesRoute: AuthenticatedAdminNotificacoesRoute,
+  AuthenticatedAdminProfessoresRoute: AuthenticatedAdminProfessoresRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedAlunoRouteChildren {
   AuthenticatedAlunoCarteirinhaRoute: typeof AuthenticatedAlunoCarteirinhaRoute
   AuthenticatedAlunoCertificadosRoute: typeof AuthenticatedAlunoCertificadosRoute
   AuthenticatedAlunoCursosDisponiveisRoute: typeof AuthenticatedAlunoCursosDisponiveisRoute
+  AuthenticatedAlunoFinanceiroRoute: typeof AuthenticatedAlunoFinanceiroRoute
   AuthenticatedAlunoMeusCursosRoute: typeof AuthenticatedAlunoMeusCursosRoute
+  AuthenticatedAlunoNotificacoesRoute: typeof AuthenticatedAlunoNotificacoesRoute
+  AuthenticatedAlunoSecretariaRoute: typeof AuthenticatedAlunoSecretariaRoute
+  AuthenticatedAlunoSuporteRoute: typeof AuthenticatedAlunoSuporteRoute
   AuthenticatedAlunoIndexRoute: typeof AuthenticatedAlunoIndexRoute
   AuthenticatedAlunoCursoIdRoute: typeof AuthenticatedAlunoCursoIdRoute
 }
@@ -361,7 +1017,11 @@ const AuthenticatedAlunoRouteChildren: AuthenticatedAlunoRouteChildren = {
   AuthenticatedAlunoCertificadosRoute: AuthenticatedAlunoCertificadosRoute,
   AuthenticatedAlunoCursosDisponiveisRoute:
     AuthenticatedAlunoCursosDisponiveisRoute,
+  AuthenticatedAlunoFinanceiroRoute: AuthenticatedAlunoFinanceiroRoute,
   AuthenticatedAlunoMeusCursosRoute: AuthenticatedAlunoMeusCursosRoute,
+  AuthenticatedAlunoNotificacoesRoute: AuthenticatedAlunoNotificacoesRoute,
+  AuthenticatedAlunoSecretariaRoute: AuthenticatedAlunoSecretariaRoute,
+  AuthenticatedAlunoSuporteRoute: AuthenticatedAlunoSuporteRoute,
   AuthenticatedAlunoIndexRoute: AuthenticatedAlunoIndexRoute,
   AuthenticatedAlunoCursoIdRoute: AuthenticatedAlunoCursoIdRoute,
 }
@@ -369,12 +1029,94 @@ const AuthenticatedAlunoRouteChildren: AuthenticatedAlunoRouteChildren = {
 const AuthenticatedAlunoRouteWithChildren =
   AuthenticatedAlunoRoute._addFileChildren(AuthenticatedAlunoRouteChildren)
 
+interface AuthenticatedProfessorRouteChildren {
+  AuthenticatedProfessorAlunosRoute: typeof AuthenticatedProfessorAlunosRoute
+  AuthenticatedProfessorChamadaRoute: typeof AuthenticatedProfessorChamadaRoute
+  AuthenticatedProfessorCronogramaRoute: typeof AuthenticatedProfessorCronogramaRoute
+  AuthenticatedProfessorCursosRoute: typeof AuthenticatedProfessorCursosRoute
+  AuthenticatedProfessorIndexRoute: typeof AuthenticatedProfessorIndexRoute
+}
+
+const AuthenticatedProfessorRouteChildren: AuthenticatedProfessorRouteChildren =
+  {
+    AuthenticatedProfessorAlunosRoute: AuthenticatedProfessorAlunosRoute,
+    AuthenticatedProfessorChamadaRoute: AuthenticatedProfessorChamadaRoute,
+    AuthenticatedProfessorCronogramaRoute:
+      AuthenticatedProfessorCronogramaRoute,
+    AuthenticatedProfessorCursosRoute: AuthenticatedProfessorCursosRoute,
+    AuthenticatedProfessorIndexRoute: AuthenticatedProfessorIndexRoute,
+  }
+
+const AuthenticatedProfessorRouteWithChildren =
+  AuthenticatedProfessorRoute._addFileChildren(
+    AuthenticatedProfessorRouteChildren,
+  )
+
+interface AuthenticatedSecretariaRouteChildren {
+  AuthenticatedSecretariaAlunosRoute: typeof AuthenticatedSecretariaAlunosRoute
+  AuthenticatedSecretariaMatriculasRoute: typeof AuthenticatedSecretariaMatriculasRoute
+  AuthenticatedSecretariaPagamentosDinheiroRoute: typeof AuthenticatedSecretariaPagamentosDinheiroRoute
+  AuthenticatedSecretariaSolicitacoesRoute: typeof AuthenticatedSecretariaSolicitacoesRoute
+  AuthenticatedSecretariaIndexRoute: typeof AuthenticatedSecretariaIndexRoute
+}
+
+const AuthenticatedSecretariaRouteChildren: AuthenticatedSecretariaRouteChildren =
+  {
+    AuthenticatedSecretariaAlunosRoute: AuthenticatedSecretariaAlunosRoute,
+    AuthenticatedSecretariaMatriculasRoute:
+      AuthenticatedSecretariaMatriculasRoute,
+    AuthenticatedSecretariaPagamentosDinheiroRoute:
+      AuthenticatedSecretariaPagamentosDinheiroRoute,
+    AuthenticatedSecretariaSolicitacoesRoute:
+      AuthenticatedSecretariaSolicitacoesRoute,
+    AuthenticatedSecretariaIndexRoute: AuthenticatedSecretariaIndexRoute,
+  }
+
+const AuthenticatedSecretariaRouteWithChildren =
+  AuthenticatedSecretariaRoute._addFileChildren(
+    AuthenticatedSecretariaRouteChildren,
+  )
+
+interface AuthenticatedSuperAdminRouteChildren {
+  AuthenticatedSuperAdminConfiguracoesRoute: typeof AuthenticatedSuperAdminConfiguracoesRoute
+  AuthenticatedSuperAdminCursosRoute: typeof AuthenticatedSuperAdminCursosRoute
+  AuthenticatedSuperAdminRelatoriosRoute: typeof AuthenticatedSuperAdminRelatoriosRoute
+  AuthenticatedSuperAdminSuporteRoute: typeof AuthenticatedSuperAdminSuporteRoute
+  AuthenticatedSuperAdminUsuariosRoute: typeof AuthenticatedSuperAdminUsuariosRoute
+  AuthenticatedSuperAdminIndexRoute: typeof AuthenticatedSuperAdminIndexRoute
+}
+
+const AuthenticatedSuperAdminRouteChildren: AuthenticatedSuperAdminRouteChildren =
+  {
+    AuthenticatedSuperAdminConfiguracoesRoute:
+      AuthenticatedSuperAdminConfiguracoesRoute,
+    AuthenticatedSuperAdminCursosRoute: AuthenticatedSuperAdminCursosRoute,
+    AuthenticatedSuperAdminRelatoriosRoute:
+      AuthenticatedSuperAdminRelatoriosRoute,
+    AuthenticatedSuperAdminSuporteRoute: AuthenticatedSuperAdminSuporteRoute,
+    AuthenticatedSuperAdminUsuariosRoute: AuthenticatedSuperAdminUsuariosRoute,
+    AuthenticatedSuperAdminIndexRoute: AuthenticatedSuperAdminIndexRoute,
+  }
+
+const AuthenticatedSuperAdminRouteWithChildren =
+  AuthenticatedSuperAdminRoute._addFileChildren(
+    AuthenticatedSuperAdminRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAlunoRoute: typeof AuthenticatedAlunoRouteWithChildren
+  AuthenticatedProfessorRoute: typeof AuthenticatedProfessorRouteWithChildren
+  AuthenticatedSecretariaRoute: typeof AuthenticatedSecretariaRouteWithChildren
+  AuthenticatedSuperAdminRoute: typeof AuthenticatedSuperAdminRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAlunoRoute: AuthenticatedAlunoRouteWithChildren,
+  AuthenticatedProfessorRoute: AuthenticatedProfessorRouteWithChildren,
+  AuthenticatedSecretariaRoute: AuthenticatedSecretariaRouteWithChildren,
+  AuthenticatedSuperAdminRoute: AuthenticatedSuperAdminRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
