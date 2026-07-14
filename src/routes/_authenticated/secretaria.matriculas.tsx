@@ -276,7 +276,8 @@ function MatriculasSecretaria() {
                         Cancelar
                       </Button>
                     )}
-                  </TableRow>
+                  </TableCell>
+                </TableRow>
               ))}
             </TableBody>
           </Table>
