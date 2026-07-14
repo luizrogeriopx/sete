@@ -16,6 +16,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CursosIndexRouteImport } from './routes/cursos.index'
 import { Route as CursosSlugRouteImport } from './routes/cursos.$slug'
+import { Route as CheckoutSlugRouteImport } from './routes/checkout.$slug'
 import { Route as AuthenticatedSuperAdminRouteImport } from './routes/_authenticated/super-admin'
 import { Route as AuthenticatedSecretariaRouteImport } from './routes/_authenticated/secretaria'
 import { Route as AuthenticatedProfessorRouteImport } from './routes/_authenticated/professor'
@@ -90,6 +91,11 @@ const CursosIndexRoute = CursosIndexRouteImport.update({
 const CursosSlugRoute = CursosSlugRouteImport.update({
   id: '/cursos/$slug',
   path: '/cursos/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutSlugRoute = CheckoutSlugRouteImport.update({
+  id: '/checkout/$slug',
+  path: '/checkout/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSuperAdminRoute = AuthenticatedSuperAdminRouteImport.update({
@@ -341,6 +347,7 @@ export interface FileRoutesByFullPath {
   '/professor': typeof AuthenticatedProfessorRouteWithChildren
   '/secretaria': typeof AuthenticatedSecretariaRouteWithChildren
   '/super-admin': typeof AuthenticatedSuperAdminRouteWithChildren
+  '/checkout/$slug': typeof CheckoutSlugRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos/': typeof CursosIndexRoute
   '/admin/alunos': typeof AuthenticatedAdminAlunosRoute
@@ -385,6 +392,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contato': typeof ContatoRoute
   '/sobre': typeof SobreRoute
+  '/checkout/$slug': typeof CheckoutSlugRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos': typeof CursosIndexRoute
   '/admin/alunos': typeof AuthenticatedAdminAlunosRoute
@@ -436,6 +444,7 @@ export interface FileRoutesById {
   '/_authenticated/professor': typeof AuthenticatedProfessorRouteWithChildren
   '/_authenticated/secretaria': typeof AuthenticatedSecretariaRouteWithChildren
   '/_authenticated/super-admin': typeof AuthenticatedSuperAdminRouteWithChildren
+  '/checkout/$slug': typeof CheckoutSlugRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos/': typeof CursosIndexRoute
   '/_authenticated/admin/alunos': typeof AuthenticatedAdminAlunosRoute
@@ -487,6 +496,7 @@ export interface FileRouteTypes {
     | '/professor'
     | '/secretaria'
     | '/super-admin'
+    | '/checkout/$slug'
     | '/cursos/$slug'
     | '/cursos/'
     | '/admin/alunos'
@@ -531,6 +541,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contato'
     | '/sobre'
+    | '/checkout/$slug'
     | '/cursos/$slug'
     | '/cursos'
     | '/admin/alunos'
@@ -581,6 +592,7 @@ export interface FileRouteTypes {
     | '/_authenticated/professor'
     | '/_authenticated/secretaria'
     | '/_authenticated/super-admin'
+    | '/checkout/$slug'
     | '/cursos/$slug'
     | '/cursos/'
     | '/_authenticated/admin/alunos'
@@ -627,6 +639,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ContatoRoute: typeof ContatoRoute
   SobreRoute: typeof SobreRoute
+  CheckoutSlugRoute: typeof CheckoutSlugRoute
   CursosSlugRoute: typeof CursosSlugRoute
   CursosIndexRoute: typeof CursosIndexRoute
   CertificadoValidarCodigoRoute: typeof CertificadoValidarCodigoRoute
@@ -682,6 +695,13 @@ declare module '@tanstack/react-router' {
       path: '/cursos/$slug'
       fullPath: '/cursos/$slug'
       preLoaderRoute: typeof CursosSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/$slug': {
+      id: '/checkout/$slug'
+      path: '/checkout/$slug'
+      fullPath: '/checkout/$slug'
+      preLoaderRoute: typeof CheckoutSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/super-admin': {
@@ -1128,6 +1148,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ContatoRoute: ContatoRoute,
   SobreRoute: SobreRoute,
+  CheckoutSlugRoute: CheckoutSlugRoute,
   CursosSlugRoute: CursosSlugRoute,
   CursosIndexRoute: CursosIndexRoute,
   CertificadoValidarCodigoRoute: CertificadoValidarCodigoRoute,
