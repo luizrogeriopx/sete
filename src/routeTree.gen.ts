@@ -21,6 +21,7 @@ import { Route as CertificadoValidarIndexRouteImport } from './routes/certificad
 import { Route as AuthenticatedAlunoIndexRouteImport } from './routes/_authenticated/aluno.index'
 import { Route as CertificadoValidarCodigoRouteImport } from './routes/certificado.validar.$codigo'
 import { Route as AuthenticatedAlunoMeusCursosRouteImport } from './routes/_authenticated/aluno.meus-cursos'
+import { Route as AuthenticatedAlunoCursoIdRouteImport } from './routes/_authenticated/aluno.curso.$id'
 
 const SobreRoute = SobreRouteImport.update({
   id: '/sobre',
@@ -83,6 +84,12 @@ const AuthenticatedAlunoMeusCursosRoute =
     path: '/meus-cursos',
     getParentRoute: () => AuthenticatedAlunoRoute,
   } as any)
+const AuthenticatedAlunoCursoIdRoute =
+  AuthenticatedAlunoCursoIdRouteImport.update({
+    id: '/curso/$id',
+    path: '/curso/$id',
+    getParentRoute: () => AuthenticatedAlunoRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/certificado/validar/$codigo': typeof CertificadoValidarCodigoRoute
   '/aluno/': typeof AuthenticatedAlunoIndexRoute
   '/certificado/validar/': typeof CertificadoValidarIndexRoute
+  '/aluno/curso/$id': typeof AuthenticatedAlunoCursoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -108,6 +116,7 @@ export interface FileRoutesByTo {
   '/certificado/validar/$codigo': typeof CertificadoValidarCodigoRoute
   '/aluno': typeof AuthenticatedAlunoIndexRoute
   '/certificado/validar': typeof CertificadoValidarIndexRoute
+  '/aluno/curso/$id': typeof AuthenticatedAlunoCursoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -123,6 +132,7 @@ export interface FileRoutesById {
   '/certificado/validar/$codigo': typeof CertificadoValidarCodigoRoute
   '/_authenticated/aluno/': typeof AuthenticatedAlunoIndexRoute
   '/certificado/validar/': typeof CertificadoValidarIndexRoute
+  '/_authenticated/aluno/curso/$id': typeof AuthenticatedAlunoCursoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/certificado/validar/$codigo'
     | '/aluno/'
     | '/certificado/validar/'
+    | '/aluno/curso/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/certificado/validar/$codigo'
     | '/aluno'
     | '/certificado/validar'
+    | '/aluno/curso/$id'
   id:
     | '__root__'
     | '/'
@@ -164,6 +176,7 @@ export interface FileRouteTypes {
     | '/certificado/validar/$codigo'
     | '/_authenticated/aluno/'
     | '/certificado/validar/'
+    | '/_authenticated/aluno/curso/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -264,17 +277,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlunoMeusCursosRouteImport
       parentRoute: typeof AuthenticatedAlunoRoute
     }
+    '/_authenticated/aluno/curso/$id': {
+      id: '/_authenticated/aluno/curso/$id'
+      path: '/curso/$id'
+      fullPath: '/aluno/curso/$id'
+      preLoaderRoute: typeof AuthenticatedAlunoCursoIdRouteImport
+      parentRoute: typeof AuthenticatedAlunoRoute
+    }
   }
 }
 
 interface AuthenticatedAlunoRouteChildren {
   AuthenticatedAlunoMeusCursosRoute: typeof AuthenticatedAlunoMeusCursosRoute
   AuthenticatedAlunoIndexRoute: typeof AuthenticatedAlunoIndexRoute
+  AuthenticatedAlunoCursoIdRoute: typeof AuthenticatedAlunoCursoIdRoute
 }
 
 const AuthenticatedAlunoRouteChildren: AuthenticatedAlunoRouteChildren = {
   AuthenticatedAlunoMeusCursosRoute: AuthenticatedAlunoMeusCursosRoute,
   AuthenticatedAlunoIndexRoute: AuthenticatedAlunoIndexRoute,
+  AuthenticatedAlunoCursoIdRoute: AuthenticatedAlunoCursoIdRoute,
 }
 
 const AuthenticatedAlunoRouteWithChildren =
