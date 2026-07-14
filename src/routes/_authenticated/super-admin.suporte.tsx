@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LifeBuoy, Send, MessageSquare, ShieldAlert } from "lucide-react";
+import { LifeBuoy, Send, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -22,19 +22,42 @@ function SuporteGlobalSuperAdmin() {
   const [novaMensagem, setNovaMensagem] = useState("");
   const [statusFiltro, setStatusFiltro] = useState<string>("all");
 
-  // Fetch all support tickets, join user profile
-  const { data: tickets, isLoading: isTicketsLoading } = useQuery({
+  // Fetch all support tickets and resolve profiles manually in memory to prevent relationship errors
+  const { data, isLoading: isTicketsLoading } = useQuery({
     queryKey: ["super-admin-tickets-list"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: tickets, error: tError } = await supabase
         .from("suporte_tickets")
-        .select("*, profiles:usuario_id(nome_completo)")
+        .select("*")
         .order("updated_at", { ascending: false });
 
-      if (error) throw error;
-      return data ?? [];
+      if (tError) throw tError;
+
+      const userIds = Array.from(new Set((tickets ?? []).map((t) => t.usuario_id).filter(Boolean)));
+
+      const profilesMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: profiles, error: prError } = await supabase
+          .from("profiles")
+          .select("id, nome_completo")
+          .in("id", userIds);
+
+        if (prError) throw prError;
+
+        profiles?.forEach((p) => {
+          profilesMap[p.id] = p.nome_completo;
+        });
+      }
+
+      return {
+        tickets: tickets ?? [],
+        profilesMap,
+      };
     },
   });
+
+  const tickets = data?.tickets ?? [];
+  const profilesMap = data?.profilesMap ?? {};
 
   // Fetch messages for active ticket
   const { data: mensagens, isLoading: isMensagensLoading } = useQuery({
@@ -67,7 +90,7 @@ function SuporteGlobalSuperAdmin() {
       if (error) throw error;
 
       // Update ticket updated_at and set status to em_andamento if it was open
-      const ticket = tickets?.find((t) => t.id === activeTicketId);
+      const ticket = tickets.find((t) => t.id === activeTicketId);
       const nextStatus = ticket?.status === "aberto" ? "em_andamento" : ticket?.status;
 
       await supabase
@@ -110,9 +133,10 @@ function SuporteGlobalSuperAdmin() {
     },
   });
 
-  const activeTicket = tickets?.find((t) => t.id === activeTicketId);
+  const activeTicket = tickets.find((t) => t.id === activeTicketId);
+  const activeTicketUser = activeTicket ? (profilesMap[activeTicket.usuario_id] ?? "Desconhecido") : "";
 
-  const filteredTickets = (tickets ?? []).filter((t) =>
+  const filteredTickets = tickets.filter((t) =>
     statusFiltro === "all" ? true : t.status === statusFiltro
   );
 
@@ -152,30 +176,33 @@ function SuporteGlobalSuperAdmin() {
             {filteredTickets.length === 0 ? (
               <p className="text-xs text-muted-foreground">Nenhum chamado correspondente.</p>
             ) : (
-              filteredTickets.map((t) => (
-                <Card
-                  key={t.id}
-                  className={`cursor-pointer transition hover:shadow-sm border-l-4 ${
-                    activeTicketId === t.id ? "border-l-gold bg-slate-50 dark:bg-slate-900" : "border-l-transparent"
-                  }`}
-                  onClick={() => setActiveTicketId(t.id)}
-                >
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div className="space-y-1 min-w-0">
-                      <h4 className="font-semibold text-sm truncate">{t.assunto}</h4>
-                      <p className="text-[10px] text-muted-foreground">
-                        Por: {t.profiles?.nome_completo || "Desconhecido"}
-                      </p>
-                      <div className="text-[9px] text-muted-foreground">
-                        {t.categoria} • {new Date(t.updated_at).toLocaleDateString("pt-BR")}
+              filteredTickets.map((t) => {
+                const ownerName = profilesMap[t.usuario_id] ?? "Desconhecido";
+                return (
+                  <Card
+                    key={t.id}
+                    className={`cursor-pointer transition hover:shadow-sm border-l-4 ${
+                      activeTicketId === t.id ? "border-l-gold bg-slate-50 dark:bg-slate-900" : "border-l-transparent"
+                    }`}
+                    onClick={() => setActiveTicketId(t.id)}
+                  >
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className="space-y-1 min-w-0">
+                        <h4 className="font-semibold text-sm truncate">{t.assunto}</h4>
+                        <p className="text-[10px] text-muted-foreground">
+                          Por: {ownerName}
+                        </p>
+                        <div className="text-[9px] text-muted-foreground">
+                          {t.categoria} • {new Date(t.updated_at).toLocaleDateString("pt-BR")}
+                        </div>
                       </div>
-                    </div>
-                    <Badge variant={t.status === "aberto" ? "default" : "outline"} className="text-[9px]">
-                      {t.status}
-                    </Badge>
-                  </CardContent>
-                </Card>
-              ))
+                      <Badge variant={t.status === "aberto" ? "default" : "outline"} className="text-[9px]">
+                        {t.status}
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                );
+              })
             )}
           </div>
         </div>
@@ -189,7 +216,7 @@ function SuporteGlobalSuperAdmin() {
                   <div>
                     <CardTitle className="font-serif text-lg">{activeTicket.assunto}</CardTitle>
                     <p className="text-xs text-muted-foreground">
-                      Por: {activeTicket.profiles?.nome_completo || "Desconhecido"} ({activeTicket.categoria})
+                      Por: {activeTicketUser} ({activeTicket.categoria})
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -218,7 +245,7 @@ function SuporteGlobalSuperAdmin() {
                 ) : (
                   mensagens?.map((msg) => {
                     const isSelf = msg.autor_id === user!.id;
-                    const autorLabel = isSelf ? "Você (Técnico)" : activeTicket.profiles?.nome_completo;
+                    const autorLabel = isSelf ? "Você (Técnico)" : activeTicketUser;
 
                     return (
                       <div

@@ -260,7 +260,7 @@ function MatriculasSecretaria() {
                   <TableCell className="text-right whitespace-nowrap space-x-1">
                     {m.status !== "ativa" && (
                       <Button
-                        size="xs"
+                        size="sm"
                         variant="outline"
                         onClick={() => alterarStatus.mutate({ id: m.id, novoStatus: "ativa" })}
                       >
@@ -269,7 +269,7 @@ function MatriculasSecretaria() {
                     )}
                     {m.status === "ativa" && (
                       <Button
-                        size="xs"
+                        size="sm"
                         variant="destructive"
                         onClick={() => alterarStatus.mutate({ id: m.id, novoStatus: "cancelada" })}
                       >

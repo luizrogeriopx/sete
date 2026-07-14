@@ -1,32 +1,56 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/super-admin/cursos")({
   component: CursosSuperAdmin,
 });
 
 function CursosSuperAdmin() {
-  const { data: cursos, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["super-admin-cursos-list"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // 1. Fetch courses
+      const { data: cursos, error: cError } = await supabase
         .from("cursos")
-        .select("*, profiles:ministrante_id(nome_completo)")
+        .select("*")
         .order("titulo");
 
-      if (error) throw error;
-      return data ?? [];
+      if (cError) throw cError;
+
+      // 2. Fetch profiles of teachers
+      const teacherIds = Array.from(new Set(cursos.map((c) => c.ministrante_id).filter((id): id is string => !!id)));
+
+      const profilesMap: Record<string, string> = {};
+      if (teacherIds.length > 0) {
+        const { data: profiles, error: prError } = await supabase
+          .from("profiles")
+          .select("id, nome_completo")
+          .in("id", teacherIds);
+
+        if (prError) throw prError;
+
+        profiles?.forEach((p) => {
+          profilesMap[p.id] = p.nome_completo;
+        });
+      }
+
+      return {
+        cursos,
+        profilesMap,
+      };
     },
   });
 
   if (isLoading) {
     return <p className="text-muted-foreground p-4">Carregando catálogo…</p>;
   }
+
+  const cursos = data?.cursos ?? [];
+  const profilesMap = data?.profilesMap ?? {};
 
   return (
     <div className="space-y-8">
@@ -48,26 +72,29 @@ function CursosSuperAdmin() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {cursos?.map((c) => (
-              <TableRow key={c.id}>
-                <TableCell className="font-semibold">{c.titulo}</TableCell>
-                <TableCell className="capitalize">{c.modalidade}</TableCell>
-                <TableCell>{c.carga_horaria || 0}h</TableCell>
-                <TableCell>
-                  {c.profiles?.nome_completo ? (
-                    <Badge variant="outline">🎓 {c.profiles.nome_completo}</Badge>
-                  ) : (
-                    <span className="text-muted-foreground text-xs italic">Sem professor</span>
-                  )}
-                </TableCell>
-                <TableCell>R$ {Number(c.preco).toFixed(2).replace(".", ",")}</TableCell>
-                <TableCell>
-                  <Badge variant={c.ativo ? "default" : "outline"}>
-                    {c.ativo ? "Ativo" : "Inativo"}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
+            {cursos.map((c) => {
+              const teacherName = c.ministrante_id ? profilesMap[c.ministrante_id] : null;
+              return (
+                <TableRow key={c.id}>
+                  <TableCell className="font-semibold">{c.titulo}</TableCell>
+                  <TableCell className="capitalize">{c.modalidade}</TableCell>
+                  <TableCell>{c.carga_horaria || 0}h</TableCell>
+                  <TableCell>
+                    {teacherName ? (
+                      <Badge variant="outline">🎓 {teacherName}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-xs italic">Sem professor</span>
+                    )}
+                  </TableCell>
+                  <TableCell>R$ {Number(c.preco).toFixed(2).replace(".", ",")}</TableCell>
+                  <TableCell>
+                    <Badge variant={c.ativo ? "default" : "outline"}>
+                      {c.ativo ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </Card>

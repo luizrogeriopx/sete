@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { BookOpen, Users, Wallet, FileText, Bell, GraduationCap, ChevronRight, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -147,7 +148,7 @@ function AdminHome() {
                 <p className="text-xs text-muted-foreground">Exporte matrículas e finanças no painel consolidado.</p>
               </div>
               <Link to="/admin/financeiro">
-                <Button size="xs" className="bg-gold text-gold-foreground hover:bg-gold/90">
+                <Button size="sm" className="bg-gold text-gold-foreground hover:bg-gold/90">
                   Ver Finanças
                 </Button>
               </Link>

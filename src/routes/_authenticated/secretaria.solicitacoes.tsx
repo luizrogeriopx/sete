@@ -121,7 +121,7 @@ function SolicitacoesSecretaria() {
                 <TableCell className="text-right">
                   <Dialog open={selectedReq?.id === s.id} onOpenChange={(open) => !open && setSelectedReq(null)}>
                     <DialogTrigger asChild>
-                      <Button size="xs" variant="outline" onClick={() => openResponder(s)}>
+                      <Button size="sm" variant="outline" onClick={() => openResponder(s)}>
                         {s.status === "pendente" ? "Responder" : "Ver / Alterar"}
                       </Button>
                     </DialogTrigger>

@@ -139,7 +139,7 @@ function SuperAdminHome() {
                 <p className="text-xs text-muted-foreground">Responda aos chamados abertos pelos alunos e professores.</p>
               </div>
               <Link to="/super-admin/suporte">
-                <Button size="xs" className="bg-gold text-gold-foreground hover:bg-gold/90 flex items-center gap-0.5">
+                <Button size="sm" className="bg-gold text-gold-foreground hover:bg-gold/90 flex items-center gap-0.5">
                   Ver chamados <ChevronRight className="h-3 w-3" />
                 </Button>
               </Link>
