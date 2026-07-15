@@ -1,212 +1,324 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Award, Plus, FileText, QrCode } from "lucide-react";
-import { useState } from "react";
+import { FileImage, Plus, Trash2, Pencil } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/certificados")({
-  component: CertificadosAdmin,
+  component: LayoutsCertificado,
 });
 
-function CertificadosAdmin() {
-  const qc = useQueryClient();
-  const [isIssueOpen, setIsIssueOpen] = useState(false);
-  const [alunoId, setAlunoId] = useState("");
-  const [cursoId, setCursoId] = useState("");
+type LayoutRow = {
+  id: string;
+  nome: string;
+  imagem_url: string | null;
+  curso_id: string | null;
+  padrao: boolean;
+  orientacao: string;
+  cursos?: { titulo: string } | null;
+};
 
-  // Fetch issued certificates
-  const { data: certificados, isLoading } = useQuery({
-    queryKey: ["admin-certificados-list"],
+const BUCKET = "certificado-layouts";
+
+function LayoutsCertificado() {
+  const qc = useQueryClient();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<LayoutRow | null>(null);
+  const [nome, setNome] = useState("");
+  const [cursoId, setCursoId] = useState<string>("__none");
+  const [padrao, setPadrao] = useState(false);
+  const [orientacao, setOrientacao] = useState<"paisagem" | "retrato">("paisagem");
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const { data: layouts, isLoading } = useQuery({
+    queryKey: ["admin-cert-layouts"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("certificados")
-        .select("*, profiles:aluno_id(nome_completo), cursos(titulo)")
-        .order("emitido_em", { ascending: false });
-
+        .from("layouts_certificado")
+        .select("id, nome, imagem_url, curso_id, padrao, orientacao, cursos(titulo)")
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as LayoutRow[];
     },
   });
 
-  // Fetch student profiles for select
-  const { data: alunos } = useQuery({
-    queryKey: ["admin-alunos-select-certificados"],
-    queryFn: async () => {
-      const { data: roleData } = await supabase.from("user_roles").select("user_id").eq("role", "aluno");
-      const uids = (roleData ?? []).map((r) => r.user_id);
-      if (uids.length === 0) return [];
-
-      const { data } = await supabase.from("profiles").select("id, nome_completo").in("id", uids).order("nome_completo");
-      return data ?? [];
-    },
-  });
-
-  // Fetch courses for select
   const { data: cursos } = useQuery({
-    queryKey: ["admin-cursos-select-certificados"],
+    queryKey: ["admin-cursos-select-layouts"],
     queryFn: async () => {
       const { data } = await supabase.from("cursos").select("id, titulo").order("titulo");
       return data ?? [];
     },
   });
 
-  const emitirCertificado = useMutation({
-    mutationFn: async () => {
-      if (!alunoId || !cursoId) throw new Error("Selecione o aluno e o curso.");
-
-      // Check if already issued
-      const { data: existing } = await supabase
-        .from("certificados")
-        .select("id")
-        .eq("aluno_id", alunoId)
-        .eq("curso_id", cursoId)
-        .maybeSingle();
-
-      if (existing) throw new Error("O aluno já possui um certificado emitido para este curso.");
-
-      const hashRandom = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const codigoValidacao = `SETE-${hashRandom}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-      const { data, error } = await supabase
-        .from("certificados")
-        .insert({
-          aluno_id: alunoId,
-          curso_id: cursoId,
-          codigo_validacao: codigoValidacao,
-        });
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin-certificados-list"] });
-      toast.success("Certificado emitido e registrado com sucesso!");
-      setIsIssueOpen(false);
-      setAlunoId("");
-      setCursoId("");
-    },
-    onError: (err: Error) => {
-      toast.error(`Erro ao emitir: ${err.message}`);
+  // Signed URLs for private bucket previews
+  const { data: signedMap } = useQuery({
+    queryKey: ["admin-cert-layouts-signed", layouts?.map((l) => l.imagem_url).join("|")],
+    enabled: !!layouts?.length,
+    queryFn: async () => {
+      const map: Record<string, string> = {};
+      const paths = (layouts ?? []).map((l) => l.imagem_url).filter(Boolean) as string[];
+      if (paths.length === 0) return map;
+      const { data } = await supabase.storage.from(BUCKET).createSignedUrls(paths, 3600);
+      (data ?? []).forEach((s) => {
+        if (s.path && s.signedUrl) map[s.path] = s.signedUrl;
+      });
+      return map;
     },
   });
 
-  if (isLoading) {
-    return <p className="text-muted-foreground p-4">Carregando certificados…</p>;
+  function resetForm() {
+    setEditing(null);
+    setNome("");
+    setCursoId("__none");
+    setPadrao(false);
+    setOrientacao("paisagem");
+    setFile(null);
+    setPreviewUrl(null);
   }
+
+  function openCreate() {
+    resetForm();
+    setDialogOpen(true);
+  }
+
+  function openEdit(row: LayoutRow) {
+    setEditing(row);
+    setNome(row.nome);
+    setCursoId(row.curso_id ?? "__none");
+    setPadrao(row.padrao);
+    setOrientacao((row.orientacao as "paisagem" | "retrato") ?? "paisagem");
+    setFile(null);
+    setPreviewUrl(row.imagem_url ? signedMap?.[row.imagem_url] ?? null : null);
+    setDialogOpen(true);
+  }
+
+  useEffect(() => {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      if (!nome.trim()) throw new Error("Informe o nome do layout.");
+      if (!editing && !file) throw new Error("Envie a imagem do layout.");
+
+      let imagemPath = editing?.imagem_url ?? null;
+      if (file) {
+        const ext = file.name.split(".").pop() ?? "png";
+        const path = `${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from(BUCKET)
+          .upload(path, file, { contentType: file.type, upsert: false });
+        if (upErr) throw upErr;
+        // Remove old file when replacing
+        if (editing?.imagem_url) {
+          await supabase.storage.from(BUCKET).remove([editing.imagem_url]);
+        }
+        imagemPath = path;
+      }
+
+      const payload = {
+        nome: nome.trim(),
+        curso_id: cursoId === "__none" ? null : cursoId,
+        padrao,
+        orientacao,
+        imagem_url: imagemPath,
+      };
+
+      if (editing) {
+        const { error } = await supabase.from("layouts_certificado").update(payload).eq("id", editing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("layouts_certificado").insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-cert-layouts"] });
+      toast.success(editing ? "Layout atualizado." : "Layout cadastrado.");
+      setDialogOpen(false);
+      resetForm();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (row: LayoutRow) => {
+      if (row.imagem_url) {
+        await supabase.storage.from(BUCKET).remove([row.imagem_url]);
+      }
+      const { error } = await supabase.from("layouts_certificado").delete().eq("id", row.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-cert-layouts"] });
+      toast.success("Layout removido.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-serif text-4xl">Certificados</h1>
-          <p className="mt-1 text-muted-foreground">Registre, visualize e emita certificados acadêmicos de conclusão.</p>
+          <h1 className="font-serif text-4xl">Layouts de Certificado</h1>
+          <p className="mt-1 text-muted-foreground">
+            Cadastre os modelos visuais utilizados para gerar automaticamente os certificados dos alunos ao concluírem
+            um curso. Vincule um layout a um curso específico ou marque como padrão para todos.
+          </p>
         </div>
-        <Dialog open={isIssueOpen} onOpenChange={setIsIssueOpen}>
+        <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button className="bg-gold text-gold-foreground hover:bg-gold/90 flex items-center gap-2">
-              <Plus className="h-4 w-4" /> Emitir Certificado
+            <Button onClick={openCreate} className="bg-gold text-gold-foreground hover:bg-gold/90 gap-2">
+              <Plus className="h-4 w-4" /> Novo Layout
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Emitir Certificado Acadêmico</DialogTitle>
+              <DialogTitle>{editing ? "Editar layout" : "Novo layout de certificado"}</DialogTitle>
               <DialogDescription>
-                Selecione o concluinte e o curso para emissão imediata da folha de registro.
+                Envie a arte do certificado (imagem PNG/JPG). Os dados do aluno serão sobrepostos automaticamente.
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-2">
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Aluno Concluinte</label>
-                <Select value={alunoId} onValueChange={setAlunoId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o aluno..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {alunos?.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>
-                        {a.nome_completo}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Nome do layout</Label>
+                <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex.: Padrão Teologia" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Curso vinculado</Label>
+                  <Select value={cursoId} onValueChange={setCursoId}>
+                    <SelectTrigger><SelectValue placeholder="Nenhum (genérico)" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">Nenhum (genérico)</SelectItem>
+                      {cursos?.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.titulo}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Orientação</Label>
+                  <Select value={orientacao} onValueChange={(v) => setOrientacao(v as "paisagem" | "retrato")}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="paisagem">Paisagem</SelectItem>
+                      <SelectItem value="retrato">Retrato</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between rounded-md border border-border p-3">
+                <div>
+                  <Label className="text-sm">Layout padrão</Label>
+                  <p className="text-xs text-muted-foreground">Usado quando o curso não tem layout específico.</p>
+                </div>
+                <Switch checked={padrao} onCheckedChange={setPadrao} />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Curso Realizado</label>
-                <Select value={cursoId} onValueChange={setCursoId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o curso..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cursos?.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.titulo}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Arquivo de imagem</Label>
+                <Input
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                />
+                {previewUrl && (
+                  <div className="mt-2 overflow-hidden rounded-md border border-border">
+                    <img src={previewUrl} alt="Prévia" className="max-h-48 w-full object-contain bg-muted" />
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button variant="outline" className="w-full" onClick={() => setIsIssueOpen(false)}>
-                Cancelar
-              </Button>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
               <Button
-                className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
-                onClick={() => emitirCertificado.mutate()}
-                disabled={emitirCertificado.isPending}
+                onClick={() => save.mutate()}
+                disabled={save.isPending}
+                className="bg-gold text-gold-foreground hover:bg-gold/90"
               >
-                {emitirCertificado.isPending ? "Emitindo..." : "Confirmar Emissão"}
+                {save.isPending ? "Salvando…" : "Salvar"}
               </Button>
-            </div>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      {(!certificados || certificados.length === 0) ? (
-        <Card className="border-dashed p-8 text-center text-muted-foreground">
-          <Award className="mx-auto h-12 w-12 text-muted-foreground/40" />
-          <p className="mt-4">Nenhum certificado emitido no sistema ainda.</p>
+      {isLoading ? (
+        <p className="text-muted-foreground">Carregando layouts…</p>
+      ) : !layouts || layouts.length === 0 ? (
+        <Card className="border-dashed p-10 text-center text-muted-foreground">
+          <FileImage className="mx-auto h-12 w-12 text-muted-foreground/40" />
+          <p className="mt-4">Nenhum layout cadastrado. Envie o primeiro modelo para começar.</p>
         </Card>
       ) : (
         <Card className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Concluinte</TableHead>
+                <TableHead>Prévia</TableHead>
+                <TableHead>Nome</TableHead>
                 <TableHead>Curso</TableHead>
-                <TableHead>Data de Emissão</TableHead>
-                <TableHead>Chave de Validação</TableHead>
-                <TableHead className="text-right">Validação Pública</TableHead>
+                <TableHead>Orientação</TableHead>
+                <TableHead>Padrão</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {certificados.map((c: any) => (
-                <TableRow key={c.id}>
-                  <TableCell className="font-semibold">{c.profiles?.nome_completo}</TableCell>
-                  <TableCell>{c.cursos?.titulo}</TableCell>
-                  <TableCell>{new Date(c.emitido_em).toLocaleDateString("pt-BR")}</TableCell>
+              {layouts.map((l) => (
+                <TableRow key={l.id}>
                   <TableCell>
-                    <code className="text-xs">{c.codigo_validacao}</code>
+                    {l.imagem_url && signedMap?.[l.imagem_url] ? (
+                      <img
+                        src={signedMap[l.imagem_url]}
+                        alt={l.nome}
+                        className="h-14 w-24 rounded border border-border object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-24 items-center justify-center rounded border border-dashed border-border text-muted-foreground">
+                        <FileImage className="h-5 w-5" />
+                      </div>
+                    )}
                   </TableCell>
+                  <TableCell className="font-semibold">{l.nome}</TableCell>
+                  <TableCell>{l.cursos?.titulo ?? <span className="text-muted-foreground">— Genérico —</span>}</TableCell>
+                  <TableCell className="capitalize">{l.orientacao}</TableCell>
+                  <TableCell>{l.padrao ? <Badge>Padrão</Badge> : <span className="text-muted-foreground">—</span>}</TableCell>
                   <TableCell className="text-right">
-                    <a
-                      href={`/certificado/validar/${c.codigo_validacao}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-primary underline text-xs font-semibold"
-                    >
-                      Página de Validação
-                    </a>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="sm" onClick={() => openEdit(l)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm(`Remover o layout "${l.nome}"?`)) remove.mutate(l);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
