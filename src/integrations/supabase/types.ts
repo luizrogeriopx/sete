@@ -340,25 +340,34 @@ export type Database = {
           created_at: string
           curso_id: string | null
           id: string
+          imagem_url: string | null
           nome: string
+          orientacao: string
           padrao: boolean
-          template_html: string
+          template_html: string | null
+          updated_at: string
         }
         Insert: {
           created_at?: string
           curso_id?: string | null
           id?: string
+          imagem_url?: string | null
           nome: string
+          orientacao?: string
           padrao?: boolean
-          template_html: string
+          template_html?: string | null
+          updated_at?: string
         }
         Update: {
           created_at?: string
           curso_id?: string | null
           id?: string
+          imagem_url?: string | null
           nome?: string
+          orientacao?: string
           padrao?: boolean
-          template_html?: string
+          template_html?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
