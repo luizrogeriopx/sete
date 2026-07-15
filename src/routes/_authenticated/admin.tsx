@@ -8,7 +8,7 @@ const items: NavItem[] = [
   { to: "/admin/alunos", label: "Alunos", icon: Users },
   { to: "/admin/financeiro", label: "Rel. financeiro", icon: Wallet },
   { to: "/admin/matriculas", label: "Rel. matrículas", icon: FileBarChart },
-  { to: "/admin/certificados", label: "Certificados", icon: Award },
+  { to: "/admin/certificados", label: "Layouts de certificado", icon: Award },
   { to: "/admin/notificacoes", label: "Notificações", icon: Bell },
 ];
 export const Route = createFileRoute("/_authenticated/admin")({
