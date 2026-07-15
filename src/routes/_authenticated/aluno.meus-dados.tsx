@@ -22,6 +22,8 @@ function MeusDadosPage() {
   const [dataNasc, setDataNasc] = useState("");
   const [cpf, setCpf] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [fotoUrl, setFotoUrl] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
 
   const { data: perfil, isLoading } = useQuery({
     queryKey: ["perfil", user?.id],
@@ -43,8 +45,38 @@ function MeusDadosPage() {
       setDataNasc(perfil.data_nascimento || "");
       setCpf(perfil.cpf || "");
       setTelefone(perfil.telefone || "");
+      setFotoUrl(perfil.foto_url || "");
     }
   }, [perfil]);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user!.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("perfis")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("perfis").getPublicUrl(filePath);
+      if (!data.publicUrl) throw new Error("Não foi possível obter a URL pública.");
+
+      setFotoUrl(data.publicUrl);
+      toast.success("Foto de perfil carregada com sucesso!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(`Erro ao carregar foto: ${err.message || err}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const salvarDados = useMutation({
     mutationFn: async () => {
@@ -56,6 +88,7 @@ function MeusDadosPage() {
           data_nascimento: dataNasc || null,
           cpf: cpf || null,
           telefone: telefone || null,
+          foto_url: fotoUrl || null,
         })
         .eq("id", user!.id);
       if (error) throw error;
@@ -97,8 +130,57 @@ function MeusDadosPage() {
               e.preventDefault();
               salvarDados.mutate();
             }}
-            className="space-y-4"
+            className="space-y-6"
           >
+            {/* Foto de Perfil */}
+            <div className="flex flex-col items-center gap-3 pb-6 border-b border-border">
+              <Label className="text-sm font-semibold">Foto de Perfil</Label>
+              <div className="relative h-28 w-28 rounded-full overflow-hidden border-2 border-gold/40 bg-slate-900 group">
+                {fotoUrl ? (
+                  <img src={fotoUrl} alt="Foto de perfil" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-slate-500 font-serif text-3xl font-bold bg-slate-900">
+                    {nome ? nome.charAt(0).toUpperCase() : "?"}
+                  </div>
+                )}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-gold" />
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => document.getElementById("avatar-upload")?.click()}
+                  disabled={isUploading}
+                >
+                  Alterar Foto
+                </Button>
+                {fotoUrl && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setFotoUrl("")}
+                    disabled={isUploading}
+                  >
+                    Remover
+                  </Button>
+                )}
+              </div>
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+                disabled={isUploading}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email">E-mail (Login)</Label>
               <Input id="email" type="email" value={user?.email || ""} disabled className="bg-slate-900/50 text-muted-foreground" />
