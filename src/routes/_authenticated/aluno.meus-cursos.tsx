@@ -41,39 +41,42 @@ function MeusCursos() {
           </Link>
         </div>
       ) : (
-        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {data!.map((m) => (
-            <Link key={m.id} to="/aluno/curso/$id" params={{ id: m.cursos?.id ?? "" }}>
-              <Card className="h-full transition hover:shadow-md overflow-hidden">
-                <div className="aspect-[4/5] relative bg-slate-950 overflow-hidden">
-                  {m.cursos?.imagem_card ? (
-                    <img
-                      src={m.cursos.imagem_card}
-                      alt={m.cursos.titulo}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center p-4 text-center">
-                      <span className="font-serif text-sm font-bold text-white leading-tight line-clamp-3">
-                        {m.cursos?.titulo}
-                      </span>
+            <Link key={m.id} to="/aluno/curso/$id" params={{ id: m.cursos?.id ?? "" }} className="h-full">
+              <Card className="h-full transition hover:shadow-md overflow-hidden flex flex-col justify-between">
+                <div>
+                  <div className="aspect-[4/5] relative bg-slate-950 overflow-hidden">
+                    {m.cursos?.imagem_card ? (
+                      <img
+                        src={m.cursos.imagem_card}
+                        alt={m.cursos.titulo}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center p-4 text-center">
+                        <span className="font-serif text-xs font-bold text-white leading-tight line-clamp-3">
+                          {m.cursos?.titulo}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between gap-1 flex-wrap">
+                      <Badge variant="outline" className="text-[9px] py-0 px-1.5 leading-none">
+                        {m.modalidade_escolhida === "online" ? "Online (AVA)" : m.modalidade_escolhida === "hibrido" ? "Semi-presencial" : m.modalidade_escolhida || (m.cursos?.modalidade === "hibrido" ? "Semi-presencial" : m.cursos?.modalidade)}
+                      </Badge>
+                      <Badge className="text-[9px] py-0 px-1.5 leading-none capitalize">{m.status}</Badge>
                     </div>
-                  )}
+                    <h3 className="mt-2 font-serif text-sm font-bold line-clamp-1 text-slate-100">{m.cursos?.titulo}</h3>
+                  </CardContent>
                 </div>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline">
-                      {m.modalidade_escolhida === "online" ? "Online (AVA)" : m.modalidade_escolhida === "hibrido" ? "Semi-presencial" : m.modalidade_escolhida || (m.cursos?.modalidade === "hibrido" ? "Semi-presencial" : m.cursos?.modalidade)}
-                    </Badge>
-                    <Badge>{m.status}</Badge>
+                <CardContent className="p-3 pt-0">
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span>Progresso</span>
+                    <span className="font-bold">{Number(m.progresso ?? 0).toFixed(0)}%</span>
                   </div>
-                  <h3 className="mt-2 font-serif text-lg">{m.cursos?.titulo}</h3>
-                  <div className="mt-3">
-                    <Progress value={Number(m.progresso ?? 0)} />
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      {Number(m.progresso ?? 0).toFixed(0)}% concluído
-                    </div>
-                  </div>
+                  <Progress value={Number(m.progresso ?? 0)} className="mt-1 h-1" />
                 </CardContent>
               </Card>
             </Link>
