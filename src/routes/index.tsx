@@ -9,14 +9,39 @@ import { GraduationCap, BookOpen, Users, Award } from "lucide-react";
 const destaquesQO = queryOptions({
   queryKey: ["cursos-destaque"],
   queryFn: async () => {
-    const { data, error } = await supabase
-      .from("cursos")
-      .select("id, titulo, slug, descricao_curta, imagem_capa, imagem_card, preco, modalidade, categorias(nome)")
-      .eq("ativo", true)
-      .eq("destaque", true)
-      .limit(6);
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from("cursos")
+        .select("id, titulo, slug, descricao_curta, imagem_capa, imagem_card, preco, modalidade, categorias(nome)")
+        .eq("ativo", true)
+        .eq("destaque", true)
+        .limit(6);
+      
+      if (error) {
+        if (error.code === "42703") { // Column does not exist
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .from("cursos")
+            .select("id, titulo, slug, descricao_curta, imagem_capa, preco, modalidade, categorias(nome)")
+            .eq("ativo", true)
+            .eq("destaque", true)
+            .limit(6);
+          if (fallbackError) throw fallbackError;
+          return fallbackData.map(c => ({ ...c, imagem_card: null }));
+        }
+        throw error;
+      }
+      return data;
+    } catch (e) {
+      console.warn("Falling back to query without imagem_card:", e);
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from("cursos")
+        .select("id, titulo, slug, descricao_curta, imagem_capa, preco, modalidade, categorias(nome)")
+        .eq("ativo", true)
+        .eq("destaque", true)
+        .limit(6);
+      if (fallbackError) throw fallbackError;
+      return fallbackData.map(c => ({ ...c, imagem_card: null }));
+    }
   },
 });
 

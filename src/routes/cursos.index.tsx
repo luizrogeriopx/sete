@@ -10,15 +10,48 @@ import { ChevronLeft, ChevronRight, Play, Info, BookOpen } from "lucide-react";
 const catalogoQO = queryOptions({
   queryKey: ["catalogo-cursos"],
   queryFn: async () => {
-    const [{ data: cats }, { data: cursos }] = await Promise.all([
-      supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem"),
-      supabase
-        .from("cursos")
-        .select("id, titulo, slug, descricao_curta, preco, modalidade, categoria_id, imagem_card, imagem_capa, destaque, categorias(nome)")
-        .eq("ativo", true)
-        .order("titulo"),
-    ]);
-    return { categorias: cats ?? [], cursos: cursos ?? [] };
+    try {
+      const [{ data: cats }, { data: cursos, error: cursosError }] = await Promise.all([
+        supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem"),
+        supabase
+          .from("cursos")
+          .select("id, titulo, slug, descricao_curta, preco, modalidade, categoria_id, imagem_card, imagem_capa, destaque, categorias(nome)")
+          .eq("ativo", true)
+          .order("titulo"),
+      ]);
+
+      if (cursosError) {
+        if (cursosError.code === "42703") { // Column does not exist
+          const [{ data: fallbackCats }, { data: fallbackCursos, error: fallbackError }] = await Promise.all([
+            supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem"),
+            supabase
+              .from("cursos")
+              .select("id, titulo, slug, descricao_curta, preco, modalidade, categoria_id, imagem_capa, destaque, categorias(nome)")
+              .eq("ativo", true)
+              .order("titulo"),
+          ]);
+          if (fallbackError) throw fallbackError;
+          const mappedCursos = (fallbackCursos ?? []).map(c => ({ ...c, imagem_card: null }));
+          return { categorias: fallbackCats ?? [], cursos: mappedCursos };
+        }
+        throw cursosError;
+      }
+
+      return { categorias: cats ?? [], cursos: cursos ?? [] };
+    } catch (e) {
+      console.warn("Falling back to catalog query without imagem_card:", e);
+      const [{ data: fallbackCats }, { data: fallbackCursos, error: fallbackError }] = await Promise.all([
+        supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem"),
+        supabase
+          .from("cursos")
+          .select("id, titulo, slug, descricao_curta, preco, modalidade, categoria_id, imagem_capa, destaque, categorias(nome)")
+          .eq("ativo", true)
+          .order("titulo"),
+      ]);
+      if (fallbackError) throw fallbackError;
+      const mappedCursos = (fallbackCursos ?? []).map(c => ({ ...c, imagem_card: null }));
+      return { categorias: fallbackCats ?? [], cursos: mappedCursos };
+    }
   },
 });
 
