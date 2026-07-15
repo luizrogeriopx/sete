@@ -236,7 +236,7 @@ function CursosAdmin() {
     setDescricao("");
     setPreco("0");
     setModalidade("online");
-    setCargaHoraria("40");
+    setDuracao("6 meses");
     setAtivo(true);
     setImagemCard("");
     setImagemCapa("");
@@ -248,7 +248,7 @@ function CursosAdmin() {
     setDescricao(c.descricao || "");
     setPreco(c.preco.toString());
     setModalidade(c.modalidade);
-    setCargaHoraria((c.carga_horaria || "").toString());
+    setDuracao(c.duracao || "");
     setAtivo(c.ativo);
     setImagemCard(c.imagem_card || "");
     setImagemCapa(c.imagem_capa || "");
