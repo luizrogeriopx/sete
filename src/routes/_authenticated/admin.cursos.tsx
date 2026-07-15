@@ -388,7 +388,7 @@ function CursosAdmin() {
               <TableHead>Título</TableHead>
               <TableHead>Modalidade</TableHead>
               <TableHead>Preço</TableHead>
-              <TableHead>Carga Horária</TableHead>
+              <TableHead>Duração</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -399,7 +399,7 @@ function CursosAdmin() {
                 <TableCell className="font-semibold">{c.titulo}</TableCell>
                 <TableCell className="capitalize">{c.modalidade}</TableCell>
                 <TableCell>R$ {Number(c.preco).toFixed(2).replace(".", ",")}</TableCell>
-                <TableCell>{c.carga_horaria || 0}h</TableCell>
+                <TableCell>{c.duracao || "—"}</TableCell>
                 <TableCell>
                   <Badge variant={c.ativo ? "default" : "outline"}>
                     {c.ativo ? "Ativo" : "Inativo"}
