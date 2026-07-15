@@ -18,7 +18,7 @@ function MeusCursos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("matriculas")
-        .select("id, status, progresso, modalidade_escolhida, cursos(id, titulo, slug, imagem_capa, modalidade)")
+        .select("id, status, progresso, modalidade_escolhida, cursos(id, titulo, slug, imagem_card, imagem_capa, modalidade)")
         .eq("aluno_id", user!.id)
         .order("data_matricula", { ascending: false });
       if (error) throw error;
@@ -44,8 +44,22 @@ function MeusCursos() {
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {data!.map((m) => (
             <Link key={m.id} to="/aluno/curso/$id" params={{ id: m.cursos?.id ?? "" }}>
-              <Card className="h-full transition hover:shadow-md">
-                <div className="aspect-[16/9] bg-gradient-to-br from-primary/80 to-primary" />
+              <Card className="h-full transition hover:shadow-md overflow-hidden">
+                <div className="aspect-[4/5] relative bg-slate-950 overflow-hidden">
+                  {m.cursos?.imagem_card ? (
+                    <img
+                      src={m.cursos.imagem_card}
+                      alt={m.cursos.titulo}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center p-4 text-center">
+                      <span className="font-serif text-sm font-bold text-white leading-tight line-clamp-3">
+                        {m.cursos?.titulo}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <Badge variant="outline">

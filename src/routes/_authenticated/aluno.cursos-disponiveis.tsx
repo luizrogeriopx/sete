@@ -16,7 +16,7 @@ function Page() {
     enabled: !!user,
     queryFn: async () => {
       const [{ data: cursos }, { data: minhas }] = await Promise.all([
-        supabase.from("cursos").select("id, titulo, slug, descricao_curta, preco, modalidade, modalidades_disponiveis, categorias(nome)").eq("ativo", true),
+        supabase.from("cursos").select("id, titulo, slug, descricao_curta, preco, modalidade, modalidades_disponiveis, imagem_card, categorias(nome)").eq("ativo", true),
         supabase.from("matriculas").select("curso_id").eq("aluno_id", user!.id),
       ]);
       const jaMatriculado = new Set((minhas ?? []).map((m) => m.curso_id));
@@ -32,8 +32,22 @@ function Page() {
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         {(data ?? []).map((c) => (
           <Link key={c.id} to="/cursos/$slug" params={{ slug: c.slug }}>
-            <Card className="h-full transition hover:shadow-md">
-              <div className="aspect-[16/9] bg-gradient-to-br from-primary/80 to-primary" />
+            <Card className="h-full transition hover:shadow-md overflow-hidden">
+              <div className="aspect-[4/5] relative bg-slate-950 overflow-hidden">
+                {c.imagem_card ? (
+                  <img
+                    src={c.imagem_card}
+                    alt={c.titulo}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center p-4 text-center">
+                    <span className="font-serif text-sm font-bold text-white leading-tight line-clamp-3">
+                      {c.titulo}
+                    </span>
+                  </div>
+                )}
+              </div>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="outline">{c.categorias?.nome}</Badge>
