@@ -168,8 +168,8 @@ function Home() {
                       </div>
                       <CardContent className="p-5 flex-1 flex flex-col justify-between">
                         <div>
-                          <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                            {c.categorias?.nome ?? "Curso"} · {c.modalidade}
+                          <p className="text-xs uppercase tracking-widest text-muted-foreground capitalize">
+                            {c.categorias?.nome ?? "Curso"} · {c.modalidade === "hibrido" ? "Semi-presencial" : c.modalidade}
                           </p>
                           <h3 className="mt-2 font-serif text-xl group-hover:text-primary leading-tight">
                             {c.titulo}

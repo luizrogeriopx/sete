@@ -217,7 +217,7 @@ function MatriculasSecretaria() {
                     <SelectContent>
                       {modalities.map((m: string) => (
                         <SelectItem key={m} value={m}>
-                          {m === "online" ? "Online (AVA)" : m === "presencial" ? "Presencial" : m === "hibrido" ? "Híbrido" : m}
+                          {m === "online" ? "Online (AVA)" : m === "presencial" ? "Presencial" : m === "hibrido" ? "Semi-presencial" : m}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -281,7 +281,7 @@ function MatriculasSecretaria() {
                   <TableCell>{m.cursos?.titulo}</TableCell>
                   <TableCell className="capitalize">
                     <Badge variant="outline">
-                      {m.modalidade_escolhida === "online" ? "Online (AVA)" : m.modalidade_escolhida || m.cursos?.modalidade}
+                      {m.modalidade_escolhida === "online" ? "Online (AVA)" : m.modalidade_escolhida === "hibrido" ? "Semi-presencial" : m.modalidade_escolhida || (m.cursos?.modalidade === "hibrido" ? "Semi-presencial" : m.cursos?.modalidade)}
                     </Badge>
                   </TableCell>
                   <TableCell>{new Date(m.data_matricula).toLocaleDateString("pt-BR")}</TableCell>

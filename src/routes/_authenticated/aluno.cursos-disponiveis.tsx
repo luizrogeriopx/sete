@@ -39,8 +39,8 @@ function Page() {
                   <Badge variant="outline">{c.categorias?.nome}</Badge>
                   <Badge className="capitalize">
                     {c.modalidades_disponiveis && c.modalidades_disponiveis.length > 0
-                      ? c.modalidades_disponiveis.map((m: string) => m === "online" ? "Online (AVA)" : m).join(" / ")
-                      : c.modalidade}
+                      ? c.modalidades_disponiveis.map((m: string) => m === "online" ? "Online (AVA)" : m === "hibrido" ? "Semi-presencial" : m).join(" / ")
+                      : (c.modalidade === "hibrido" ? "Semi-presencial" : c.modalidade)}
                   </Badge>
                 </div>
                 <h3 className="mt-2 font-serif text-lg">{c.titulo}</h3>

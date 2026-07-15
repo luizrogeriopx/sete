@@ -147,8 +147,8 @@ function CoursePosterCard({ curso }: { curso: any }) {
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/20 flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <div className="space-y-2">
           <div className="flex gap-1.5 flex-wrap">
-            <Badge variant="outline" className="border-gold/50 text-gold text-[10px] py-0 px-1.5">
-              {curso.modalidade}
+            <Badge variant="outline" className="border-gold/50 text-gold text-[10px] py-0 px-1.5 capitalize">
+              {curso.modalidade === "hibrido" ? "Semi-presencial" : curso.modalidade}
             </Badge>
             <Badge variant="secondary" className="bg-slate-800 text-slate-200 text-[10px] py-0 px-1.5 border-none">
               {curso.categorias?.nome}

@@ -127,7 +127,7 @@ function MatriculasAdmin() {
                 <TableCell>{m.cursos?.titulo}</TableCell>
                 <TableCell className="capitalize">
                   <Badge variant="outline">
-                    {m.modalidade_escolhida === "online" ? "Online (AVA)" : m.modalidade_escolhida || m.cursos?.modalidade}
+                    {m.modalidade_escolhida === "online" ? "Online (AVA)" : m.modalidade_escolhida === "hibrido" ? "Semi-presencial" : m.modalidade_escolhida || (m.cursos?.modalidade === "hibrido" ? "Semi-presencial" : m.cursos?.modalidade)}
                   </Badge>
                 </TableCell>
                 <TableCell>{new Date(m.data_matricula).toLocaleDateString("pt-BR")}</TableCell>

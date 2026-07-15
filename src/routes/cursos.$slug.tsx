@@ -250,7 +250,7 @@ function CursoDetail() {
                     onChange={() => setSelectedModality(m)}
                     className="h-4 w-4 text-gold border-slate-700 focus:ring-gold"
                   />
-                  <span className="capitalize">{m === "online" ? "Online (AVA)" : m}</span>
+                  <span className="capitalize">{m === "online" ? "Online (AVA)" : m === "hibrido" ? "Semi-presencial" : m}</span>
                 </div>
               </label>
             ))}

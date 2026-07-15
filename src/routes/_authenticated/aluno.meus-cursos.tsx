@@ -49,7 +49,7 @@ function MeusCursos() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <Badge variant="outline">
-                      {m.modalidade_escolhida === "online" ? "Online (AVA)" : m.modalidade_escolhida || m.cursos?.modalidade}
+                      {m.modalidade_escolhida === "online" ? "Online (AVA)" : m.modalidade_escolhida === "hibrido" ? "Semi-presencial" : m.modalidade_escolhida || (m.cursos?.modalidade === "hibrido" ? "Semi-presencial" : m.cursos?.modalidade)}
                     </Badge>
                     <Badge>{m.status}</Badge>
                   </div>

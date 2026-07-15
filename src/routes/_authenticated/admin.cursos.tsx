@@ -321,7 +321,7 @@ function CursosAdmin() {
                   {[
                     { id: "online", label: "Online (AVA)" },
                     { id: "presencial", label: "Presencial" },
-                    { id: "hibrido", label: "Híbrido" },
+                    { id: "hibrido", label: "Semi-presencial" },
                   ].map((opt) => {
                     const checked = modalidadesDisponiveis.includes(opt.id);
                     return (
