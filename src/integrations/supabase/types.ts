@@ -280,6 +280,7 @@ export type Database = {
           ementa: string | null
           id: string
           imagem_capa: string | null
+          imagem_card: string | null
           ministrante_id: string | null
           modalidade: Database["public"]["Enums"]["curso_modalidade"]
           preco: number
@@ -299,6 +300,7 @@ export type Database = {
           ementa?: string | null
           id?: string
           imagem_capa?: string | null
+          imagem_card?: string | null
           ministrante_id?: string | null
           modalidade?: Database["public"]["Enums"]["curso_modalidade"]
           preco?: number
@@ -318,6 +320,7 @@ export type Database = {
           ementa?: string | null
           id?: string
           imagem_capa?: string | null
+          imagem_card?: string | null
           ministrante_id?: string | null
           modalidade?: Database["public"]["Enums"]["curso_modalidade"]
           preco?: number
