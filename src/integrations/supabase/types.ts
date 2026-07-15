@@ -276,10 +276,11 @@ export type Database = {
           descricao: string | null
           descricao_curta: string | null
           destaque: boolean
+          duracao: string | null
           ementa: string | null
           id: string
-          imagem_card: string | null
           imagem_capa: string | null
+          imagem_card: string | null
           ministrante_id: string | null
           modalidade: Database["public"]["Enums"]["curso_modalidade"]
           preco: number
@@ -295,10 +296,11 @@ export type Database = {
           descricao?: string | null
           descricao_curta?: string | null
           destaque?: boolean
+          duracao?: string | null
           ementa?: string | null
           id?: string
-          imagem_card?: string | null
           imagem_capa?: string | null
+          imagem_card?: string | null
           ministrante_id?: string | null
           modalidade?: Database["public"]["Enums"]["curso_modalidade"]
           preco?: number
@@ -314,10 +316,11 @@ export type Database = {
           descricao?: string | null
           descricao_curta?: string | null
           destaque?: boolean
+          duracao?: string | null
           ementa?: string | null
           id?: string
-          imagem_card?: string | null
           imagem_capa?: string | null
+          imagem_card?: string | null
           ministrante_id?: string | null
           modalidade?: Database["public"]["Enums"]["curso_modalidade"]
           preco?: number
