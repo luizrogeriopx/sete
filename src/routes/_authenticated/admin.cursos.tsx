@@ -144,11 +144,12 @@ function ImageUpload({
 
 function CursosAdmin() {
   const qc = useQueryClient();
+  const [activeTab, setActiveTab] = useState<"cursos" | "categorias">("cursos");
   const [search, setSearch] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [selectedCurso, setSelectedCurso] = useState<any>(null);
 
-  // Form State
+  // Form State Curso
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [preco, setPreco] = useState("0");
@@ -157,6 +158,14 @@ function CursosAdmin() {
   const [ativo, setAtivo] = useState(true);
   const [imagemCard, setImagemCard] = useState("");
   const [imagemCapa, setImagemCapa] = useState("");
+  const [categoriaId, setCategoriaId] = useState<string | null>(null);
+
+  // Form State Categoria
+  const [isCatOpen, setIsCatOpen] = useState(false);
+  const [selectedCategoria, setSelectedCategoria] = useState<any>(null);
+  const [catNome, setCatNome] = useState("");
+  const [catDescricao, setCatDescricao] = useState("");
+  const [catAtiva, setCatAtiva] = useState(true);
 
   // Query courses
   const { data: cursos, isLoading } = useQuery({
@@ -167,6 +176,19 @@ function CursosAdmin() {
         .select("*, categorias(nome)")
         .order("titulo");
 
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Query categories
+  const { data: categorias, isLoading: isCatLoading } = useQuery({
+    queryKey: ["admin-categorias-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categorias")
+        .select("*")
+        .order("nome");
       if (error) throw error;
       return data ?? [];
     },
@@ -191,6 +213,7 @@ function CursosAdmin() {
         ativo,
         imagem_card: imagemCard || null,
         imagem_capa: imagemCapa || null,
+        categoria_id: categoriaId || null,
       };
 
       if (selectedCurso) {
@@ -218,6 +241,47 @@ function CursosAdmin() {
     },
   });
 
+  const salvarCategoria = useMutation({
+    mutationFn: async () => {
+      if (!catNome.trim()) throw new Error("Preencha o nome da categoria.");
+      const catSlug = catNome
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+
+      const payload = {
+        nome: catNome,
+        slug: catSlug,
+        descricao: catDescricao || null,
+        ativa: catAtiva,
+      };
+
+      if (selectedCategoria) {
+        const { error } = await supabase
+          .from("categorias")
+          .update(payload)
+          .eq("id", selectedCategoria.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("categorias")
+          .insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-categorias-list"] });
+      qc.invalidateQueries({ queryKey: ["admin-cursos-list"] });
+      toast.success(selectedCategoria ? "Categoria atualizada!" : "Categoria criada!");
+      setIsCatOpen(false);
+      setSelectedCategoria(null);
+      resetCatForm();
+    },
+    onError: (err: Error) => {
+      toast.error(`Erro ao salvar categoria: ${err.message}`);
+    },
+  });
+
   const excluirCurso = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("cursos").delete().eq("id", id);
@@ -226,6 +290,21 @@ function CursosAdmin() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-cursos-list"] });
       toast.success("Curso removido!");
+    },
+    onError: (err: Error) => {
+      toast.error(`Erro ao excluir: ${err.message}`);
+    },
+  });
+
+  const excluirCategoria = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("categorias").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-categorias-list"] });
+      qc.invalidateQueries({ queryKey: ["admin-cursos-list"] });
+      toast.success("Categoria removida!");
     },
     onError: (err: Error) => {
       toast.error(`Erro ao excluir: ${err.message}`);
@@ -241,6 +320,13 @@ function CursosAdmin() {
     setAtivo(true);
     setImagemCard("");
     setImagemCapa("");
+    setCategoriaId(null);
+  }
+
+  function resetCatForm() {
+    setCatNome("");
+    setCatDescricao("");
+    setCatAtiva(true);
   }
 
   function openEdit(c: any) {
@@ -253,192 +339,362 @@ function CursosAdmin() {
     setAtivo(c.ativo);
     setImagemCard(c.imagem_card || "");
     setImagemCapa(c.imagem_capa || "");
+    setCategoriaId(c.categoria_id || null);
     setIsAddOpen(true);
+  }
+
+  function openEditCat(cat: any) {
+    setSelectedCategoria(cat);
+    setCatNome(cat.nome);
+    setCatDescricao(cat.descricao || "");
+    setCatAtiva(cat.ativa);
+    setIsCatOpen(true);
   }
 
   const filtered = (cursos ?? []).filter((c) =>
     c.titulo.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (isLoading) {
-    return <p className="text-muted-foreground p-4">Carregando catálogo…</p>;
+  if (isLoading || isCatLoading) {
+    return <p className="text-muted-foreground p-4">Carregando painel acadêmico…</p>;
   }
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-serif text-4xl">Gerenciar Cursos</h1>
-          <p className="mt-1 text-muted-foreground">Cadastre novos cursos ou modifique as disciplinas existentes.</p>
+          <h1 className="font-serif text-4xl">Gerenciar Catálogo</h1>
+          <p className="mt-1 text-muted-foreground">Cadastre novos cursos, modifique disciplinas e organize categorias.</p>
         </div>
-        <Dialog
-          open={isAddOpen}
-          onOpenChange={(open) => {
-            setIsAddOpen(open);
-            if (!open) {
-              setSelectedCurso(null);
-              resetForm();
-            }
-          }}
+      </div>
+
+      <div className="flex border-b border-border gap-4">
+        <button
+          onClick={() => setActiveTab("cursos")}
+          className={`pb-2 text-sm font-semibold border-b-2 transition-all ${
+            activeTab === "cursos"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
         >
-          <DialogTrigger asChild>
-            <Button className="bg-gold text-gold-foreground hover:bg-gold/90 flex items-center gap-2">
-              <Plus className="h-4 w-4" /> Novo Curso
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
-            <DialogHeader>
-              <DialogTitle>{selectedCurso ? "Editar Curso" : "Novo Curso"}</DialogTitle>
-              <DialogDescription>Insira as informações gerais para compor a ementa do curso.</DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 py-2 overflow-y-auto flex-1 pr-1">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">Título *</label>
-                <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex: Teologia Sistemática" />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold">Descrição</label>
-                <Input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Apresentação do curso..." />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Preço (R$)</label>
-                  <Input type="number" step="0.01" value={preco} onChange={(e) => setPreco(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Duração</label>
-                  <Input value={duracao} onChange={(e) => setDuracao(e.target.value)} placeholder="Ex: 6 meses" />
-
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold block">Modalidades Disponíveis *</label>
-                <div className="flex flex-wrap gap-4 pt-1">
-                  {[
-                    { id: "online", label: "Online (AVA)" },
-                    { id: "presencial", label: "Presencial" },
-                    { id: "hibrido", label: "Semi-presencial" },
-                  ].map((opt) => {
-                    const checked = modalidadesDisponiveis.includes(opt.id);
-                    return (
-                      <label key={opt.id} className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => {
-                            if (checked) {
-                              if (modalidadesDisponiveis.length > 1) {
-                                setModalidadesDisponiveis(modalidadesDisponiveis.filter((m) => m !== opt.id));
-                              } else {
-                                toast.error("O curso deve ter pelo menos uma modalidade selecionada.");
-                              }
-                            } else {
-                              setModalidadesDisponiveis([...modalidadesDisponiveis, opt.id]);
-                            }
-                          }}
-                          className="h-4 w-4 rounded border-gray-300 text-gold focus:ring-gold"
-                        />
-                        <span>{opt.label}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Uploads de Imagens */}
-              <div className="grid grid-cols-1 gap-4 pt-2 border-t">
-                <ImageUpload
-                  label="Imagem do Card (Grade)"
-                  value={imagemCard}
-                  onChange={setImagemCard}
-                  aspectRatio={1080 / 1350}
-                  aspectRatioLabel="1080x1350 (4:5)"
-                />
-                
-                <ImageUpload
-                  label="Imagem de Capa (Detalhes)"
-                  value={imagemCapa}
-                  onChange={setImagemCapa}
-                  aspectRatio={1584 / 396}
-                  aspectRatioLabel="1584x396 (4:1)"
-                />
-              </div>
-
-              <div className="flex items-center gap-2 pt-2 border-t">
-                <input
-                  type="checkbox"
-                  id="ativo-chk"
-                  checked={ativo}
-                  onChange={(e) => setAtivo(e.target.checked)}
-                />
-                <label htmlFor="ativo-chk" className="text-sm font-semibold cursor-pointer select-none">
-                  Curso Ativo (Disponível para matrícula)
-                </label>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button variant="outline" className="w-full" onClick={() => setIsAddOpen(false)}>
-                Cancelar
-              </Button>
-              <Button
-                className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
-                onClick={() => salvarCurso.mutate()}
-                disabled={salvarCurso.isPending}
-              >
-                {salvarCurso.isPending ? "Salvando..." : "Confirmar"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+          Cursos
+        </button>
+        <button
+          onClick={() => setActiveTab("categorias")}
+          className={`pb-2 text-sm font-semibold border-b-2 transition-all ${
+            activeTab === "categorias"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Categorias
+        </button>
       </div>
 
-      <div className="flex items-center gap-2 max-w-sm">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar curso por título..." value={search} onChange={(e) => setSearch(e.target.value)} />
-      </div>
+      {activeTab === "cursos" ? (
+        <div className="space-y-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 max-w-sm w-full">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Buscar curso por título..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+            
+            <Dialog
+              open={isAddOpen}
+              onOpenChange={(open) => {
+                setIsAddOpen(open);
+                if (!open) {
+                  setSelectedCurso(null);
+                  resetForm();
+                }
+              }}
+            >
+              <DialogTrigger asChild>
+                <Button className="bg-gold text-gold-foreground hover:bg-gold/90 flex items-center gap-2">
+                  <Plus className="h-4 w-4" /> Novo Curso
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
+                <DialogHeader>
+                  <DialogTitle>{selectedCurso ? "Editar Curso" : "Novo Curso"}</DialogTitle>
+                  <DialogDescription>Insira as informações gerais para compor a ementa do curso.</DialogDescription>
+                </DialogHeader>
 
-      <Card className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Título</TableHead>
-              <TableHead>Modalidade</TableHead>
-              <TableHead>Preço</TableHead>
-              <TableHead>Duração</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.map((c) => (
-              <TableRow key={c.id}>
-                <TableCell className="font-semibold">{c.titulo}</TableCell>
-                <TableCell className="capitalize">{c.modalidade}</TableCell>
-                <TableCell>R$ {Number(c.preco).toFixed(2).replace(".", ",")}</TableCell>
-                <TableCell>{c.duracao || "—"}</TableCell>
-                <TableCell>
-                  <Badge variant={c.ativo ? "default" : "outline"}>
-                    {c.ativo ? "Ativo" : "Inativo"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right whitespace-nowrap space-x-1">
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
-                    <Edit3 className="h-4 w-4 text-primary" />
+                <div className="space-y-4 py-2 overflow-y-auto flex-1 pr-1">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Título *</label>
+                    <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex: Teologia Sistemática" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Descrição</label>
+                    <Input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Apresentação do curso..." />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Categoria</label>
+                    <Select value={categoriaId || "sem-categoria"} onValueChange={(val) => setCategoriaId(val === "sem-categoria" ? null : val)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione uma categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sem-categoria">Sem categoria</SelectItem>
+                        {(categorias ?? []).filter(cat => cat.ativa).map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold">Preço (R$)</label>
+                      <Input type="number" step="0.01" value={preco} onChange={(e) => setPreco(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold">Duração</label>
+                      <Input value={duracao} onChange={(e) => setDuracao(e.target.value)} placeholder="Ex: 6 meses" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold block">Modalidades Disponíveis *</label>
+                    <div className="flex flex-wrap gap-4 pt-1">
+                      {[
+                        { id: "online", label: "Online (AVA)" },
+                        { id: "presencial", label: "Presencial" },
+                        { id: "hibrido", label: "Semi-presencial" },
+                      ].map((opt) => {
+                        const checked = modalidadesDisponiveis.includes(opt.id);
+                        return (
+                          <label key={opt.id} className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => {
+                                if (checked) {
+                                  if (modalidadesDisponiveis.length > 1) {
+                                    setModalidadesDisponiveis(modalidadesDisponiveis.filter((m) => m !== opt.id));
+                                  } else {
+                                    toast.error("O curso deve ter pelo menos uma modalidade selecionada.");
+                                  }
+                                } else {
+                                  setModalidadesDisponiveis([...modalidadesDisponiveis, opt.id]);
+                                }
+                              }}
+                              className="h-4 w-4 rounded border-gray-300 text-gold focus:ring-gold"
+                            />
+                            <span>{opt.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Uploads de Imagens */}
+                  <div className="grid grid-cols-1 gap-4 pt-2 border-t">
+                    <ImageUpload
+                      label="Imagem do Card (Grade)"
+                      value={imagemCard}
+                      onChange={setImagemCard}
+                      aspectRatio={1080 / 1350}
+                      aspectRatioLabel="1080x1350 (4:5)"
+                    />
+                    
+                    <ImageUpload
+                      label="Imagem de Capa (Detalhes)"
+                      value={imagemCapa}
+                      onChange={setImagemCapa}
+                      aspectRatio={1584 / 396}
+                      aspectRatioLabel="1584x396 (4:1)"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t">
+                    <input
+                      type="checkbox"
+                      id="ativo-chk"
+                      checked={ativo}
+                      onChange={(e) => setAtivo(e.target.checked)}
+                    />
+                    <label htmlFor="ativo-chk" className="text-sm font-semibold cursor-pointer select-none">
+                      Curso Ativo (Disponível para matrícula)
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button variant="outline" className="w-full" onClick={() => setIsAddOpen(false)}>
+                    Cancelar
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => { if(confirm("Deseja mesmo excluir o curso?")) excluirCurso.mutate(c.id); }}>
-                    <Trash2 className="h-4 w-4 text-rose-600" />
+                  <Button
+                    className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
+                    onClick={() => salvarCurso.mutate()}
+                    disabled={salvarCurso.isPending}
+                  >
+                    {salvarCurso.isPending ? "Salvando..." : "Confirmar"}
                   </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <Card className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Título</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead>Modalidade</TableHead>
+                  <TableHead>Preço</TableHead>
+                  <TableHead>Duração</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((c) => (
+                  <TableRow key={c.id}>
+                    <TableCell className="font-semibold">{c.titulo}</TableCell>
+                    <TableCell>
+                      {c.categorias?.nome ? (
+                        <Badge variant="outline">{c.categorias.nome}</Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">Sem categoria</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="capitalize">{c.modalidade === "hibrido" ? "Semi-presencial" : c.modalidade}</TableCell>
+                    <TableCell>R$ {Number(c.preco).toFixed(2).replace(".", ",")}</TableCell>
+                    <TableCell>{c.duracao || "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant={c.ativo ? "default" : "outline"}>
+                        {c.ativo ? "Ativo" : "Inativo"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right whitespace-nowrap space-x-1">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
+                        <Edit3 className="h-4 w-4 text-primary" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => { if(confirm("Deseja mesmo excluir o curso?")) excluirCurso.mutate(c.id); }}>
+                        <Trash2 className="h-4 w-4 text-rose-600" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="flex justify-end">
+            <Dialog
+              open={isCatOpen}
+              onOpenChange={(open) => {
+                setIsCatOpen(open);
+                if (!open) {
+                  setSelectedCategoria(null);
+                  resetCatForm();
+                }
+              }}
+            >
+              <DialogTrigger asChild>
+                <Button className="bg-gold text-gold-foreground hover:bg-gold/90 flex items-center gap-2">
+                  <Plus className="h-4 w-4" /> Nova Categoria
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>{selectedCategoria ? "Editar Categoria" : "Nova Categoria"}</DialogTitle>
+                  <DialogDescription>Cadastre as categorias para organizar as disciplinas e cursos.</DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4 py-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Nome *</label>
+                    <Input value={catNome} onChange={(e) => setCatNome(e.target.value)} placeholder="Ex: Bacharelado, Extensão..." />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Descrição</label>
+                    <Input value={catDescricao} onChange={(e) => setCatDescricao(e.target.value)} placeholder="Breve resumo..." />
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2">
+                    <input
+                      type="checkbox"
+                      id="cat-ativa-chk"
+                      checked={catAtiva}
+                      onChange={(e) => setCatAtiva(e.target.checked)}
+                    />
+                    <label htmlFor="cat-ativa-chk" className="text-sm font-semibold cursor-pointer select-none">
+                      Categoria Ativa
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button variant="outline" className="w-full" onClick={() => setIsCatOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
+                    onClick={() => salvarCategoria.mutate()}
+                    disabled={salvarCategoria.isPending}
+                  >
+                    {salvarCategoria.isPending ? "Salvando..." : "Confirmar"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <Card className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(categorias ?? []).map((cat) => (
+                  <TableRow key={cat.id}>
+                    <TableCell className="font-semibold">{cat.nome}</TableCell>
+                    <TableCell>{cat.descricao || "—"}</TableCell>
+                    <TableCell className="font-mono text-xs">{cat.slug}</TableCell>
+                    <TableCell>
+                      <Badge variant={cat.ativa ? "default" : "outline"}>
+                        {cat.ativa ? "Ativa" : "Inativa"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right whitespace-nowrap space-x-1">
+                      <Button variant="ghost" size="icon" onClick={() => openEditCat(cat)}>
+                        <Edit3 className="h-4 w-4 text-primary" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => { if(confirm("Deseja mesmo excluir esta categoria?")) excluirCategoria.mutate(cat.id); }}>
+                        <Trash2 className="h-4 w-4 text-rose-600" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {categorias && categorias.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground p-4">
+                      Nenhuma categoria cadastrada.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
