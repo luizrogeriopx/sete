@@ -32,6 +32,9 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nome, setNome] = useState("");
+  const [dataNasc, setDataNasc] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user, roles, loading: authLoading } = useAuth();
@@ -53,7 +56,12 @@ function AuthPage() {
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { nome_completo: nome },
+            data: { 
+              nome_completo: nome,
+              data_nascimento: dataNasc || null,
+              cpf: cpf || null,
+              telefone: telefone || null,
+            },
           },
         });
         if (error) throw error;
@@ -90,10 +98,26 @@ function AuthPage() {
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               {modo === "cadastro" && (
-                <div>
-                  <Label htmlFor="nome">Nome completo</Label>
-                  <Input id="nome" required value={nome} onChange={(e) => setNome(e.target.value)} />
-                </div>
+                <>
+                  <div>
+                    <Label htmlFor="nome">Nome completo *</Label>
+                    <Input id="nome" required value={nome} onChange={(e) => setNome(e.target.value)} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="dataNasc">Data de Nascimento</Label>
+                      <Input id="dataNasc" type="date" value={dataNasc} onChange={(e) => setDataNasc(e.target.value)} className="w-full text-slate-300" />
+                    </div>
+                    <div>
+                      <Label htmlFor="cpf">CPF</Label>
+                      <Input id="cpf" value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="000.000.000-00" />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="telefone">Telefone / WhatsApp</Label>
+                    <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+                  </div>
+                </>
               )}
               <div>
                 <Label htmlFor="email">E-mail</Label>

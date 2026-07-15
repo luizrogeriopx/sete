@@ -45,6 +45,7 @@ import { Route as AuthenticatedProfessorAlunosRouteImport } from './routes/_auth
 import { Route as AuthenticatedAlunoSuporteRouteImport } from './routes/_authenticated/aluno.suporte'
 import { Route as AuthenticatedAlunoSecretariaRouteImport } from './routes/_authenticated/aluno.secretaria'
 import { Route as AuthenticatedAlunoNotificacoesRouteImport } from './routes/_authenticated/aluno.notificacoes'
+import { Route as AuthenticatedAlunoMeusDadosRouteImport } from './routes/_authenticated/aluno.meus-dados'
 import { Route as AuthenticatedAlunoMeusCursosRouteImport } from './routes/_authenticated/aluno.meus-cursos'
 import { Route as AuthenticatedAlunoFinanceiroRouteImport } from './routes/_authenticated/aluno.financeiro'
 import { Route as AuthenticatedAlunoCursosDisponiveisRouteImport } from './routes/_authenticated/aluno.cursos-disponiveis'
@@ -258,6 +259,12 @@ const AuthenticatedAlunoNotificacoesRoute =
     path: '/notificacoes',
     getParentRoute: () => AuthenticatedAlunoRoute,
   } as any)
+const AuthenticatedAlunoMeusDadosRoute =
+  AuthenticatedAlunoMeusDadosRouteImport.update({
+    id: '/meus-dados',
+    path: '/meus-dados',
+    getParentRoute: () => AuthenticatedAlunoRoute,
+  } as any)
 const AuthenticatedAlunoMeusCursosRoute =
   AuthenticatedAlunoMeusCursosRouteImport.update({
     id: '/meus-cursos',
@@ -362,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/aluno/cursos-disponiveis': typeof AuthenticatedAlunoCursosDisponiveisRoute
   '/aluno/financeiro': typeof AuthenticatedAlunoFinanceiroRoute
   '/aluno/meus-cursos': typeof AuthenticatedAlunoMeusCursosRoute
+  '/aluno/meus-dados': typeof AuthenticatedAlunoMeusDadosRoute
   '/aluno/notificacoes': typeof AuthenticatedAlunoNotificacoesRoute
   '/aluno/secretaria': typeof AuthenticatedAlunoSecretariaRoute
   '/aluno/suporte': typeof AuthenticatedAlunoSuporteRoute
@@ -407,6 +415,7 @@ export interface FileRoutesByTo {
   '/aluno/cursos-disponiveis': typeof AuthenticatedAlunoCursosDisponiveisRoute
   '/aluno/financeiro': typeof AuthenticatedAlunoFinanceiroRoute
   '/aluno/meus-cursos': typeof AuthenticatedAlunoMeusCursosRoute
+  '/aluno/meus-dados': typeof AuthenticatedAlunoMeusDadosRoute
   '/aluno/notificacoes': typeof AuthenticatedAlunoNotificacoesRoute
   '/aluno/secretaria': typeof AuthenticatedAlunoSecretariaRoute
   '/aluno/suporte': typeof AuthenticatedAlunoSuporteRoute
@@ -459,6 +468,7 @@ export interface FileRoutesById {
   '/_authenticated/aluno/cursos-disponiveis': typeof AuthenticatedAlunoCursosDisponiveisRoute
   '/_authenticated/aluno/financeiro': typeof AuthenticatedAlunoFinanceiroRoute
   '/_authenticated/aluno/meus-cursos': typeof AuthenticatedAlunoMeusCursosRoute
+  '/_authenticated/aluno/meus-dados': typeof AuthenticatedAlunoMeusDadosRoute
   '/_authenticated/aluno/notificacoes': typeof AuthenticatedAlunoNotificacoesRoute
   '/_authenticated/aluno/secretaria': typeof AuthenticatedAlunoSecretariaRoute
   '/_authenticated/aluno/suporte': typeof AuthenticatedAlunoSuporteRoute
@@ -511,6 +521,7 @@ export interface FileRouteTypes {
     | '/aluno/cursos-disponiveis'
     | '/aluno/financeiro'
     | '/aluno/meus-cursos'
+    | '/aluno/meus-dados'
     | '/aluno/notificacoes'
     | '/aluno/secretaria'
     | '/aluno/suporte'
@@ -556,6 +567,7 @@ export interface FileRouteTypes {
     | '/aluno/cursos-disponiveis'
     | '/aluno/financeiro'
     | '/aluno/meus-cursos'
+    | '/aluno/meus-dados'
     | '/aluno/notificacoes'
     | '/aluno/secretaria'
     | '/aluno/suporte'
@@ -607,6 +619,7 @@ export interface FileRouteTypes {
     | '/_authenticated/aluno/cursos-disponiveis'
     | '/_authenticated/aluno/financeiro'
     | '/_authenticated/aluno/meus-cursos'
+    | '/_authenticated/aluno/meus-dados'
     | '/_authenticated/aluno/notificacoes'
     | '/_authenticated/aluno/secretaria'
     | '/_authenticated/aluno/suporte'
@@ -900,6 +913,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlunoNotificacoesRouteImport
       parentRoute: typeof AuthenticatedAlunoRoute
     }
+    '/_authenticated/aluno/meus-dados': {
+      id: '/_authenticated/aluno/meus-dados'
+      path: '/meus-dados'
+      fullPath: '/aluno/meus-dados'
+      preLoaderRoute: typeof AuthenticatedAlunoMeusDadosRouteImport
+      parentRoute: typeof AuthenticatedAlunoRoute
+    }
     '/_authenticated/aluno/meus-cursos': {
       id: '/_authenticated/aluno/meus-cursos'
       path: '/meus-cursos'
@@ -1025,6 +1045,7 @@ interface AuthenticatedAlunoRouteChildren {
   AuthenticatedAlunoCursosDisponiveisRoute: typeof AuthenticatedAlunoCursosDisponiveisRoute
   AuthenticatedAlunoFinanceiroRoute: typeof AuthenticatedAlunoFinanceiroRoute
   AuthenticatedAlunoMeusCursosRoute: typeof AuthenticatedAlunoMeusCursosRoute
+  AuthenticatedAlunoMeusDadosRoute: typeof AuthenticatedAlunoMeusDadosRoute
   AuthenticatedAlunoNotificacoesRoute: typeof AuthenticatedAlunoNotificacoesRoute
   AuthenticatedAlunoSecretariaRoute: typeof AuthenticatedAlunoSecretariaRoute
   AuthenticatedAlunoSuporteRoute: typeof AuthenticatedAlunoSuporteRoute
@@ -1039,6 +1060,7 @@ const AuthenticatedAlunoRouteChildren: AuthenticatedAlunoRouteChildren = {
     AuthenticatedAlunoCursosDisponiveisRoute,
   AuthenticatedAlunoFinanceiroRoute: AuthenticatedAlunoFinanceiroRoute,
   AuthenticatedAlunoMeusCursosRoute: AuthenticatedAlunoMeusCursosRoute,
+  AuthenticatedAlunoMeusDadosRoute: AuthenticatedAlunoMeusDadosRoute,
   AuthenticatedAlunoNotificacoesRoute: AuthenticatedAlunoNotificacoesRoute,
   AuthenticatedAlunoSecretariaRoute: AuthenticatedAlunoSecretariaRoute,
   AuthenticatedAlunoSuporteRoute: AuthenticatedAlunoSuporteRoute,
