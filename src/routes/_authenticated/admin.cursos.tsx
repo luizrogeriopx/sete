@@ -186,7 +186,7 @@ function CursosAdmin() {
         descricao,
         preco: parseFloat(preco) || 0,
         modalidade,
-        carga_horaria: parseInt(cargaHoraria) || null,
+        duracao: duracao || null,
         ativo,
         imagem_card: imagemCard || null,
         imagem_capa: imagemCapa || null,
