@@ -18,7 +18,7 @@ function MeusCursos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("matriculas")
-        .select("id, status, progresso, cursos(id, titulo, slug, imagem_capa, modalidade)")
+        .select("id, status, progresso, modalidade_escolhida, cursos(id, titulo, slug, imagem_capa, modalidade)")
         .eq("aluno_id", user!.id)
         .order("data_matricula", { ascending: false });
       if (error) throw error;
@@ -48,7 +48,9 @@ function MeusCursos() {
                 <div className="aspect-[16/9] bg-gradient-to-br from-primary/80 to-primary" />
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
-                    <Badge variant="outline">{m.cursos?.modalidade}</Badge>
+                    <Badge variant="outline">
+                      {m.modalidade_escolhida === "online" ? "Online (AVA)" : m.modalidade_escolhida || m.cursos?.modalidade}
+                    </Badge>
                     <Badge>{m.status}</Badge>
                   </div>
                   <h3 className="mt-2 font-serif text-lg">{m.cursos?.titulo}</h3>

@@ -282,6 +282,7 @@ export type Database = {
           imagem_capa: string | null
           ministrante_id: string | null
           modalidade: Database["public"]["Enums"]["curso_modalidade"]
+          modalidades_disponiveis: string[] | null
           preco: number
           slug: string
           titulo: string
@@ -301,6 +302,7 @@ export type Database = {
           imagem_capa?: string | null
           ministrante_id?: string | null
           modalidade?: Database["public"]["Enums"]["curso_modalidade"]
+          modalidades_disponiveis?: string[] | null
           preco?: number
           slug: string
           titulo: string
@@ -320,6 +322,7 @@ export type Database = {
           imagem_capa?: string | null
           ministrante_id?: string | null
           modalidade?: Database["public"]["Enums"]["curso_modalidade"]
+          modalidades_disponiveis?: string[] | null
           preco?: number
           slug?: string
           titulo?: string
@@ -389,6 +392,7 @@ export type Database = {
           observacao: string | null
           progresso: number
           status: Database["public"]["Enums"]["matricula_status"]
+          modalidade_escolhida: string | null
         }
         Insert: {
           aluno_id: string
@@ -399,6 +403,7 @@ export type Database = {
           observacao?: string | null
           progresso?: number
           status?: Database["public"]["Enums"]["matricula_status"]
+          modalidade_escolhida?: string | null
         }
         Update: {
           aluno_id?: string
@@ -409,6 +414,7 @@ export type Database = {
           observacao?: string | null
           progresso?: number
           status?: Database["public"]["Enums"]["matricula_status"]
+          modalidade_escolhida?: string | null
         }
         Relationships: [
           {

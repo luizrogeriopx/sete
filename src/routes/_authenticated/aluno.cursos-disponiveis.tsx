@@ -16,7 +16,7 @@ function Page() {
     enabled: !!user,
     queryFn: async () => {
       const [{ data: cursos }, { data: minhas }] = await Promise.all([
-        supabase.from("cursos").select("id, titulo, slug, descricao_curta, preco, modalidade, categorias(nome)").eq("ativo", true),
+        supabase.from("cursos").select("id, titulo, slug, descricao_curta, preco, modalidade, modalidades_disponiveis, categorias(nome)").eq("ativo", true),
         supabase.from("matriculas").select("curso_id").eq("aluno_id", user!.id),
       ]);
       const jaMatriculado = new Set((minhas ?? []).map((m) => m.curso_id));
@@ -35,9 +35,13 @@ function Page() {
             <Card className="h-full transition hover:shadow-md">
               <div className="aspect-[16/9] bg-gradient-to-br from-primary/80 to-primary" />
               <CardContent className="p-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="outline">{c.categorias?.nome}</Badge>
-                  <Badge>{c.modalidade}</Badge>
+                  <Badge className="capitalize">
+                    {c.modalidades_disponiveis && c.modalidades_disponiveis.length > 0
+                      ? c.modalidades_disponiveis.map((m: string) => m === "online" ? "Online (AVA)" : m).join(" / ")
+                      : c.modalidade}
+                  </Badge>
                 </div>
                 <h3 className="mt-2 font-serif text-lg">{c.titulo}</h3>
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{c.descricao_curta}</p>

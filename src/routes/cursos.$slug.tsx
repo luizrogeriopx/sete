@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, User } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const cursoQO = (slug: string) =>
   queryOptions({
@@ -67,20 +69,18 @@ function CursoDetail() {
   const curso = Route.useLoaderData();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [isModalityOpen, setIsModalityOpen] = useState(false);
+  const [selectedModality, setSelectedModality] = useState("");
 
   const modulos = [...(curso.modulos ?? [])].sort((a, b) => a.ordem - b.ordem);
 
-  async function matricular() {
-    if (!user) {
-      toast.info("Entre para se matricular.");
-      navigate({ to: "/auth", search: { redirect: `/cursos/${curso.slug}` } });
-      return;
-    }
-    // Cria matrícula pendente e redireciona para checkout
+  async function confirmarMatricula(escolhida: string) {
+    setIsModalityOpen(false);
+    
     const { data: existente } = await supabase
       .from("matriculas")
       .select("id, status")
-      .eq("aluno_id", user.id)
+      .eq("aluno_id", user!.id)
       .eq("curso_id", curso.id)
       .maybeSingle();
 
@@ -89,17 +89,46 @@ function CursoDetail() {
       navigate({ to: "/aluno/curso/$id", params: { id: curso.id } });
       return;
     }
+
     if (!existente) {
       const { error } = await supabase
         .from("matriculas")
-        .insert({ aluno_id: user.id, curso_id: curso.id, status: "pendente" });
+        .insert({
+          aluno_id: user!.id,
+          curso_id: curso.id,
+          status: "pendente",
+          modalidade_escolhida: escolhida,
+        });
+      if (error) return toast.error(error.message);
+    } else {
+      const { error } = await supabase
+        .from("matriculas")
+        .update({ modalidade_escolhida: escolhida })
+        .eq("id", existente.id);
       if (error) return toast.error(error.message);
     }
+
     if (Number(curso.preco) > 0) {
       navigate({ to: "/checkout/$slug", params: { slug: curso.slug } });
     } else {
       toast.success("Matrícula realizada!");
       navigate({ to: "/aluno" });
+    }
+  }
+
+  async function matricular() {
+    if (!user) {
+      toast.info("Entre para se matricular.");
+      navigate({ to: "/auth", search: { redirect: `/cursos/${curso.slug}` } });
+      return;
+    }
+
+    const opts = curso.modalidades_disponiveis || [curso.modalidade || "online"];
+    if (opts.length > 1) {
+      setSelectedModality(opts[0]);
+      setIsModalityOpen(true);
+    } else {
+      await confirmarMatricula(opts[0] || "online");
     }
   }
 
@@ -192,6 +221,54 @@ function CursoDetail() {
           </div>
         </section>
       </main>
+      {/* Dialog para Escolha de Modalidade */}
+      <Dialog open={isModalityOpen} onOpenChange={setIsModalityOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Escolha a Modalidade</DialogTitle>
+            <DialogDescription>
+              Selecione a modalidade na qual deseja realizar o curso:
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-3">
+            {(curso.modalidades_disponiveis || [curso.modalidade || "online"]).map((m: string) => (
+              <label
+                key={m}
+                className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:border-gold/50 transition-all ${
+                  selectedModality === m
+                    ? "border-gold bg-gold/5 text-gold-foreground font-bold"
+                    : "border-slate-800 text-slate-300"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="modality"
+                    value={m}
+                    checked={selectedModality === m}
+                    onChange={() => setSelectedModality(m)}
+                    className="h-4 w-4 text-gold border-slate-700 focus:ring-gold"
+                  />
+                  <span className="capitalize">{m === "online" ? "Online (AVA)" : m}</span>
+                </div>
+              </label>
+            ))}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" className="w-full" onClick={() => setIsModalityOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
+              onClick={() => confirmarMatricula(selectedModality)}
+            >
+              Confirmar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <SiteFooter />
     </div>
   );

@@ -152,7 +152,7 @@ function CursosAdmin() {
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [preco, setPreco] = useState("0");
-  const [modalidade, setModalidade] = useState<"online" | "presencial" | "hibrido">("online");
+  const [modalidadesDisponiveis, setModalidadesDisponiveis] = useState<string[]>(["online"]);
   const [cargaHoraria, setCargaHoraria] = useState("40");
   const [ativo, setAtivo] = useState(true);
   const [imagemCard, setImagemCard] = useState("");
@@ -185,7 +185,8 @@ function CursosAdmin() {
         slug,
         descricao,
         preco: parseFloat(preco) || 0,
-        modalidade,
+        modalidade: (modalidadesDisponiveis[0] || "online") as any,
+        modalidades_disponiveis: modalidadesDisponiveis,
         carga_horaria: parseInt(cargaHoraria) || null,
         ativo,
         imagem_card: imagemCard || null,
@@ -235,7 +236,7 @@ function CursosAdmin() {
     setTitulo("");
     setDescricao("");
     setPreco("0");
-    setModalidade("online");
+    setModalidadesDisponiveis(["online"]);
     setCargaHoraria("40");
     setAtivo(true);
     setImagemCard("");
@@ -247,7 +248,7 @@ function CursosAdmin() {
     setTitulo(c.titulo);
     setDescricao(c.descricao || "");
     setPreco(c.preco.toString());
-    setModalidade(c.modalidade);
+    setModalidadesDisponiveis(c.modalidades_disponiveis || [c.modalidade || "online"]);
     setCargaHoraria((c.carga_horaria || "").toString());
     setAtivo(c.ativo);
     setImagemCard(c.imagem_card || "");
@@ -314,17 +315,37 @@ function CursosAdmin() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold">Modalidade</label>
-                <Select value={modalidade} onValueChange={(val: any) => setModalidade(val)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="online">Online (AVA)</SelectItem>
-                    <SelectItem value="presencial">Presencial</SelectItem>
-                    <SelectItem value="hibrido">Híbrido</SelectItem>
-                  </SelectContent>
-                </Select>
+                <label className="text-sm font-semibold block">Modalidades Disponíveis *</label>
+                <div className="flex flex-wrap gap-4 pt-1">
+                  {[
+                    { id: "online", label: "Online (AVA)" },
+                    { id: "presencial", label: "Presencial" },
+                    { id: "hibrido", label: "Híbrido" },
+                  ].map((opt) => {
+                    const checked = modalidadesDisponiveis.includes(opt.id);
+                    return (
+                      <label key={opt.id} className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            if (checked) {
+                              if (modalidadesDisponiveis.length > 1) {
+                                setModalidadesDisponiveis(modalidadesDisponiveis.filter((m) => m !== opt.id));
+                              } else {
+                                toast.error("O curso deve ter pelo menos uma modalidade selecionada.");
+                              }
+                            } else {
+                              setModalidadesDisponiveis([...modalidadesDisponiveis, opt.id]);
+                            }
+                          }}
+                          className="h-4 w-4 rounded border-gray-300 text-gold focus:ring-gold"
+                        />
+                        <span>{opt.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Uploads de Imagens */}

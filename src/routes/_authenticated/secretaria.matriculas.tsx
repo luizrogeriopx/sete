@@ -21,6 +21,17 @@ function MatriculasSecretaria() {
   const [alunoId, setAlunoId] = useState("");
   const [cursoId, setCursoId] = useState("");
   const [status, setStatus] = useState<"ativa" | "pendente">("ativa");
+  const [modalidadeEscolhida, setModalidadeEscolhida] = useState("");
+
+  const selectedCourseObj = cursos?.find((c) => c.id === cursoId);
+  const modalities = selectedCourseObj?.modalidades_disponiveis || (selectedCourseObj?.modalidade ? [selectedCourseObj.modalidade] : ["online"]);
+
+  const handleCursoChange = (cid: string) => {
+    setCursoId(cid);
+    const selected = cursos?.find((c) => c.id === cid);
+    const opts = selected?.modalidades_disponiveis || (selected?.modalidade ? [selected.modalidade] : ["online"]);
+    setModalidadeEscolhida(opts[0] || "online");
+  };
 
   // Fetch all enrollments
   const { data: matriculas, isLoading } = useQuery({
@@ -53,7 +64,7 @@ function MatriculasSecretaria() {
   const { data: cursos } = useQuery({
     queryKey: ["secretaria-cursos-select"],
     queryFn: async () => {
-      const { data } = await supabase.from("cursos").select("id, titulo").eq("ativo", true).order("titulo");
+      const { data } = await supabase.from("cursos").select("id, titulo, modalidade, modalidades_disponiveis").eq("ativo", true).order("titulo");
       return data ?? [];
     },
   });
@@ -80,6 +91,7 @@ function MatriculasSecretaria() {
           curso_id: cursoId,
           status,
           progresso: 0,
+          modalidade_escolhida: modalidadeEscolhida || null,
         })
         .select("id, status, valor:curso_id")
         .single();
@@ -115,6 +127,7 @@ function MatriculasSecretaria() {
       setAlunoId("");
       setCursoId("");
       setStatus("ativa");
+      setModalidadeEscolhida("");
     },
     onError: (err: Error) => {
       toast.error(`Erro ao matricular: ${err.message}`);
@@ -180,7 +193,7 @@ function MatriculasSecretaria() {
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Curso</label>
-                <Select value={cursoId} onValueChange={setCursoId}>
+                <Select value={cursoId} onValueChange={handleCursoChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o curso..." />
                   </SelectTrigger>
@@ -193,6 +206,24 @@ function MatriculasSecretaria() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {cursoId && (
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Modalidade</label>
+                  <Select value={modalidadeEscolhida} onValueChange={setModalidadeEscolhida}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modalities.map((m: string) => (
+                        <SelectItem key={m} value={m}>
+                          {m === "online" ? "Online (AVA)" : m === "presencial" ? "Presencial" : m === "hibrido" ? "Híbrido" : m}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Status de Início</label>
@@ -236,6 +267,7 @@ function MatriculasSecretaria() {
               <TableRow>
                 <TableHead>Aluno</TableHead>
                 <TableHead>Curso</TableHead>
+                <TableHead>Modalidade</TableHead>
                 <TableHead>Data de Matrícula</TableHead>
                 <TableHead>Progresso</TableHead>
                 <TableHead>Status</TableHead>
@@ -247,6 +279,11 @@ function MatriculasSecretaria() {
                 <TableRow key={m.id}>
                   <TableCell className="font-semibold">{m.profiles?.nome_completo}</TableCell>
                   <TableCell>{m.cursos?.titulo}</TableCell>
+                  <TableCell className="capitalize">
+                    <Badge variant="outline">
+                      {m.modalidade_escolhida === "online" ? "Online (AVA)" : m.modalidade_escolhida || m.cursos?.modalidade}
+                    </Badge>
+                  </TableCell>
                   <TableCell>{new Date(m.data_matricula).toLocaleDateString("pt-BR")}</TableCell>
                   <TableCell className="font-mono text-xs">{m.progresso}%</TableCell>
                   <TableCell>

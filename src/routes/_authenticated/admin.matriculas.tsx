@@ -114,6 +114,7 @@ function MatriculasAdmin() {
             <TableRow>
               <TableHead>Aluno</TableHead>
               <TableHead>Curso</TableHead>
+              <TableHead>Modalidade</TableHead>
               <TableHead>Data de Matrícula</TableHead>
               <TableHead>Progresso Acadêmico</TableHead>
               <TableHead>Status</TableHead>
@@ -124,6 +125,11 @@ function MatriculasAdmin() {
               <TableRow key={m.id}>
                 <TableCell className="font-semibold">{m.profiles?.nome_completo || "Sem Nome"}</TableCell>
                 <TableCell>{m.cursos?.titulo}</TableCell>
+                <TableCell className="capitalize">
+                  <Badge variant="outline">
+                    {m.modalidade_escolhida === "online" ? "Online (AVA)" : m.modalidade_escolhida || m.cursos?.modalidade}
+                  </Badge>
+                </TableCell>
                 <TableCell>{new Date(m.data_matricula).toLocaleDateString("pt-BR")}</TableCell>
                 <TableCell className="font-mono text-xs font-bold">{m.progresso}%</TableCell>
                 <TableCell>
