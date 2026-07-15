@@ -153,7 +153,7 @@ function CursosAdmin() {
   const [descricao, setDescricao] = useState("");
   const [preco, setPreco] = useState("0");
   const [modalidade, setModalidade] = useState<"online" | "presencial" | "hibrido">("online");
-  const [cargaHoraria, setCargaHoraria] = useState("40");
+  const [duracao, setDuracao] = useState("6 meses");
   const [ativo, setAtivo] = useState(true);
   const [imagemCard, setImagemCard] = useState("");
   const [imagemCapa, setImagemCapa] = useState("");
