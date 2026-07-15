@@ -11,7 +11,7 @@ const destaquesQO = queryOptions({
   queryFn: async () => {
     const { data, error } = await supabase
       .from("cursos")
-      .select("id, titulo, slug, descricao_curta, imagem_capa, preco, modalidade, categorias(nome)")
+      .select("id, titulo, slug, descricao_curta, imagem_capa, imagem_card, preco, modalidade, categorias(nome)")
       .eq("ativo", true)
       .eq("destaque", true)
       .limit(6);
@@ -127,22 +127,41 @@ function Home() {
                     params={{ slug: c.slug }}
                     className="group"
                   >
-                    <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
-                      <div className="aspect-[16/10] w-full bg-gradient-to-br from-primary/80 to-primary" />
-                      <CardContent className="p-5">
-                        <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                          {c.categorias?.nome ?? "Curso"} · {c.modalidade}
-                        </p>
-                        <h3 className="mt-2 font-serif text-xl group-hover:text-primary">
-                          {c.titulo}
-                        </h3>
-                        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                          {c.descricao_curta}
-                        </p>
-                        <div className="mt-4 font-serif text-lg text-primary">
-                          {c.preco > 0
-                            ? `R$ ${Number(c.preco).toFixed(2).replace(".", ",")}`
-                            : "Gratuito"}
+                    <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-lg flex flex-col">
+                      <div className="aspect-[4/5] w-full overflow-hidden bg-slate-950 border-b border-border/10">
+                        {c.imagem_card ? (
+                          <img
+                            src={c.imagem_card}
+                            alt={c.titulo}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="h-full w-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center p-4">
+                            <BookOpen className="h-10 w-10 text-gold/80" />
+                          </div>
+                        )}
+                      </div>
+                      <CardContent className="p-5 flex-1 flex flex-col justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                            {c.categorias?.nome ?? "Curso"} · {c.modalidade}
+                          </p>
+                          <h3 className="mt-2 font-serif text-xl group-hover:text-primary leading-tight">
+                            {c.titulo}
+                          </h3>
+                          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground leading-snug">
+                            {c.descricao_curta}
+                          </p>
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-border/40 font-serif text-lg text-primary flex items-center justify-between">
+                          <span>
+                            {c.preco > 0
+                              ? `R$ ${Number(c.preco).toFixed(2).replace(".", ",")}`
+                              : "Gratuito"}
+                          </span>
+                          <span className="text-xs font-sans text-muted-foreground group-hover:text-primary font-medium transition-colors">
+                            Conhecer Curso →
+                          </span>
                         </div>
                       </CardContent>
                     </Card>

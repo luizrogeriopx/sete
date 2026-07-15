@@ -150,3 +150,10 @@
 @utility text-gold { color: var(--gold); }
 @utility bg-gold { background-color: var(--gold); }
 @utility border-gold { border-color: var(--gold); }
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -106,9 +106,22 @@ function CursoDetail() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="flex-1">
+      <main className="flex-1 pb-12">
+        {curso.imagem_capa && (
+          <div className="w-full bg-slate-950 border-b border-slate-900">
+            <div className="mx-auto max-w-6xl px-4 py-4">
+              <div className="aspect-[1584/396] w-full overflow-hidden rounded-xl md:rounded-2xl bg-slate-900 shadow-lg border border-slate-800/60">
+                <img
+                  src={curso.imagem_capa}
+                  alt={curso.titulo}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        )}
         <section className="bg-primary text-primary-foreground">
-          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 md:grid-cols-3">
+          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:py-16 md:grid-cols-3">
             <div className="md:col-span-2">
               <div className="flex flex-wrap gap-2">
                 {curso.categorias?.nome && (

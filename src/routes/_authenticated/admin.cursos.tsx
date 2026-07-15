@@ -8,13 +8,139 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Edit3, Trash2 } from "lucide-react";
+import { Plus, Search, Edit3, Trash2, Loader2, Upload, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/cursos")({
   component: CursosAdmin,
 });
+
+function ImageUpload({
+  label,
+  value,
+  onChange,
+  aspectRatio,
+  aspectRatioLabel,
+}: {
+  label: string;
+  value: string;
+  onChange: (url: string) => void;
+  aspectRatio: number;
+  aspectRatioLabel: string;
+}) {
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor, selecione uma imagem válida.");
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const validateDimensions = (): Promise<{ isValid: boolean; w: number; h: number }> => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.src = URL.createObjectURL(file);
+          img.onload = () => {
+            URL.revokeObjectURL(img.src);
+            const ratio = img.width / img.height;
+            const diff = Math.abs(ratio - aspectRatio);
+            const isValid = diff <= 0.05; // 5% tolerance
+            resolve({ isValid, w: img.width, h: img.height });
+          };
+          img.onerror = () => {
+            resolve({ isValid: false, w: 0, h: 0 });
+          };
+        });
+      };
+
+      const { isValid, w, h } = await validateDimensions();
+
+      if (!isValid) {
+        toast.error(
+          `Proporção incorreta! Encontrado: ${w}x${h}px. A imagem deve estar na proporção ${aspectRatioLabel}.`
+        );
+        setIsUploading(false);
+        return;
+      }
+
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("cursos")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("cursos").getPublicUrl(filePath);
+      if (!data.publicUrl) throw new Error("Não foi possível obter a URL pública.");
+
+      onChange(data.publicUrl);
+      toast.success("Imagem carregada com sucesso!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(`Erro ao carregar imagem: ${err.message || err}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
+        <label className="text-sm font-semibold">{label}</label>
+        <span className="text-xs text-muted-foreground">Proporção: {aspectRatioLabel}</span>
+      </div>
+
+      {value ? (
+        <div className="relative rounded-lg overflow-hidden border border-border bg-slate-950 flex items-center justify-center">
+          <img
+            src={value}
+            alt={label}
+            className={`object-cover w-full ${aspectRatio > 1 ? "aspect-[4/1]" : "aspect-[4/5] max-h-[160px] object-contain"}`}
+          />
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="absolute top-2 right-2 p-1 bg-black/80 hover:bg-black text-white rounded-full transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ) : (
+        <label className={`flex flex-col items-center justify-center border border-dashed border-border rounded-lg cursor-pointer hover:border-gold/50 hover:bg-gold/5 transition-all p-4 ${aspectRatio > 1 ? "aspect-[4/1]" : "aspect-[4/5] max-h-[160px]"}`}>
+          {isUploading ? (
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin text-gold" />
+              <span className="text-xs">Enviando...</span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-1 text-muted-foreground text-center">
+              <Upload className="h-5 w-5 text-gold mb-1" />
+              <span className="text-xs font-semibold">Carregar Imagem</span>
+              <span className="text-[10px] text-muted-foreground/80">{aspectRatioLabel}</span>
+            </div>
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+            disabled={isUploading}
+          />
+        </label>
+      )}
+    </div>
+  );
+}
 
 function CursosAdmin() {
   const qc = useQueryClient();
@@ -29,6 +155,8 @@ function CursosAdmin() {
   const [modalidade, setModalidade] = useState<"online" | "presencial" | "hibrido">("online");
   const [cargaHoraria, setCargaHoraria] = useState("40");
   const [ativo, setAtivo] = useState(true);
+  const [imagemCard, setImagemCard] = useState("");
+  const [imagemCapa, setImagemCapa] = useState("");
 
   // Query courses
   const { data: cursos, isLoading } = useQuery({
@@ -60,6 +188,8 @@ function CursosAdmin() {
         modalidade,
         carga_horaria: parseInt(cargaHoraria) || null,
         ativo,
+        imagem_card: imagemCard || null,
+        imagem_capa: imagemCapa || null,
       };
 
       if (selectedCurso) {
@@ -108,6 +238,8 @@ function CursosAdmin() {
     setModalidade("online");
     setCargaHoraria("40");
     setAtivo(true);
+    setImagemCard("");
+    setImagemCapa("");
   }
 
   function openEdit(c: any) {
@@ -118,6 +250,8 @@ function CursosAdmin() {
     setModalidade(c.modalidade);
     setCargaHoraria((c.carga_horaria || "").toString());
     setAtivo(c.ativo);
+    setImagemCard(c.imagem_card || "");
+    setImagemCapa(c.imagem_capa || "");
     setIsAddOpen(true);
   }
 
@@ -151,13 +285,13 @@ function CursosAdmin() {
               <Plus className="h-4 w-4" /> Novo Curso
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>{selectedCurso ? "Editar Curso" : "Novo Curso"}</DialogTitle>
               <DialogDescription>Insira as informações gerais para compor a ementa do curso.</DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 py-2">
+            <div className="space-y-4 py-2 overflow-y-auto flex-1 pr-1">
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Título *</label>
                 <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex: Teologia Sistemática" />
@@ -193,7 +327,26 @@ function CursosAdmin() {
                 </Select>
               </div>
 
-              <div className="flex items-center gap-2">
+              {/* Uploads de Imagens */}
+              <div className="grid grid-cols-1 gap-4 pt-2 border-t">
+                <ImageUpload
+                  label="Imagem do Card (Grade)"
+                  value={imagemCard}
+                  onChange={setImagemCard}
+                  aspectRatio={1080 / 1350}
+                  aspectRatioLabel="1080x1350 (4:5)"
+                />
+                
+                <ImageUpload
+                  label="Imagem de Capa (Detalhes)"
+                  value={imagemCapa}
+                  onChange={setImagemCapa}
+                  aspectRatio={1584 / 396}
+                  aspectRatioLabel="1584x396 (4:1)"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-2 border-t">
                 <input
                   type="checkbox"
                   id="ativo-chk"

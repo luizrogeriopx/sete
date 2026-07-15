@@ -278,6 +278,7 @@ export type Database = {
           destaque: boolean
           ementa: string | null
           id: string
+          imagem_card: string | null
           imagem_capa: string | null
           ministrante_id: string | null
           modalidade: Database["public"]["Enums"]["curso_modalidade"]
@@ -296,6 +297,7 @@ export type Database = {
           destaque?: boolean
           ementa?: string | null
           id?: string
+          imagem_card?: string | null
           imagem_capa?: string | null
           ministrante_id?: string | null
           modalidade?: Database["public"]["Enums"]["curso_modalidade"]
@@ -314,6 +316,7 @@ export type Database = {
           destaque?: boolean
           ementa?: string | null
           id?: string
+          imagem_card?: string | null
           imagem_capa?: string | null
           ministrante_id?: string | null
           modalidade?: Database["public"]["Enums"]["curso_modalidade"]
