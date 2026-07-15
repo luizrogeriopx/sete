@@ -276,6 +276,7 @@ export type Database = {
           descricao: string | null
           descricao_curta: string | null
           destaque: boolean
+          duracao: string | null
           ementa: string | null
           id: string
           imagem_capa: string | null
@@ -294,6 +295,7 @@ export type Database = {
           descricao?: string | null
           descricao_curta?: string | null
           destaque?: boolean
+          duracao?: string | null
           ementa?: string | null
           id?: string
           imagem_capa?: string | null
@@ -312,6 +314,7 @@ export type Database = {
           descricao?: string | null
           descricao_curta?: string | null
           destaque?: boolean
+          duracao?: string | null
           ementa?: string | null
           id?: string
           imagem_capa?: string | null
