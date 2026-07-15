@@ -153,7 +153,7 @@ function CursosAdmin() {
   const [descricao, setDescricao] = useState("");
   const [preco, setPreco] = useState("0");
   const [modalidadesDisponiveis, setModalidadesDisponiveis] = useState<string[]>(["online"]);
-  const [cargaHoraria, setCargaHoraria] = useState("40");
+  const [duracao, setDuracao] = useState("6 meses");
   const [ativo, setAtivo] = useState(true);
   const [imagemCard, setImagemCard] = useState("");
   const [imagemCapa, setImagemCapa] = useState("");
@@ -187,7 +187,7 @@ function CursosAdmin() {
         preco: parseFloat(preco) || 0,
         modalidade: (modalidadesDisponiveis[0] || "online") as any,
         modalidades_disponiveis: modalidadesDisponiveis,
-        carga_horaria: parseInt(cargaHoraria) || null,
+        duracao: duracao || null,
         ativo,
         imagem_card: imagemCard || null,
         imagem_capa: imagemCapa || null,
@@ -237,7 +237,7 @@ function CursosAdmin() {
     setDescricao("");
     setPreco("0");
     setModalidadesDisponiveis(["online"]);
-    setCargaHoraria("40");
+    setDuracao("6 meses");
     setAtivo(true);
     setImagemCard("");
     setImagemCapa("");
@@ -249,7 +249,7 @@ function CursosAdmin() {
     setDescricao(c.descricao || "");
     setPreco(c.preco.toString());
     setModalidadesDisponiveis(c.modalidades_disponiveis || [c.modalidade || "online"]);
-    setCargaHoraria((c.carga_horaria || "").toString());
+    setDuracao(c.duracao || "");
     setAtivo(c.ativo);
     setImagemCard(c.imagem_card || "");
     setImagemCapa(c.imagem_capa || "");
@@ -309,8 +309,9 @@ function CursosAdmin() {
                   <Input type="number" step="0.01" value={preco} onChange={(e) => setPreco(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Carga Horária (h)</label>
-                  <Input type="number" value={cargaHoraria} onChange={(e) => setCargaHoraria(e.target.value)} />
+                  <label className="text-sm font-semibold">Duração</label>
+                  <Input value={duracao} onChange={(e) => setDuracao(e.target.value)} placeholder="Ex: 6 meses" />
+
                 </div>
               </div>
 
@@ -408,7 +409,7 @@ function CursosAdmin() {
               <TableHead>Título</TableHead>
               <TableHead>Modalidade</TableHead>
               <TableHead>Preço</TableHead>
-              <TableHead>Carga Horária</TableHead>
+              <TableHead>Duração</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -419,7 +420,7 @@ function CursosAdmin() {
                 <TableCell className="font-semibold">{c.titulo}</TableCell>
                 <TableCell className="capitalize">{c.modalidade}</TableCell>
                 <TableCell>R$ {Number(c.preco).toFixed(2).replace(".", ",")}</TableCell>
-                <TableCell>{c.carga_horaria || 0}h</TableCell>
+                <TableCell>{c.duracao || "—"}</TableCell>
                 <TableCell>
                   <Badge variant={c.ativo ? "default" : "outline"}>
                     {c.ativo ? "Ativo" : "Inativo"}
