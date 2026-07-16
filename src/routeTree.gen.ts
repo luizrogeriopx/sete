@@ -51,6 +51,7 @@ import { Route as AuthenticatedAlunoFinanceiroRouteImport } from './routes/_auth
 import { Route as AuthenticatedAlunoCursosDisponiveisRouteImport } from './routes/_authenticated/aluno.cursos-disponiveis'
 import { Route as AuthenticatedAlunoCertificadosRouteImport } from './routes/_authenticated/aluno.certificados'
 import { Route as AuthenticatedAlunoCarteirinhaRouteImport } from './routes/_authenticated/aluno.carteirinha'
+import { Route as AuthenticatedAdminQuestionariosRouteImport } from './routes/_authenticated/admin.questionarios'
 import { Route as AuthenticatedAdminProfessoresRouteImport } from './routes/_authenticated/admin.professores'
 import { Route as AuthenticatedAdminNotificacoesRouteImport } from './routes/_authenticated/admin.notificacoes'
 import { Route as AuthenticatedAdminMatriculasRouteImport } from './routes/_authenticated/admin.matriculas'
@@ -59,6 +60,7 @@ import { Route as AuthenticatedAdminCursosRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminCertificadosRouteImport } from './routes/_authenticated/admin.certificados'
 import { Route as AuthenticatedAdminAlunosRouteImport } from './routes/_authenticated/admin.alunos'
 import { Route as AuthenticatedAlunoCursoIdRouteImport } from './routes/_authenticated/aluno.curso.$id'
+import { Route as AuthenticatedAdminCursosIdConteudoRouteImport } from './routes/_authenticated/admin.cursos.$id.conteudo'
 
 const SobreRoute = SobreRouteImport.update({
   id: '/sobre',
@@ -295,6 +297,12 @@ const AuthenticatedAlunoCarteirinhaRoute =
     path: '/carteirinha',
     getParentRoute: () => AuthenticatedAlunoRoute,
   } as any)
+const AuthenticatedAdminQuestionariosRoute =
+  AuthenticatedAdminQuestionariosRouteImport.update({
+    id: '/questionarios',
+    path: '/questionarios',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminProfessoresRoute =
   AuthenticatedAdminProfessoresRouteImport.update({
     id: '/professores',
@@ -343,6 +351,12 @@ const AuthenticatedAlunoCursoIdRoute =
     path: '/curso/$id',
     getParentRoute: () => AuthenticatedAlunoRoute,
   } as any)
+const AuthenticatedAdminCursosIdConteudoRoute =
+  AuthenticatedAdminCursosIdConteudoRouteImport.update({
+    id: '/$id/conteudo',
+    path: '/$id/conteudo',
+    getParentRoute: () => AuthenticatedAdminCursosRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -359,11 +373,12 @@ export interface FileRoutesByFullPath {
   '/cursos/': typeof CursosIndexRoute
   '/admin/alunos': typeof AuthenticatedAdminAlunosRoute
   '/admin/certificados': typeof AuthenticatedAdminCertificadosRoute
-  '/admin/cursos': typeof AuthenticatedAdminCursosRoute
+  '/admin/cursos': typeof AuthenticatedAdminCursosRouteWithChildren
   '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/matriculas': typeof AuthenticatedAdminMatriculasRoute
   '/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
   '/admin/professores': typeof AuthenticatedAdminProfessoresRoute
+  '/admin/questionarios': typeof AuthenticatedAdminQuestionariosRoute
   '/aluno/carteirinha': typeof AuthenticatedAlunoCarteirinhaRoute
   '/aluno/certificados': typeof AuthenticatedAlunoCertificadosRoute
   '/aluno/cursos-disponiveis': typeof AuthenticatedAlunoCursosDisponiveisRoute
@@ -394,6 +409,7 @@ export interface FileRoutesByFullPath {
   '/super-admin/': typeof AuthenticatedSuperAdminIndexRoute
   '/certificado/validar/': typeof CertificadoValidarIndexRoute
   '/aluno/curso/$id': typeof AuthenticatedAlunoCursoIdRoute
+  '/admin/cursos/$id/conteudo': typeof AuthenticatedAdminCursosIdConteudoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -405,11 +421,12 @@ export interface FileRoutesByTo {
   '/cursos': typeof CursosIndexRoute
   '/admin/alunos': typeof AuthenticatedAdminAlunosRoute
   '/admin/certificados': typeof AuthenticatedAdminCertificadosRoute
-  '/admin/cursos': typeof AuthenticatedAdminCursosRoute
+  '/admin/cursos': typeof AuthenticatedAdminCursosRouteWithChildren
   '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/matriculas': typeof AuthenticatedAdminMatriculasRoute
   '/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
   '/admin/professores': typeof AuthenticatedAdminProfessoresRoute
+  '/admin/questionarios': typeof AuthenticatedAdminQuestionariosRoute
   '/aluno/carteirinha': typeof AuthenticatedAlunoCarteirinhaRoute
   '/aluno/certificados': typeof AuthenticatedAlunoCertificadosRoute
   '/aluno/cursos-disponiveis': typeof AuthenticatedAlunoCursosDisponiveisRoute
@@ -440,6 +457,7 @@ export interface FileRoutesByTo {
   '/super-admin': typeof AuthenticatedSuperAdminIndexRoute
   '/certificado/validar': typeof CertificadoValidarIndexRoute
   '/aluno/curso/$id': typeof AuthenticatedAlunoCursoIdRoute
+  '/admin/cursos/$id/conteudo': typeof AuthenticatedAdminCursosIdConteudoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -458,11 +476,12 @@ export interface FileRoutesById {
   '/cursos/': typeof CursosIndexRoute
   '/_authenticated/admin/alunos': typeof AuthenticatedAdminAlunosRoute
   '/_authenticated/admin/certificados': typeof AuthenticatedAdminCertificadosRoute
-  '/_authenticated/admin/cursos': typeof AuthenticatedAdminCursosRoute
+  '/_authenticated/admin/cursos': typeof AuthenticatedAdminCursosRouteWithChildren
   '/_authenticated/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/_authenticated/admin/matriculas': typeof AuthenticatedAdminMatriculasRoute
   '/_authenticated/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
   '/_authenticated/admin/professores': typeof AuthenticatedAdminProfessoresRoute
+  '/_authenticated/admin/questionarios': typeof AuthenticatedAdminQuestionariosRoute
   '/_authenticated/aluno/carteirinha': typeof AuthenticatedAlunoCarteirinhaRoute
   '/_authenticated/aluno/certificados': typeof AuthenticatedAlunoCertificadosRoute
   '/_authenticated/aluno/cursos-disponiveis': typeof AuthenticatedAlunoCursosDisponiveisRoute
@@ -493,6 +512,7 @@ export interface FileRoutesById {
   '/_authenticated/super-admin/': typeof AuthenticatedSuperAdminIndexRoute
   '/certificado/validar/': typeof CertificadoValidarIndexRoute
   '/_authenticated/aluno/curso/$id': typeof AuthenticatedAlunoCursoIdRoute
+  '/_authenticated/admin/cursos/$id/conteudo': typeof AuthenticatedAdminCursosIdConteudoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -516,6 +536,7 @@ export interface FileRouteTypes {
     | '/admin/matriculas'
     | '/admin/notificacoes'
     | '/admin/professores'
+    | '/admin/questionarios'
     | '/aluno/carteirinha'
     | '/aluno/certificados'
     | '/aluno/cursos-disponiveis'
@@ -546,6 +567,7 @@ export interface FileRouteTypes {
     | '/super-admin/'
     | '/certificado/validar/'
     | '/aluno/curso/$id'
+    | '/admin/cursos/$id/conteudo'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -562,6 +584,7 @@ export interface FileRouteTypes {
     | '/admin/matriculas'
     | '/admin/notificacoes'
     | '/admin/professores'
+    | '/admin/questionarios'
     | '/aluno/carteirinha'
     | '/aluno/certificados'
     | '/aluno/cursos-disponiveis'
@@ -592,6 +615,7 @@ export interface FileRouteTypes {
     | '/super-admin'
     | '/certificado/validar'
     | '/aluno/curso/$id'
+    | '/admin/cursos/$id/conteudo'
   id:
     | '__root__'
     | '/'
@@ -614,6 +638,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/matriculas'
     | '/_authenticated/admin/notificacoes'
     | '/_authenticated/admin/professores'
+    | '/_authenticated/admin/questionarios'
     | '/_authenticated/aluno/carteirinha'
     | '/_authenticated/aluno/certificados'
     | '/_authenticated/aluno/cursos-disponiveis'
@@ -644,6 +669,7 @@ export interface FileRouteTypes {
     | '/_authenticated/super-admin/'
     | '/certificado/validar/'
     | '/_authenticated/aluno/curso/$id'
+    | '/_authenticated/admin/cursos/$id/conteudo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -955,6 +981,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlunoCarteirinhaRouteImport
       parentRoute: typeof AuthenticatedAlunoRoute
     }
+    '/_authenticated/admin/questionarios': {
+      id: '/_authenticated/admin/questionarios'
+      path: '/questionarios'
+      fullPath: '/admin/questionarios'
+      preLoaderRoute: typeof AuthenticatedAdminQuestionariosRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/professores': {
       id: '/_authenticated/admin/professores'
       path: '/professores'
@@ -1011,28 +1044,52 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlunoCursoIdRouteImport
       parentRoute: typeof AuthenticatedAlunoRoute
     }
+    '/_authenticated/admin/cursos/$id/conteudo': {
+      id: '/_authenticated/admin/cursos/$id/conteudo'
+      path: '/$id/conteudo'
+      fullPath: '/admin/cursos/$id/conteudo'
+      preLoaderRoute: typeof AuthenticatedAdminCursosIdConteudoRouteImport
+      parentRoute: typeof AuthenticatedAdminCursosRoute
+    }
   }
 }
+
+interface AuthenticatedAdminCursosRouteChildren {
+  AuthenticatedAdminCursosIdConteudoRoute: typeof AuthenticatedAdminCursosIdConteudoRoute
+}
+
+const AuthenticatedAdminCursosRouteChildren: AuthenticatedAdminCursosRouteChildren =
+  {
+    AuthenticatedAdminCursosIdConteudoRoute:
+      AuthenticatedAdminCursosIdConteudoRoute,
+  }
+
+const AuthenticatedAdminCursosRouteWithChildren =
+  AuthenticatedAdminCursosRoute._addFileChildren(
+    AuthenticatedAdminCursosRouteChildren,
+  )
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAlunosRoute: typeof AuthenticatedAdminAlunosRoute
   AuthenticatedAdminCertificadosRoute: typeof AuthenticatedAdminCertificadosRoute
-  AuthenticatedAdminCursosRoute: typeof AuthenticatedAdminCursosRoute
+  AuthenticatedAdminCursosRoute: typeof AuthenticatedAdminCursosRouteWithChildren
   AuthenticatedAdminFinanceiroRoute: typeof AuthenticatedAdminFinanceiroRoute
   AuthenticatedAdminMatriculasRoute: typeof AuthenticatedAdminMatriculasRoute
   AuthenticatedAdminNotificacoesRoute: typeof AuthenticatedAdminNotificacoesRoute
   AuthenticatedAdminProfessoresRoute: typeof AuthenticatedAdminProfessoresRoute
+  AuthenticatedAdminQuestionariosRoute: typeof AuthenticatedAdminQuestionariosRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAlunosRoute: AuthenticatedAdminAlunosRoute,
   AuthenticatedAdminCertificadosRoute: AuthenticatedAdminCertificadosRoute,
-  AuthenticatedAdminCursosRoute: AuthenticatedAdminCursosRoute,
+  AuthenticatedAdminCursosRoute: AuthenticatedAdminCursosRouteWithChildren,
   AuthenticatedAdminFinanceiroRoute: AuthenticatedAdminFinanceiroRoute,
   AuthenticatedAdminMatriculasRoute: AuthenticatedAdminMatriculasRoute,
   AuthenticatedAdminNotificacoesRoute: AuthenticatedAdminNotificacoesRoute,
   AuthenticatedAdminProfessoresRoute: AuthenticatedAdminProfessoresRoute,
+  AuthenticatedAdminQuestionariosRoute: AuthenticatedAdminQuestionariosRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 

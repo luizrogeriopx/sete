@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Edit3, Trash2, Loader2, Upload, X } from "lucide-react";
+import { Plus, Search, Edit3, Trash2, Loader2, Upload, X, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -574,6 +574,11 @@ function CursosAdmin() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right whitespace-nowrap space-x-1">
+                      <Button variant="ghost" size="icon" asChild>
+                        <Link to="/admin/cursos/$id/conteudo" params={{ id: c.id }}>
+                          <BookOpen className="h-4 w-4 text-emerald-500" />
+                        </Link>
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
                         <Edit3 className="h-4 w-4 text-primary" />
                       </Button>
