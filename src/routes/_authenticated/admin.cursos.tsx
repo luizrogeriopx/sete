@@ -574,11 +574,14 @@ function CursosAdmin() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right whitespace-nowrap space-x-1">
-                      <Button variant="ghost" size="icon" asChild>
-                        <Link to="/admin/cursos/$id/conteudo" params={{ id: c.id }}>
-                          <BookOpen className="h-4 w-4 text-emerald-500" />
-                        </Link>
-                      </Button>
+                      <Link
+                        to="/admin/cursos/$id/conteudo"
+                        params={{ id: c.id }}
+                        className="inline-flex items-center justify-center rounded-md hover:bg-slate-800/50 h-9 w-9 transition-colors"
+                        title="Gerenciar Conteúdo"
+                      >
+                        <BookOpen className="h-4 w-4 text-emerald-500" />
+                      </Link>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
                         <Edit3 className="h-4 w-4 text-primary" />
                       </Button>
