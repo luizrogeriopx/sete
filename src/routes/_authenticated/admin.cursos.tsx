@@ -575,7 +575,7 @@ function CursosAdmin() {
                     </TableCell>
                     <TableCell className="text-right whitespace-nowrap space-x-1">
                       <Link
-                        to="/admin/cursos/$id/conteudo"
+                        to="/admin/cursos_/$id/conteudo"
                         params={{ id: c.id }}
                         className="inline-flex items-center justify-center rounded-md hover:bg-slate-800/50 h-9 w-9 transition-colors"
                         title="Gerenciar Conteúdo"

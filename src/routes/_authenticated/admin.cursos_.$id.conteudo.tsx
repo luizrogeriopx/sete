@@ -11,12 +11,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Plus, Edit3, Trash2, ArrowLeft, Loader2, Video, FileText, HelpCircle, Layers, FileQuestion } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/admin/cursos/$id/conteudo")({
+export const Route = createFileRoute("/_authenticated/admin/cursos_/$id/conteudo")({
   component: CursoConteudoAdmin,
 });
 
 function CursoConteudoAdmin() {
-  const { id: cursoId } = useParams({ from: "/_authenticated/admin/cursos/$id/conteudo" });
+  const { id: cursoId } = useParams({ from: "/_authenticated/admin/cursos_/$id/conteudo" });
   const qc = useQueryClient();
 
   // Modals Open State

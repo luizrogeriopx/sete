@@ -60,7 +60,7 @@ import { Route as AuthenticatedAdminCursosRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminCertificadosRouteImport } from './routes/_authenticated/admin.certificados'
 import { Route as AuthenticatedAdminAlunosRouteImport } from './routes/_authenticated/admin.alunos'
 import { Route as AuthenticatedAlunoCursoIdRouteImport } from './routes/_authenticated/aluno.curso.$id'
-import { Route as AuthenticatedAdminCursosIdConteudoRouteImport } from './routes/_authenticated/admin.cursos.$id.conteudo'
+import { Route as AuthenticatedAdminCursosIdConteudoRouteImport } from './routes/_authenticated/admin.cursos_.$id.conteudo'
 
 const SobreRoute = SobreRouteImport.update({
   id: '/sobre',
@@ -353,9 +353,9 @@ const AuthenticatedAlunoCursoIdRoute =
   } as any)
 const AuthenticatedAdminCursosIdConteudoRoute =
   AuthenticatedAdminCursosIdConteudoRouteImport.update({
-    id: '/$id/conteudo',
-    path: '/$id/conteudo',
-    getParentRoute: () => AuthenticatedAdminCursosRoute,
+    id: '/cursos_/$id/conteudo',
+    path: '/cursos/$id/conteudo',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -373,7 +373,7 @@ export interface FileRoutesByFullPath {
   '/cursos/': typeof CursosIndexRoute
   '/admin/alunos': typeof AuthenticatedAdminAlunosRoute
   '/admin/certificados': typeof AuthenticatedAdminCertificadosRoute
-  '/admin/cursos': typeof AuthenticatedAdminCursosRouteWithChildren
+  '/admin/cursos': typeof AuthenticatedAdminCursosRoute
   '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/matriculas': typeof AuthenticatedAdminMatriculasRoute
   '/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
@@ -421,7 +421,7 @@ export interface FileRoutesByTo {
   '/cursos': typeof CursosIndexRoute
   '/admin/alunos': typeof AuthenticatedAdminAlunosRoute
   '/admin/certificados': typeof AuthenticatedAdminCertificadosRoute
-  '/admin/cursos': typeof AuthenticatedAdminCursosRouteWithChildren
+  '/admin/cursos': typeof AuthenticatedAdminCursosRoute
   '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/matriculas': typeof AuthenticatedAdminMatriculasRoute
   '/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
@@ -476,7 +476,7 @@ export interface FileRoutesById {
   '/cursos/': typeof CursosIndexRoute
   '/_authenticated/admin/alunos': typeof AuthenticatedAdminAlunosRoute
   '/_authenticated/admin/certificados': typeof AuthenticatedAdminCertificadosRoute
-  '/_authenticated/admin/cursos': typeof AuthenticatedAdminCursosRouteWithChildren
+  '/_authenticated/admin/cursos': typeof AuthenticatedAdminCursosRoute
   '/_authenticated/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/_authenticated/admin/matriculas': typeof AuthenticatedAdminMatriculasRoute
   '/_authenticated/admin/notificacoes': typeof AuthenticatedAdminNotificacoesRoute
@@ -512,7 +512,7 @@ export interface FileRoutesById {
   '/_authenticated/super-admin/': typeof AuthenticatedSuperAdminIndexRoute
   '/certificado/validar/': typeof CertificadoValidarIndexRoute
   '/_authenticated/aluno/curso/$id': typeof AuthenticatedAlunoCursoIdRoute
-  '/_authenticated/admin/cursos/$id/conteudo': typeof AuthenticatedAdminCursosIdConteudoRoute
+  '/_authenticated/admin/cursos_/$id/conteudo': typeof AuthenticatedAdminCursosIdConteudoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -669,7 +669,7 @@ export interface FileRouteTypes {
     | '/_authenticated/super-admin/'
     | '/certificado/validar/'
     | '/_authenticated/aluno/curso/$id'
-    | '/_authenticated/admin/cursos/$id/conteudo'
+    | '/_authenticated/admin/cursos_/$id/conteudo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1044,53 +1044,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlunoCursoIdRouteImport
       parentRoute: typeof AuthenticatedAlunoRoute
     }
-    '/_authenticated/admin/cursos/$id/conteudo': {
-      id: '/_authenticated/admin/cursos/$id/conteudo'
-      path: '/$id/conteudo'
+    '/_authenticated/admin/cursos_/$id/conteudo': {
+      id: '/_authenticated/admin/cursos_/$id/conteudo'
+      path: '/cursos/$id/conteudo'
       fullPath: '/admin/cursos/$id/conteudo'
       preLoaderRoute: typeof AuthenticatedAdminCursosIdConteudoRouteImport
-      parentRoute: typeof AuthenticatedAdminCursosRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
   }
 }
 
-interface AuthenticatedAdminCursosRouteChildren {
-  AuthenticatedAdminCursosIdConteudoRoute: typeof AuthenticatedAdminCursosIdConteudoRoute
-}
-
-const AuthenticatedAdminCursosRouteChildren: AuthenticatedAdminCursosRouteChildren =
-  {
-    AuthenticatedAdminCursosIdConteudoRoute:
-      AuthenticatedAdminCursosIdConteudoRoute,
-  }
-
-const AuthenticatedAdminCursosRouteWithChildren =
-  AuthenticatedAdminCursosRoute._addFileChildren(
-    AuthenticatedAdminCursosRouteChildren,
-  )
-
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAlunosRoute: typeof AuthenticatedAdminAlunosRoute
   AuthenticatedAdminCertificadosRoute: typeof AuthenticatedAdminCertificadosRoute
-  AuthenticatedAdminCursosRoute: typeof AuthenticatedAdminCursosRouteWithChildren
+  AuthenticatedAdminCursosRoute: typeof AuthenticatedAdminCursosRoute
   AuthenticatedAdminFinanceiroRoute: typeof AuthenticatedAdminFinanceiroRoute
   AuthenticatedAdminMatriculasRoute: typeof AuthenticatedAdminMatriculasRoute
   AuthenticatedAdminNotificacoesRoute: typeof AuthenticatedAdminNotificacoesRoute
   AuthenticatedAdminProfessoresRoute: typeof AuthenticatedAdminProfessoresRoute
   AuthenticatedAdminQuestionariosRoute: typeof AuthenticatedAdminQuestionariosRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminCursosIdConteudoRoute: typeof AuthenticatedAdminCursosIdConteudoRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAlunosRoute: AuthenticatedAdminAlunosRoute,
   AuthenticatedAdminCertificadosRoute: AuthenticatedAdminCertificadosRoute,
-  AuthenticatedAdminCursosRoute: AuthenticatedAdminCursosRouteWithChildren,
+  AuthenticatedAdminCursosRoute: AuthenticatedAdminCursosRoute,
   AuthenticatedAdminFinanceiroRoute: AuthenticatedAdminFinanceiroRoute,
   AuthenticatedAdminMatriculasRoute: AuthenticatedAdminMatriculasRoute,
   AuthenticatedAdminNotificacoesRoute: AuthenticatedAdminNotificacoesRoute,
   AuthenticatedAdminProfessoresRoute: AuthenticatedAdminProfessoresRoute,
   AuthenticatedAdminQuestionariosRoute: AuthenticatedAdminQuestionariosRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+  AuthenticatedAdminCursosIdConteudoRoute:
+    AuthenticatedAdminCursosIdConteudoRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
