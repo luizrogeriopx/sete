@@ -9,6 +9,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { REGIOES_CONGREGACOES } from "@/lib/congregacoes";
 
 const cursoQO = (slug: string) =>
   queryOptions({
@@ -71,12 +73,14 @@ function CursoDetail() {
   const navigate = useNavigate();
   const [isModalityOpen, setIsModalityOpen] = useState(false);
   const [selectedModality, setSelectedModality] = useState("");
+  const [isInternalOpen, setIsInternalOpen] = useState(false);
+  const [tempModality, setTempModality] = useState("");
+  const [selectedRegional, setSelectedRegional] = useState("");
+  const [selectedCongregacao, setSelectedCongregacao] = useState("");
 
   const modulos = [...(curso.modulos ?? [])].sort((a, b) => a.ordem - b.ordem);
 
-  async function confirmarMatricula(escolhida: string) {
-    setIsModalityOpen(false);
-    
+  async function salvarMatriculaFinal(escolhida: string, reg: string | null, cong: string | null) {
     const { data: existente } = await supabase
       .from("matriculas")
       .select("id, status")
@@ -98,12 +102,18 @@ function CursoDetail() {
           curso_id: curso.id,
           status: "pendente",
           modalidade_escolhida: escolhida,
+          regional: reg || null,
+          congregacao: cong || null,
         });
       if (error) return toast.error(error.message);
     } else {
       const { error } = await supabase
         .from("matriculas")
-        .update({ modalidade_escolhida: escolhida })
+        .update({
+          modalidade_escolhida: escolhida,
+          regional: reg || null,
+          congregacao: cong || null,
+        })
         .eq("id", existente.id);
       if (error) return toast.error(error.message);
     }
@@ -113,6 +123,17 @@ function CursoDetail() {
     } else {
       toast.success("Matrícula realizada!");
       navigate({ to: "/aluno" });
+    }
+  }
+
+  async function confirmarMatricula(escolhida: string) {
+    setIsModalityOpen(false);
+    setTempModality(escolhida);
+    
+    if (curso.tipo === "interno") {
+      setIsInternalOpen(true);
+    } else {
+      await salvarMatriculaFinal(escolhida, null, null);
     }
   }
 
@@ -130,6 +151,19 @@ function CursoDetail() {
     } else {
       await confirmarMatricula(opts[0] || "online");
     }
+  }
+
+  async function handleConfirmarMembro() {
+    if (!selectedRegional) {
+      toast.error("Por favor, selecione sua Regional.");
+      return;
+    }
+    if (!selectedCongregacao) {
+      toast.error("Por favor, selecione sua Congregação.");
+      return;
+    }
+    setIsInternalOpen(false);
+    await salvarMatriculaFinal(tempModality || selectedModality || "online", selectedRegional, selectedCongregacao);
   }
 
   return (
@@ -269,6 +303,79 @@ function CursoDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog para Informações de Membro (Curso Interno) */}
+      <Dialog open={isInternalOpen} onOpenChange={setIsInternalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Informações de Membro</DialogTitle>
+            <DialogDescription>
+              Este é um curso **interno**. Para concluir sua matrícula, por favor selecione sua Regional e Congregação:
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Sua Regional *</label>
+              <Select
+                value={selectedRegional}
+                onValueChange={(val) => {
+                  setSelectedRegional(val);
+                  setSelectedCongregacao("");
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione sua Regional" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REGIOES_CONGREGACOES.map((reg) => (
+                    <SelectItem key={reg.name} value={reg.name}>
+                      {reg.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Sua Congregação *</label>
+              <Select
+                value={selectedCongregacao}
+                onValueChange={(val) => setSelectedCongregacao(val)}
+                disabled={!selectedRegional}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={selectedRegional ? "Selecione sua Congregação" : "Selecione uma Regional primeiro"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(() => {
+                    const regData = REGIOES_CONGREGACOES.find(r => r.name === selectedRegional);
+                    return regData ? regData.congregacoes.map((cong) => (
+                      <SelectItem key={cong} value={cong}>
+                        {cong}
+                      </SelectItem>
+                    )) : [];
+                  })()}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" className="w-full" onClick={() => setIsInternalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
+              onClick={handleConfirmarMembro}
+              disabled={!selectedRegional || !selectedCongregacao}
+            >
+              Confirmar Matrícula
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <SiteFooter />
     </div>
   );

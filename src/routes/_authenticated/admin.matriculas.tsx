@@ -115,6 +115,7 @@ function MatriculasAdmin() {
               <TableHead>Aluno</TableHead>
               <TableHead>Curso</TableHead>
               <TableHead>Modalidade</TableHead>
+              <TableHead>Regional / Congregação</TableHead>
               <TableHead>Data de Matrícula</TableHead>
               <TableHead>Progresso Acadêmico</TableHead>
               <TableHead>Status</TableHead>
@@ -129,6 +130,15 @@ function MatriculasAdmin() {
                   <Badge variant="outline">
                     {m.modalidade_escolhida === "online" ? "Online (AVA)" : m.modalidade_escolhida === "hibrido" ? "Semi-presencial" : m.modalidade_escolhida || (m.cursos?.modalidade === "hibrido" ? "Semi-presencial" : m.cursos?.modalidade)}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  {m.regional ? (
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      {m.regional} <span className="text-[10px] text-muted-foreground block">({m.congregacao})</span>
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground text-xs italic">Livre</span>
+                  )}
                 </TableCell>
                 <TableCell>{new Date(m.data_matricula).toLocaleDateString("pt-BR")}</TableCell>
                 <TableCell className="font-mono text-xs font-bold">{m.progresso}%</TableCell>

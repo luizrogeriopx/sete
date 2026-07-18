@@ -287,6 +287,7 @@ export type Database = {
           preco: number
           slug: string
           titulo: string
+          tipo: string
           updated_at: string
         }
         Insert: {
@@ -308,6 +309,7 @@ export type Database = {
           preco?: number
           slug: string
           titulo: string
+          tipo?: string
           updated_at?: string
         }
         Update: {
@@ -329,6 +331,7 @@ export type Database = {
           preco?: number
           slug?: string
           titulo?: string
+          tipo?: string
           updated_at?: string
         }
         Relationships: [
@@ -396,6 +399,8 @@ export type Database = {
           progresso: number
           status: Database["public"]["Enums"]["matricula_status"]
           modalidade_escolhida: string | null
+          regional: string | null
+          congregacao: string | null
         }
         Insert: {
           aluno_id: string
@@ -407,6 +412,8 @@ export type Database = {
           progresso?: number
           status?: Database["public"]["Enums"]["matricula_status"]
           modalidade_escolhida?: string | null
+          regional?: string | null
+          congregacao?: string | null
         }
         Update: {
           aluno_id?: string
@@ -418,6 +425,8 @@ export type Database = {
           progresso?: number
           status?: Database["public"]["Enums"]["matricula_status"]
           modalidade_escolhida?: string | null
+          regional?: string | null
+          congregacao?: string | null
         }
         Relationships: [
           {

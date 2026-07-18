@@ -159,6 +159,7 @@ function CursosAdmin() {
   const [imagemCard, setImagemCard] = useState("");
   const [imagemCapa, setImagemCapa] = useState("");
   const [categoriaId, setCategoriaId] = useState<string | null>(null);
+  const [tipo, setTipo] = useState("livre");
 
   // Form State Categoria
   const [isCatOpen, setIsCatOpen] = useState(false);
@@ -214,6 +215,7 @@ function CursosAdmin() {
         imagem_card: imagemCard || null,
         imagem_capa: imagemCapa || null,
         categoria_id: categoriaId || null,
+        tipo,
       };
 
       if (selectedCurso) {
@@ -321,6 +323,7 @@ function CursosAdmin() {
     setImagemCard("");
     setImagemCapa("");
     setCategoriaId(null);
+    setTipo("livre");
   }
 
   function resetCatForm() {
@@ -340,6 +343,7 @@ function CursosAdmin() {
     setImagemCard(c.imagem_card || "");
     setImagemCapa(c.imagem_capa || "");
     setCategoriaId(c.categoria_id || null);
+    setTipo(c.tipo || "livre");
     setIsAddOpen(true);
   }
 
@@ -448,6 +452,19 @@ function CursosAdmin() {
                     </Select>
                   </div>
 
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Tipo de Curso</label>
+                    <Select value={tipo} onValueChange={(val) => setTipo(val)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione o tipo de curso" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="livre">Livre</SelectItem>
+                        <SelectItem value="interno">Interno (Restrito a Congregação/Regional)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-2">
                       <label className="text-sm font-semibold">Preço (R$)</label>
@@ -548,6 +565,7 @@ function CursosAdmin() {
                   <TableHead>Título</TableHead>
                   <TableHead>Categoria</TableHead>
                   <TableHead>Modalidade</TableHead>
+                  <TableHead>Tipo</TableHead>
                   <TableHead>Preço</TableHead>
                   <TableHead>Duração</TableHead>
                   <TableHead>Status</TableHead>
@@ -566,6 +584,11 @@ function CursosAdmin() {
                       )}
                     </TableCell>
                     <TableCell className="capitalize">{c.modalidade === "hibrido" ? "Semi-presencial" : c.modalidade}</TableCell>
+                    <TableCell>
+                      <Badge variant={c.tipo === "interno" ? "secondary" : "outline"} className="capitalize">
+                        {c.tipo || "livre"}
+                      </Badge>
+                    </TableCell>
                     <TableCell>R$ {Number(c.preco).toFixed(2).replace(".", ",")}</TableCell>
                     <TableCell>{c.duracao || "—"}</TableCell>
                     <TableCell>
