@@ -1,10 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { useSuspenseQuery, useQuery, queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader, SiteFooter } from "@/components/site/site-chrome";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { GraduationCap, BookOpen, Users, Award } from "lucide-react";
+
+interface HeroConfig {
+  badge: string;
+  title: string;
+  description: string;
+}
 
 const destaquesQO = queryOptions({
   queryKey: ["cursos-destaque"],
@@ -45,6 +51,23 @@ const destaquesQO = queryOptions({
   },
 });
 
+const heroSettingsQO = queryOptions({
+  queryKey: ["landing-hero-settings"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("app_settings")
+      .select("valor")
+      .eq("chave", "landing_hero")
+      .maybeSingle();
+    
+    if (error) {
+      console.warn("Falling back to default hero settings:", error);
+      return null;
+    }
+    return (data?.valor as HeroConfig) ?? null;
+  },
+});
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -56,12 +79,23 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(destaquesQO),
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.queryClient.ensureQueryData(destaquesQO),
+      context.queryClient.ensureQueryData(heroSettingsQO),
+    ]);
+  },
   component: Home,
 });
 
 function Home() {
   const { data: destaques } = useSuspenseQuery(destaquesQO);
+  const { data: heroConfig } = useQuery(heroSettingsQO);
+
+  const heroBadge = heroConfig?.badge ?? "SEMINÁRIO TEOLÓGICO ESPERANÇA";
+  const heroTitle = heroConfig?.title ?? "Ensino que transforma\nMinistérios que edificam";
+  const heroDesc = heroConfig?.description ?? "Teologia fundamentada, formação prática e comunidade que apoia seu chamado.";
+
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
@@ -72,14 +106,17 @@ function Home() {
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 md:grid-cols-2 md:py-28">
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">
-                Desde a Palavra, para a Igreja
+                {heroBadge}
               </p>
               <h1 className="mt-4 font-serif text-4xl leading-tight md:text-6xl">
-                Formação teológica sólida, com o coração pastoral.
+                {heroTitle.split("\n").map((line, i) => (
+                  <span key={i} className="block">
+                    {line}
+                  </span>
+                ))}
               </h1>
               <p className="mt-6 max-w-lg text-lg text-primary-foreground/80">
-                No SETE — Seminário Teológico Esperança — preparamos servos e servas do Senhor
-                com rigor bíblico, profundidade doutrinária e compromisso missionário.
+                {heroDesc}
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button asChild size="lg" className="bg-gold text-gold-foreground hover:bg-gold/90">
