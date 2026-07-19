@@ -86,7 +86,12 @@ function CursosSuperAdmin() {
                       <span className="text-muted-foreground text-xs italic">Sem professor</span>
                     )}
                   </TableCell>
-                  <TableCell>R$ {Number(c.preco).toFixed(2).replace(".", ",")}</TableCell>
+                  <TableCell>
+                    R$ {Number(c.preco).toFixed(2).replace(".", ",")}
+                    {c.cobranca_por === "modulo" && (
+                      <span className="text-[10px] text-muted-foreground block font-normal">por módulo</span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={c.ativo ? "default" : "outline"}>
                       {c.ativo ? "Ativo" : "Inativo"}

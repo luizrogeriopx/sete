@@ -16,7 +16,7 @@ function Page() {
     enabled: !!user,
     queryFn: async () => {
       const [{ data: cursos }, { data: minhas }] = await Promise.all([
-        supabase.from("cursos").select("id, titulo, slug, descricao_curta, preco, modalidade, modalidades_disponiveis, imagem_card, categorias(nome)").eq("ativo", true),
+        supabase.from("cursos").select("id, titulo, slug, descricao_curta, preco, cobranca_por, modalidade, modalidades_disponiveis, imagem_card, categorias(nome)").eq("ativo", true),
         supabase.from("matriculas").select("curso_id").eq("aluno_id", user!.id),
       ]);
       const jaMatriculadoSet = new Set((minhas ?? []).map((m) => m.curso_id));
@@ -80,7 +80,16 @@ function Page() {
               </div>
               <CardContent className="p-3 pt-0">
                 <div className="font-serif text-xs text-primary font-bold">
-                  {c.jaMatriculado ? "Acesso Liberado" : Number(c.preco) > 0 ? `R$ ${Number(c.preco).toFixed(2).replace(".", ",")}` : "Gratuito"}
+                  {c.jaMatriculado ? (
+                    "Acesso Liberado"
+                  ) : Number(c.preco) > 0 ? (
+                    <>
+                      R$ {Number(c.preco).toFixed(2).replace(".", ",")}
+                      {c.cobranca_por === "modulo" && " /mód."}
+                    </>
+                  ) : (
+                    "Gratuito"
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -156,6 +156,7 @@ function CursosAdmin() {
   const [modalidadesDisponiveis, setModalidadesDisponiveis] = useState<string[]>(["online"]);
   const [duracao, setDuracao] = useState("6 meses");
   const [quantidadeModulos, setQuantidadeModulos] = useState<string>("");
+  const [cobrancaPor, setCobrancaPor] = useState("curso");
   const [ativo, setAtivo] = useState(true);
   const [imagemCard, setImagemCard] = useState("");
   const [imagemCapa, setImagemCapa] = useState("");
@@ -214,6 +215,7 @@ function CursosAdmin() {
         modalidades_disponiveis: modalidadesDisponiveis,
         duracao: duracao || null,
         quantidade_modulos: quantidadeModulos ? parseInt(quantidadeModulos) : null,
+        cobranca_por: cobrancaPor,
         ativo,
         imagem_card: imagemCard || null,
         imagem_capa: imagemCapa || null,
@@ -323,6 +325,7 @@ function CursosAdmin() {
     setModalidadesDisponiveis(["online"]);
     setDuracao("6 meses");
     setQuantidadeModulos("");
+    setCobrancaPor("curso");
     setAtivo(true);
     setImagemCard("");
     setImagemCapa("");
@@ -345,6 +348,7 @@ function CursosAdmin() {
     setModalidadesDisponiveis(c.modalidades_disponiveis || [c.modalidade || "online"]);
     setDuracao(c.duracao || "");
     setQuantidadeModulos(c.quantidade_modulos ? c.quantidade_modulos.toString() : "");
+    setCobrancaPor(c.cobranca_por || "curso");
     setAtivo(c.ativo);
     setImagemCard(c.imagem_card || "");
     setImagemCapa(c.imagem_capa || "");
@@ -468,6 +472,19 @@ function CursosAdmin() {
                       <SelectContent>
                         <SelectItem value="livre">Livre</SelectItem>
                         <SelectItem value="interno">Interno (Restrito a Congregação/Regional)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Tipo de Cobrança</label>
+                    <Select value={cobrancaPor} onValueChange={(val) => setCobrancaPor(val)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione o tipo de cobrança" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="curso">Valor total do curso</SelectItem>
+                        <SelectItem value="modulo">Valor por módulo</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -601,7 +618,12 @@ function CursosAdmin() {
                         {c.tipo || "livre"}
                       </Badge>
                     </TableCell>
-                    <TableCell>R$ {Number(c.preco).toFixed(2).replace(".", ",")}</TableCell>
+                    <TableCell>
+                      R$ {Number(c.preco).toFixed(2).replace(".", ",")}
+                      {c.cobranca_por === "modulo" && (
+                        <span className="text-[10px] text-muted-foreground block font-normal">por módulo</span>
+                      )}
+                    </TableCell>
                     <TableCell>{c.duracao || "—"}</TableCell>
                     <TableCell>{c.quantidade_modulos || "—"}</TableCell>
                     <TableCell>

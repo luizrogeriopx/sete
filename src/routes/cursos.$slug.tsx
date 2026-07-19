@@ -211,9 +211,16 @@ function CursoDetail() {
             </div>
             <aside className="rounded-2xl bg-card p-6 text-card-foreground shadow-xl">
               <div className="font-serif text-3xl text-primary">
-                {Number(curso.preco) > 0
-                  ? `R$ ${Number(curso.preco).toFixed(2).replace(".", ",")}`
-                  : "Gratuito"}
+                {Number(curso.preco) > 0 ? (
+                  <>
+                    R$ {Number(curso.preco).toFixed(2).replace(".", ",")}
+                    {curso.cobranca_por === "modulo" && (
+                      <span className="text-xs font-sans font-normal text-muted-foreground block mt-1">por módulo</span>
+                    )}
+                  </>
+                ) : (
+                  "Gratuito"
+                )}
               </div>
               <Button onClick={matricular} className="mt-4 w-full bg-gold text-gold-foreground hover:bg-gold/90" size="lg">
                 Matricule-se
