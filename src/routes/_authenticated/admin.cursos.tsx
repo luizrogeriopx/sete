@@ -166,6 +166,7 @@ function CursosAdmin() {
   const [isCatOpen, setIsCatOpen] = useState(false);
   const [selectedCategoria, setSelectedCategoria] = useState<any>(null);
   const [catNome, setCatNome] = useState("");
+  const [catSlug, setCatSlug] = useState("");
   const [catDescricao, setCatDescricao] = useState("");
   const [catAtiva, setCatAtiva] = useState(true);
 
@@ -248,14 +249,14 @@ function CursosAdmin() {
   const salvarCategoria = useMutation({
     mutationFn: async () => {
       if (!catNome.trim()) throw new Error("Preencha o nome da categoria.");
-      const catSlug = catNome
+      const finalSlug = (catSlug.trim() || catNome)
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "");
 
       const payload = {
         nome: catNome,
-        slug: catSlug,
+        slug: finalSlug,
         descricao: catDescricao || null,
         ativa: catAtiva,
       };
@@ -331,6 +332,7 @@ function CursosAdmin() {
 
   function resetCatForm() {
     setCatNome("");
+    setCatSlug("");
     setCatDescricao("");
     setCatAtiva(true);
   }
@@ -354,6 +356,7 @@ function CursosAdmin() {
   function openEditCat(cat: any) {
     setSelectedCategoria(cat);
     setCatNome(cat.nome);
+    setCatSlug(cat.slug || "");
     setCatDescricao(cat.descricao || "");
     setCatAtiva(cat.ativa);
     setIsCatOpen(true);
@@ -656,6 +659,11 @@ function CursosAdmin() {
                   <div className="space-y-2">
                     <label className="text-sm font-semibold">Nome *</label>
                     <Input value={catNome} onChange={(e) => setCatNome(e.target.value)} placeholder="Ex: Bacharelado, Extensão..." />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Slug (Identificador na URL)</label>
+                    <Input value={catSlug} onChange={(e) => setCatSlug(e.target.value)} placeholder="Ex: bacharelado, extensao (opcional)" />
                   </div>
 
                   <div className="space-y-2">
