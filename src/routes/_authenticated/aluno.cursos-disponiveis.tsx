@@ -16,7 +16,7 @@ function Page() {
     enabled: !!user,
     queryFn: async () => {
       const [{ data: cursos }, { data: minhas }] = await Promise.all([
-        supabase.from("cursos").select("id, titulo, slug, descricao_curta, preco, cobranca_por, modalidade, modalidades_disponiveis, imagem_card, categorias(nome)").eq("ativo", true),
+        supabase.from("cursos").select("id, titulo, slug, descricao_curta, preco, cobranca_por, publico_alvo, modalidade, modalidades_disponiveis, imagem_card, categorias(nome)").eq("ativo", true),
         supabase.from("matriculas").select("curso_id").eq("aluno_id", user!.id),
       ]);
       const jaMatriculadoSet = new Set((minhas ?? []).map((m) => m.curso_id));
@@ -73,6 +73,11 @@ function Page() {
                         ? c.modalidades_disponiveis.map((m: string) => m === "online" ? "Online (AVA)" : m === "hibrido" ? "Semi-presencial" : m).join(" / ")
                         : (c.modalidade === "hibrido" ? "Semi-presencial" : c.modalidade)}
                     </Badge>
+                    {c.publico_alvo && c.publico_alvo !== "ambos" && (
+                      <Badge variant="secondary" className="capitalize text-[9px] py-0 px-1 bg-slate-800 text-slate-100 border-none">
+                        {c.publico_alvo === "homens" ? "👨 Homens" : "👩 Mulheres"}
+                      </Badge>
+                    )}
                   </div>
                   <h3 className="mt-1.5 font-serif text-sm font-bold line-clamp-1 text-slate-100">{c.titulo}</h3>
                   <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground leading-normal">{c.descricao_curta}</p>

@@ -15,7 +15,7 @@ const catalogoQO = queryOptions({
         supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem"),
         supabase
           .from("cursos")
-          .select("id, titulo, slug, descricao_curta, preco, cobranca_por, modalidade, categoria_id, imagem_card, imagem_capa, destaque, quantidade_modulos, categorias(nome)")
+          .select("id, titulo, slug, descricao_curta, preco, cobranca_por, publico_alvo, modalidade, categoria_id, imagem_card, imagem_capa, destaque, quantidade_modulos, categorias(nome)")
           .eq("ativo", true)
           .order("titulo"),
       ]);
@@ -26,7 +26,7 @@ const catalogoQO = queryOptions({
             supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem"),
             supabase
               .from("cursos")
-              .select("id, titulo, slug, descricao_curta, preco, cobranca_por, modalidade, categoria_id, imagem_capa, destaque, quantidade_modulos, categorias(nome)")
+              .select("id, titulo, slug, descricao_curta, preco, cobranca_por, publico_alvo, modalidade, categoria_id, imagem_capa, destaque, quantidade_modulos, categorias(nome)")
               .eq("ativo", true)
               .order("titulo"),
           ]);
@@ -44,7 +44,7 @@ const catalogoQO = queryOptions({
         supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem"),
         supabase
           .from("cursos")
-          .select("id, titulo, slug, descricao_curta, preco, cobranca_por, modalidade, categoria_id, imagem_capa, destaque, quantidade_modulos, categorias(nome)")
+          .select("id, titulo, slug, descricao_curta, preco, cobranca_por, publico_alvo, modalidade, categoria_id, imagem_capa, destaque, quantidade_modulos, categorias(nome)")
           .eq("ativo", true)
           .order("titulo"),
       ]);
@@ -153,6 +153,11 @@ function CoursePosterCard({ curso }: { curso: any }) {
             <Badge variant="secondary" className="bg-slate-800 text-slate-200 text-[10px] py-0 px-1.5 border-none">
               {curso.categorias?.nome}
             </Badge>
+            {curso.publico_alvo && curso.publico_alvo !== "ambos" && (
+              <Badge variant="secondary" className="bg-slate-900/60 text-slate-200 text-[10px] py-0 px-1.5 border-none capitalize">
+                {curso.publico_alvo === "homens" ? "👨 Homens" : "👩 Mulheres"}
+              </Badge>
+            )}
           </div>
           
           <h4 className="font-serif text-base text-white font-bold leading-tight">

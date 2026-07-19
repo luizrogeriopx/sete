@@ -157,6 +157,7 @@ function CursosAdmin() {
   const [duracao, setDuracao] = useState("6 meses");
   const [quantidadeModulos, setQuantidadeModulos] = useState<string>("");
   const [cobrancaPor, setCobrancaPor] = useState("curso");
+  const [publicoAlvo, setPublicoAlvo] = useState("ambos");
   const [ativo, setAtivo] = useState(true);
   const [imagemCard, setImagemCard] = useState("");
   const [imagemCapa, setImagemCapa] = useState("");
@@ -216,6 +217,7 @@ function CursosAdmin() {
         duracao: duracao || null,
         quantidade_modulos: quantidadeModulos ? parseInt(quantidadeModulos) : null,
         cobranca_por: cobrancaPor,
+        publico_alvo: publicoAlvo,
         ativo,
         imagem_card: imagemCard || null,
         imagem_capa: imagemCapa || null,
@@ -326,6 +328,7 @@ function CursosAdmin() {
     setDuracao("6 meses");
     setQuantidadeModulos("");
     setCobrancaPor("curso");
+    setPublicoAlvo("ambos");
     setAtivo(true);
     setImagemCard("");
     setImagemCapa("");
@@ -349,6 +352,7 @@ function CursosAdmin() {
     setDuracao(c.duracao || "");
     setQuantidadeModulos(c.quantidade_modulos ? c.quantidade_modulos.toString() : "");
     setCobrancaPor(c.cobranca_por || "curso");
+    setPublicoAlvo(c.publico_alvo || "ambos");
     setAtivo(c.ativo);
     setImagemCard(c.imagem_card || "");
     setImagemCapa(c.imagem_capa || "");
@@ -472,6 +476,20 @@ function CursosAdmin() {
                       <SelectContent>
                         <SelectItem value="livre">Livre</SelectItem>
                         <SelectItem value="interno">Interno (Restrito a Congregação/Regional)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Público-Alvo</label>
+                    <Select value={publicoAlvo} onValueChange={(val) => setPublicoAlvo(val)}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecione o público-alvo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ambos">Ambos (Geral)</SelectItem>
+                        <SelectItem value="homens">Homens</SelectItem>
+                        <SelectItem value="mulheres">Mulheres</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -614,9 +632,16 @@ function CursosAdmin() {
                     </TableCell>
                     <TableCell className="capitalize">{c.modalidade === "hibrido" ? "Semi-presencial" : c.modalidade}</TableCell>
                     <TableCell>
-                      <Badge variant={c.tipo === "interno" ? "secondary" : "outline"} className="capitalize">
-                        {c.tipo || "livre"}
-                      </Badge>
+                      <div className="flex flex-col gap-1">
+                        <Badge variant={c.tipo === "interno" ? "secondary" : "outline"} className="capitalize w-fit">
+                          {c.tipo || "livre"}
+                        </Badge>
+                        {c.publico_alvo && c.publico_alvo !== "ambos" && (
+                          <Badge variant="outline" className="capitalize w-fit bg-slate-800/10 text-[10px] py-0 px-1 border-slate-700/50">
+                            {c.publico_alvo === "homens" ? "👨 Homens" : "👩 Mulheres"}
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       R$ {Number(c.preco).toFixed(2).replace(".", ",")}

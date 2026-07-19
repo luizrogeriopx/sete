@@ -193,6 +193,11 @@ function CursoDetail() {
                   </Badge>
                 )}
                 <Badge className="bg-gold text-gold-foreground">{curso.modalidade}</Badge>
+                {curso.publico_alvo && curso.publico_alvo !== "ambos" && (
+                  <Badge variant="secondary" className="bg-slate-800 text-slate-100 border-none capitalize">
+                    Público: {curso.publico_alvo}
+                  </Badge>
+                )}
               </div>
               <h1 className="mt-4 font-serif text-4xl md:text-5xl">{curso.titulo}</h1>
               <p className="mt-4 text-lg text-primary-foreground/80">{curso.descricao_curta}</p>

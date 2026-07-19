@@ -290,6 +290,7 @@ export type Database = {
           tipo: string
           quantidade_modulos: number | null
           cobranca_por: string
+          publico_alvo: string
           updated_at: string
         }
         Insert: {
@@ -314,6 +315,7 @@ export type Database = {
           tipo?: string
           quantidade_modulos?: number | null
           cobranca_por?: string
+          publico_alvo?: string
           updated_at?: string
         }
         Update: {
@@ -338,6 +340,7 @@ export type Database = {
           tipo?: string
           quantidade_modulos?: number | null
           cobranca_por?: string
+          publico_alvo?: string
           updated_at?: string
         }
         Relationships: [
