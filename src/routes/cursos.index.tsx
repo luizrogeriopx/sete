@@ -15,7 +15,7 @@ const catalogoQO = queryOptions({
         supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem"),
         supabase
           .from("cursos")
-          .select("id, titulo, slug, descricao_curta, preco, modalidade, categoria_id, imagem_card, imagem_capa, destaque, categorias(nome)")
+          .select("id, titulo, slug, descricao_curta, preco, modalidade, categoria_id, imagem_card, imagem_capa, destaque, quantidade_modulos, categorias(nome)")
           .eq("ativo", true)
           .order("titulo"),
       ]);
@@ -26,7 +26,7 @@ const catalogoQO = queryOptions({
             supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem"),
             supabase
               .from("cursos")
-              .select("id, titulo, slug, descricao_curta, preco, modalidade, categoria_id, imagem_capa, destaque, categorias(nome)")
+              .select("id, titulo, slug, descricao_curta, preco, modalidade, categoria_id, imagem_capa, destaque, quantidade_modulos, categorias(nome)")
               .eq("ativo", true)
               .order("titulo"),
           ]);
@@ -44,7 +44,7 @@ const catalogoQO = queryOptions({
         supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem"),
         supabase
           .from("cursos")
-          .select("id, titulo, slug, descricao_curta, preco, modalidade, categoria_id, imagem_capa, destaque, categorias(nome)")
+          .select("id, titulo, slug, descricao_curta, preco, modalidade, categoria_id, imagem_capa, destaque, quantidade_modulos, categorias(nome)")
           .eq("ativo", true)
           .order("titulo"),
       ]);
@@ -167,7 +167,13 @@ function CoursePosterCard({ curso }: { curso: any }) {
             <span className="text-xs font-serif text-gold font-semibold">
               {curso.preco > 0 ? `R$ ${Number(curso.preco).toFixed(2).replace(".", ",")}` : "Gratuito"}
             </span>
-            <span className="text-[10px] text-slate-400 font-medium">Ver detalhes</span>
+            {curso.quantidade_modulos ? (
+              <span className="text-[10px] text-slate-400 font-medium">
+                {curso.quantidade_modulos} {curso.quantidade_modulos === 1 ? "módulo" : "módulos"}
+              </span>
+            ) : (
+              <span className="text-[10px] text-slate-400 font-medium">Ver detalhes</span>
+            )}
           </div>
         </div>
       </div>

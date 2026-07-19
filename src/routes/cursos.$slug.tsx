@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader, SiteFooter } from "@/components/site/site-chrome";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, User } from "lucide-react";
+import { Clock, User, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -200,6 +200,9 @@ function CursoDetail() {
               <div className="mt-6 flex flex-wrap gap-6 text-sm text-primary-foreground/70">
                 {curso.carga_horaria && (
                   <span className="flex items-center gap-2"><Clock className="h-4 w-4" /> {curso.carga_horaria}h</span>
+                )}
+                {curso.quantidade_modulos && (
+                  <span className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> {curso.quantidade_modulos} {curso.quantidade_modulos === 1 ? "módulo" : "módulos"}</span>
                 )}
                 {curso.ministrante && (
                   <span className="flex items-center gap-2"><User className="h-4 w-4" /> {curso.ministrante.nome_completo}</span>

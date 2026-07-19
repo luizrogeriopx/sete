@@ -288,6 +288,7 @@ export type Database = {
           slug: string
           titulo: string
           tipo: string
+          quantidade_modulos: number | null
           updated_at: string
         }
         Insert: {
@@ -310,6 +311,7 @@ export type Database = {
           slug: string
           titulo: string
           tipo?: string
+          quantidade_modulos?: number | null
           updated_at?: string
         }
         Update: {
@@ -332,6 +334,7 @@ export type Database = {
           slug?: string
           titulo?: string
           tipo?: string
+          quantidade_modulos?: number | null
           updated_at?: string
         }
         Relationships: [

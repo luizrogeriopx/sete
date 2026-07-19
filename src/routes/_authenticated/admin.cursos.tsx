@@ -155,6 +155,7 @@ function CursosAdmin() {
   const [preco, setPreco] = useState("0");
   const [modalidadesDisponiveis, setModalidadesDisponiveis] = useState<string[]>(["online"]);
   const [duracao, setDuracao] = useState("6 meses");
+  const [quantidadeModulos, setQuantidadeModulos] = useState<string>("");
   const [ativo, setAtivo] = useState(true);
   const [imagemCard, setImagemCard] = useState("");
   const [imagemCapa, setImagemCapa] = useState("");
@@ -211,6 +212,7 @@ function CursosAdmin() {
         modalidade: (modalidadesDisponiveis[0] || "online") as any,
         modalidades_disponiveis: modalidadesDisponiveis,
         duracao: duracao || null,
+        quantidade_modulos: quantidadeModulos ? parseInt(quantidadeModulos) : null,
         ativo,
         imagem_card: imagemCard || null,
         imagem_capa: imagemCapa || null,
@@ -319,6 +321,7 @@ function CursosAdmin() {
     setPreco("0");
     setModalidadesDisponiveis(["online"]);
     setDuracao("6 meses");
+    setQuantidadeModulos("");
     setAtivo(true);
     setImagemCard("");
     setImagemCapa("");
@@ -339,6 +342,7 @@ function CursosAdmin() {
     setPreco(c.preco.toString());
     setModalidadesDisponiveis(c.modalidades_disponiveis || [c.modalidade || "online"]);
     setDuracao(c.duracao || "");
+    setQuantidadeModulos(c.quantidade_modulos ? c.quantidade_modulos.toString() : "");
     setAtivo(c.ativo);
     setImagemCard(c.imagem_card || "");
     setImagemCapa(c.imagem_capa || "");
@@ -465,7 +469,7 @@ function CursosAdmin() {
                     </Select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <div className="space-y-2">
                       <label className="text-sm font-semibold">Preço (R$)</label>
                       <Input type="number" step="0.01" value={preco} onChange={(e) => setPreco(e.target.value)} />
@@ -473,6 +477,10 @@ function CursosAdmin() {
                     <div className="space-y-2">
                       <label className="text-sm font-semibold">Duração</label>
                       <Input value={duracao} onChange={(e) => setDuracao(e.target.value)} placeholder="Ex: 6 meses" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold">Módulos</label>
+                      <Input type="number" value={quantidadeModulos} onChange={(e) => setQuantidadeModulos(e.target.value)} placeholder="Ex: 12" min="0" />
                     </div>
                   </div>
 
@@ -568,6 +576,7 @@ function CursosAdmin() {
                   <TableHead>Tipo</TableHead>
                   <TableHead>Preço</TableHead>
                   <TableHead>Duração</TableHead>
+                  <TableHead>Módulos</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -591,6 +600,7 @@ function CursosAdmin() {
                     </TableCell>
                     <TableCell>R$ {Number(c.preco).toFixed(2).replace(".", ",")}</TableCell>
                     <TableCell>{c.duracao || "—"}</TableCell>
+                    <TableCell>{c.quantidade_modulos || "—"}</TableCell>
                     <TableCell>
                       <Badge variant={c.ativo ? "default" : "outline"}>
                         {c.ativo ? "Ativo" : "Inativo"}
