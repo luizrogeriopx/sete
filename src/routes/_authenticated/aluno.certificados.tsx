@@ -66,8 +66,12 @@ function Page() {
     },
   });
 
-  const handlePrint = () => {
-    window.print();
+  const handleDownloadPDF = (cert: any) => {
+    setActiveCert(cert);
+    setTimeout(() => {
+      window.print();
+      setActiveCert(null);
+    }, 400);
   };
 
   const getImageUrl = (c: any) => {
@@ -106,14 +110,13 @@ function Page() {
                 <div className="mt-3 text-xs">
                   Código: <code>{c.codigo_validacao}</code>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-wrap items-center gap-3">
                   <Button
                     size="sm"
-                    variant="outline"
-                    className="border-gold/30 text-gold hover:bg-gold/10 flex items-center gap-1.5"
-                    onClick={() => setActiveCert(c)}
+                    className="bg-gold text-gold-foreground hover:bg-gold/90 flex items-center gap-1.5"
+                    onClick={() => handleDownloadPDF(c)}
                   >
-                    <Eye className="h-4 w-4" /> Visualizar e Imprimir
+                    <Printer className="h-4 w-4" /> Baixar PDF
                   </Button>
                   <Link
                     to="/certificado/validar/$codigo"
@@ -159,100 +162,76 @@ function Page() {
         `}} />
       )}
 
-      {/* View & Print Certificate Dialog */}
-      <Dialog open={!!activeCert} onOpenChange={(open) => !open && setActiveCert(null)}>
-        <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
-          <DialogHeader className="print:hidden">
-            <DialogTitle className="font-serif text-xl flex items-center gap-2">
-              <Award className="h-5 w-5 text-gold" /> Certificado Acadêmico
-            </DialogTitle>
-            <DialogDescription>
-              Visualize o seu certificado. Clique em "Imprimir" para salvar como PDF ou imprimir.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4 flex flex-col items-center">
-            {activeCert && (
-              <div 
-                id="printable-certificate-area" 
-                className="relative border shadow-lg w-full max-w-3xl overflow-hidden bg-white print:shadow-none print:border-none"
-                style={{ 
-                  aspectRatio: activeCert.layouts_certificado?.orientacao === 'retrato' ? '1/1.414' : '1.414/1' 
-                }}
-              >
-                {getImageUrl(activeCert) ? (
-                  <img 
-                    src={getImageUrl(activeCert)} 
-                    alt="Layout de Certificado" 
-                    className="w-full h-full object-cover select-none" 
-                  />
-                ) : (
-                  <div className="w-full h-full bg-slate-50 border border-dashed flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
-                    <Award className="h-16 w-16 opacity-30 mb-2" />
-                    <span>Arte do certificado não cadastrada.</span>
-                    <span className="text-xs">O texto será impresso sobre fundo branco.</span>
-                  </div>
-                )}
-
-                {/* Overlays positioned relative to typical blanks */}
-                <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-8 select-none pointer-events-none">
-                  {/* Header text at the top */}
-                  <div className="absolute top-[12%] left-1/2 transform -translate-x-1/2 w-[85%] text-center">
-                    <h1 className="font-serif text-2xl font-bold text-slate-900 tracking-widest sm:text-3xl md:text-4xl uppercase">
-                      SETE
-                    </h1>
-                    <p className="font-sans text-[10px] tracking-wider text-slate-600 uppercase font-semibold sm:text-xs md:text-sm mt-0.5">
-                      Seminário Teológico Esperança
-                    </p>
-                    <div className="h-[1.5px] w-24 bg-gold/50 mx-auto my-3" />
-                    <p className="font-serif text-sm tracking-widest text-gold uppercase font-bold sm:text-base md:text-lg mt-1">
-                      Certificado de Conclusão
-                    </p>
-                  </div>
-
-                  {/* Student Name */}
-                  <div className="absolute top-[48%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[85%] text-center">
-                    <h2 className="font-serif text-xl font-semibold text-slate-800 tracking-wide sm:text-2xl md:text-3xl">
-                      {profile?.nome_completo || user?.user_metadata?.nome_completo || "Nome do Aluno"}
-                    </h2>
-                  </div>
-
-                  {/* Course Title */}
-                  <div className="absolute top-[62%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[85%] text-center">
-                    <h3 className="font-serif text-lg font-medium text-slate-700 sm:text-xl md:text-2xl tracking-widest uppercase">
-                      {activeCert.cursos?.titulo}
-                    </h3>
-                  </div>
-
-                  {/* Issue Date */}
-                  <div className="absolute top-[75%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[85%] text-center">
-                    <p className="text-sm text-slate-600 sm:text-base md:text-lg">
-                      Emitido em {formatDocDate(activeCert.emitido_em)}
-                    </p>
-                  </div>
-
-                  {/* Validation Code */}
-                  <div className="absolute bottom-[6%] left-[6%] text-left text-[10px] text-slate-500 font-mono">
-                    Código de validação: {activeCert.codigo_validacao}
-                  </div>
-                </div>
+      {/* Off-screen Printable Certificate Area */}
+      {activeCert && (
+        <div className="absolute left-[-9999px] top-[-9999px]">
+          <div 
+            id="printable-certificate-area" 
+            className="relative bg-white"
+            style={{ 
+              width: "1123px",
+              height: activeCert.layouts_certificado?.orientacao === 'retrato' ? "1587px" : "794px",
+              aspectRatio: activeCert.layouts_certificado?.orientacao === 'retrato' ? '1/1.414' : '1.414/1' 
+            }}
+          >
+            {getImageUrl(activeCert) ? (
+              <img 
+                src={getImageUrl(activeCert)} 
+                alt="Layout de Certificado" 
+                className="w-full h-full object-cover select-none" 
+              />
+            ) : (
+              <div className="w-full h-full bg-slate-50 border border-dashed flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+                <Award className="h-16 w-16 opacity-30 mb-2" />
+                <span>Arte do certificado não cadastrada.</span>
               </div>
             )}
-          </div>
 
-          <div className="flex justify-end gap-2 print:hidden">
-            <Button variant="outline" onClick={() => setActiveCert(null)}>
-              Fechar
-            </Button>
-            <Button 
-              className="bg-gold text-gold-foreground hover:bg-gold/90 flex items-center gap-1.5"
-              onClick={handlePrint}
-            >
-              <Printer className="h-4 w-4" /> Imprimir / Salvar PDF
-            </Button>
+            {/* Overlays positioned relative to typical blanks */}
+            <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-8 select-none pointer-events-none">
+              {/* Header text at the top */}
+              <div className="absolute top-[12%] left-1/2 transform -translate-x-1/2 w-[85%] text-center">
+                <h1 className="font-serif text-2xl font-bold text-slate-900 tracking-widest uppercase">
+                  SETE
+                </h1>
+                <p className="font-sans text-[10px] tracking-wider text-slate-600 uppercase font-semibold mt-0.5">
+                  Seminário Teológico Esperança
+                </p>
+                <div className="h-[1.5px] w-24 bg-gold/50 mx-auto my-3" />
+                <p className="font-serif text-sm tracking-widest text-gold uppercase font-bold mt-1">
+                  Certificado de Conclusão
+                </p>
+              </div>
+
+              {/* Student Name */}
+              <div className="absolute top-[48%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[85%] text-center">
+                <h2 className="font-serif text-xl font-semibold text-slate-800 tracking-wide sm:text-2xl md:text-3xl">
+                  {profile?.nome_completo || user?.user_metadata?.nome_completo || "Nome do Aluno"}
+                </h2>
+              </div>
+
+              {/* Course Title */}
+              <div className="absolute top-[62%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[85%] text-center">
+                <h3 className="font-serif text-lg font-medium text-slate-700 sm:text-xl md:text-2xl tracking-widest uppercase">
+                  {activeCert.cursos?.titulo}
+                </h3>
+              </div>
+
+              {/* Issue Date */}
+              <div className="absolute top-[75%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[85%] text-center">
+                <p className="text-sm text-slate-600 sm:text-base md:text-lg">
+                  Emitido em {formatDocDate(activeCert.emitido_em)}
+                </p>
+              </div>
+
+              {/* Validation Code */}
+              <div className="absolute bottom-[6%] left-[6%] text-left text-[10px] text-slate-500 font-mono">
+                Código de validação: {activeCert.codigo_validacao}
+              </div>
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 }
