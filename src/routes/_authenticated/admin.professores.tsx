@@ -7,9 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Link2, Award, User, HelpCircle } from "lucide-react";
+import { Link2, Award, User, HelpCircle, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { createClient } from "@supabase/supabase-js";
 
 export const Route = createFileRoute("/_authenticated/admin/professores")({
   component: ProfessoresAdmin,
@@ -20,6 +23,14 @@ function ProfessoresAdmin() {
   const [isLinkOpen, setIsLinkOpen] = useState(false);
   const [cursoId, setCursoId] = useState("");
   const [professorId, setProfessorId] = useState("");
+
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [regNome, setRegNome] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("123456");
+  const [regTelefone, setRegTelefone] = useState("");
+  const [regCpf, setRegCpf] = useState("");
+  const [regDataNasc, setRegDataNasc] = useState("");
 
   // Get profiles with role = 'professor'
   const { data: professores, isLoading: isProfsLoading } = useQuery({
@@ -81,6 +92,77 @@ function ProfessoresAdmin() {
     },
   });
 
+  const cadastrarProfessor = useMutation({
+    mutationFn: async () => {
+      if (!regNome || !regEmail || !regPassword) {
+        throw new Error("Nome, E-mail e Senha são obrigatórios.");
+      }
+
+      // 1. Create client without persisting session
+      const tempClient = createClient(
+        import.meta.env.VITE_SUPABASE_URL || "",
+        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "",
+        {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false,
+          },
+        }
+      );
+
+      // 2. SignUp the user in auth
+      const { data: signUpData, error: signUpError } = await tempClient.auth.signUp({
+        email: regEmail,
+        password: regPassword,
+        options: {
+          data: {
+            nome_completo: regNome,
+            telefone: regTelefone || null,
+            cpf: regCpf || null,
+            data_nascimento: regDataNasc || null,
+          },
+        },
+      });
+
+      if (signUpError) throw signUpError;
+      if (!signUpData.user?.id) throw new Error("Erro ao criar usuário.");
+
+      const newUserId = signUpData.user.id;
+
+      // 3. Delete automatic 'aluno' role created by trigger
+      await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", newUserId);
+
+      // 4. Assign role 'professor'
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .insert({
+          user_id: newUserId,
+          role: "professor",
+        });
+
+      if (roleError) throw roleError;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-professores-list"] });
+      toast.success("Professor cadastrado com sucesso!");
+      setIsRegisterOpen(false);
+      // Reset form
+      setRegNome("");
+      setRegEmail("");
+      setRegPassword("123456");
+      setRegTelefone("");
+      setRegCpf("");
+      setRegDataNasc("");
+    },
+    onError: (err: Error) => {
+      toast.error(`Erro ao cadastrar: ${err.message}`);
+    },
+  });
+
   if (isProfsLoading || isCursosLoading) {
     return <p className="text-muted-foreground p-4">Carregando docentes…</p>;
   }
@@ -92,12 +174,114 @@ function ProfessoresAdmin() {
           <h1 className="font-serif text-4xl">Professores</h1>
           <p className="mt-1 text-muted-foreground">Vincule ministrantes às disciplinas e acompanhe o corpo docente.</p>
         </div>
-        <Dialog open={isLinkOpen} onOpenChange={setIsLinkOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gold text-gold-foreground hover:bg-gold/90 flex items-center gap-2">
-              <Link2 className="h-4 w-4" /> Vincular Professor
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          {/* Dialog to Register Teacher */}
+          <Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-slate-900 text-gold hover:bg-slate-800 border border-gold/30 flex items-center gap-2">
+                <Plus className="h-4 w-4" /> Cadastrar Professor
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Cadastrar Novo Professor</DialogTitle>
+                <DialogDescription>
+                  Crie uma nova conta de acesso para um professor. O professor receberá o papel de acesso correspondente.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-2">
+                <div className="space-y-1">
+                  <Label htmlFor="reg-nome">Nome Completo *</Label>
+                  <Input
+                    id="reg-nome"
+                    required
+                    value={regNome}
+                    onChange={(e) => setRegNome(e.target.value)}
+                    placeholder="Ex: Prof. Dr. João Silva"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="reg-email">E-mail *</Label>
+                  <Input
+                    id="reg-email"
+                    type="email"
+                    required
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                    placeholder="joao.silva@exemplo.com"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="reg-password">Senha Provisória *</Label>
+                  <Input
+                    id="reg-password"
+                    type="password"
+                    required
+                    minLength={6}
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="reg-telefone">Telefone / WhatsApp</Label>
+                  <Input
+                    id="reg-telefone"
+                    value={regTelefone}
+                    onChange={(e) => setRegTelefone(e.target.value)}
+                    placeholder="Ex: (11) 99999-9999"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="reg-cpf">CPF</Label>
+                    <Input
+                      id="reg-cpf"
+                      value={regCpf}
+                      onChange={(e) => setRegCpf(e.target.value)}
+                      placeholder="000.000.000-00"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="reg-data-nasc">Data de Nascimento</Label>
+                    <Input
+                      id="reg-data-nasc"
+                      type="date"
+                      value={regDataNasc}
+                      onChange={(e) => setRegDataNasc(e.target.value)}
+                      className="text-slate-300"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button variant="outline" className="w-full" onClick={() => setIsRegisterOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button
+                  className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
+                  onClick={() => cadastrarProfessor.mutate()}
+                  disabled={cadastrarProfessor.isPending}
+                >
+                  {cadastrarProfessor.isPending ? "Cadastrando..." : "Cadastrar"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Dialog to Link Teacher */}
+          <Dialog open={isLinkOpen} onOpenChange={setIsLinkOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gold text-gold-foreground hover:bg-gold/90 flex items-center gap-2">
+                <Link2 className="h-4 w-4" /> Vincular Professor
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Vincular Professor ao Curso</DialogTitle>
@@ -154,6 +338,7 @@ function ProfessoresAdmin() {
           </DialogContent>
         </Dialog>
       </div>
+    </div>
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Lista de Professores Ativos */}

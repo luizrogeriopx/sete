@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, Key, Search } from "lucide-react";
+import { Shield, Key, Search, GraduationCap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -21,6 +21,8 @@ function UsuariosSuperAdmin() {
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [novaRole, setNovaRole] = useState<any>("aluno");
+  const [selectedUserMatriculas, setSelectedUserMatriculas] = useState<any>(null);
+  const [cursoIdParaMatricular, setCursoIdParaMatricular] = useState("");
 
   // Fetch all profiles and their roles
   const { data: users, isLoading } = useQuery({
@@ -86,6 +88,103 @@ function UsuariosSuperAdmin() {
     },
   });
 
+  // Fetch enrollments for the selected student
+  const { data: userMatriculas, isLoading: isMatriculasLoading } = useQuery({
+    queryKey: ["super-admin-user-matriculas", selectedUserMatriculas?.id],
+    queryFn: async () => {
+      if (!selectedUserMatriculas?.id) return [];
+      const { data, error } = await supabase
+        .from("matriculas")
+        .select("*, cursos(titulo)")
+        .eq("aluno_id", selectedUserMatriculas.id);
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!selectedUserMatriculas?.id,
+  });
+
+  // Fetch all active courses for manual enrollment dropdown
+  const { data: allCourses } = useQuery({
+    queryKey: ["super-admin-all-courses-select"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cursos")
+        .select("id, titulo")
+        .eq("ativo", true)
+        .order("titulo");
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!selectedUserMatriculas?.id,
+  });
+
+  // Mutation to update enrollment status
+  const updateMatriculaStatus = useMutation({
+    mutationFn: async ({ matriculaId, status, progresso, concluir }: { matriculaId: string; status: any; progresso?: number; concluir?: boolean }) => {
+      const updates: any = { status };
+      if (concluir) {
+        updates.progresso = 100;
+        updates.data_conclusao = new Date().toISOString();
+      } else if (progresso !== undefined) {
+        updates.progresso = progresso;
+      }
+      
+      const { error } = await supabase
+        .from("matriculas")
+        .update(updates)
+        .eq("id", matriculaId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["super-admin-user-matriculas", selectedUserMatriculas?.id] });
+      toast.success("Matrícula atualizada com sucesso!");
+    },
+    onError: (err: Error) => {
+      toast.error(`Erro ao atualizar matrícula: ${err.message}`);
+    }
+  });
+
+  // Mutation to enroll student in a course
+  const matricularAlunoSuper = useMutation({
+    mutationFn: async () => {
+      if (!selectedUserMatriculas?.id || !cursoIdParaMatricular) {
+        throw new Error("Selecione um curso para matricular.");
+      }
+
+      // Check if already enrolled
+      const { data: existing } = await supabase
+        .from("matriculas")
+        .select("id")
+        .eq("aluno_id", selectedUserMatriculas.id)
+        .eq("curso_id", cursoIdParaMatricular)
+        .maybeSingle();
+
+      if (existing) {
+        throw new Error("Este usuário já está matriculado neste curso.");
+      }
+
+      const { error } = await supabase
+        .from("matriculas")
+        .insert({
+          aluno_id: selectedUserMatriculas.id,
+          curso_id: cursoIdParaMatricular,
+          status: "ativa", // enroll directly as active
+          progresso: 0,
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["super-admin-user-matriculas", selectedUserMatriculas?.id] });
+      toast.success("Aluno matriculado com sucesso!");
+      setCursoIdParaMatricular("");
+    },
+    onError: (err: Error) => {
+      toast.error(`Erro ao matricular: ${err.message}`);
+    }
+  });
+
   function openEdit(u: any) {
     setSelectedUser(u);
     setNovaRole(u.roles?.[0] || "aluno");
@@ -118,7 +217,7 @@ function UsuariosSuperAdmin() {
               <TableHead>Nome Completo</TableHead>
               <TableHead>Nível de Acesso (Cargo)</TableHead>
               <TableHead>Telefone</TableHead>
-              <TableHead className="text-right">Ação</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -152,10 +251,18 @@ function UsuariosSuperAdmin() {
                   </div>
                 </TableCell>
                 <TableCell>{u.telefone || "—"}</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right space-x-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title="Gerenciar Matrículas"
+                    onClick={() => setSelectedUserMatriculas(u)}
+                  >
+                    <GraduationCap className="h-4 w-4 text-emerald-600" />
+                  </Button>
                   <Dialog open={selectedUser?.id === u.id} onOpenChange={(open) => !open && setSelectedUser(null)}>
                     <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(u)}>
+                      <Button variant="ghost" size="icon" title="Alterar Cargo" onClick={() => openEdit(u)}>
                         <Key className="h-4 w-4 text-primary" />
                       </Button>
                     </DialogTrigger>
@@ -210,6 +317,145 @@ function UsuariosSuperAdmin() {
           </TableBody>
         </Table>
       </Card>
+
+      {/* Dialog for Managing Student Enrollments */}
+      <Dialog open={!!selectedUserMatriculas} onOpenChange={(open) => !open && setSelectedUserMatriculas(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl flex items-center gap-2">
+              <GraduationCap className="h-6 w-6 text-gold" /> Matrículas de {selectedUserMatriculas?.nome_completo}
+            </DialogTitle>
+            <DialogDescription>
+              Gerencie as matrículas e o progresso do aluno. Você pode aprovar/ativar matrículas pendentes ou registrar a conclusão.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-6">
+            {/* List of Enrollments */}
+            <div className="space-y-2">
+              <h3 className="font-serif text-lg">Cursos Matriculados</h3>
+              {isMatriculasLoading ? (
+                <p className="text-muted-foreground text-center py-4">Carregando matrículas...</p>
+              ) : !userMatriculas || userMatriculas.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground border border-dashed rounded-lg text-sm">
+                  Este usuário não está matriculado em nenhum curso.
+                </div>
+              ) : (
+                <div className="border rounded-lg overflow-hidden bg-card">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Curso</TableHead>
+                        <TableHead>Progresso</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {userMatriculas.map((m: any) => (
+                        <TableRow key={m.id}>
+                          <TableCell className="font-semibold text-sm">{m.cursos?.titulo}</TableCell>
+                          <TableCell className="font-mono text-xs">{m.progresso}%</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                m.status === "ativa"
+                                  ? "default"
+                                  : m.status === "concluida"
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              className={m.status === "ativa" ? "bg-emerald-600 hover:bg-emerald-600 text-white" : ""}
+                            >
+                              {m.status.toUpperCase()}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right space-x-2">
+                            {m.status === "pendente" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border-emerald-200"
+                                onClick={() => updateMatriculaStatus.mutate({ matriculaId: m.id, status: "ativa" })}
+                                disabled={updateMatriculaStatus.isPending}
+                              >
+                                Aprovar/Ativar
+                              </Button>
+                            )}
+                            {m.status === "ativa" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 border-amber-200"
+                                onClick={() => updateMatriculaStatus.mutate({ matriculaId: m.id, status: "concluida", concluir: true })}
+                                disabled={updateMatriculaStatus.isPending}
+                              >
+                                Aprovar Conclusão
+                              </Button>
+                            )}
+                            
+                            <Select
+                              value={m.status}
+                              onValueChange={(val) => updateMatriculaStatus.mutate({ matriculaId: m.id, status: val })}
+                              disabled={updateMatriculaStatus.isPending}
+                            >
+                              <SelectTrigger className="inline-flex w-[120px] h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pendente">Pendente</SelectItem>
+                                <SelectItem value="ativa">Ativa</SelectItem>
+                                <SelectItem value="concluida">Concluída</SelectItem>
+                                <SelectItem value="cancelada">Cancelada</SelectItem>
+                                <SelectItem value="trancada">Trancada</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Enrollment Section */}
+            <div className="border-t pt-4 space-y-3">
+              <h3 className="font-serif text-lg">Matricular em Novo Curso</h3>
+              <div className="flex gap-2 items-end">
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs font-semibold text-muted-foreground">Selecionar Curso</label>
+                  <Select value={cursoIdParaMatricular} onValueChange={setCursoIdParaMatricular}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um curso ativo..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allCourses?.map((c: any) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.titulo}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  className="bg-gold text-gold-foreground hover:bg-gold/90"
+                  onClick={() => matricularAlunoSuper.mutate()}
+                  disabled={matricularAlunoSuper.isPending || !cursoIdParaMatricular}
+                >
+                  {matricularAlunoSuper.isPending ? "Matriculando..." : "Matricular Aluno"}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setSelectedUserMatriculas(null)}>
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
