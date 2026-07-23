@@ -212,14 +212,14 @@ function Page() {
 
                   {/* Student Name */}
                   <div className="absolute top-[48%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[85%] text-center">
-                    <h2 className="font-serif text-3xl font-bold text-slate-800 tracking-wide sm:text-4xl md:text-5xl">
+                    <h2 className="font-serif text-xl font-semibold text-slate-800 tracking-wide sm:text-2xl md:text-3xl">
                       {profile?.nome_completo || user?.user_metadata?.nome_completo || "Nome do Aluno"}
                     </h2>
                   </div>
 
                   {/* Course Title */}
                   <div className="absolute top-[62%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[85%] text-center">
-                    <h3 className="font-serif text-2xl font-semibold text-slate-700 sm:text-3xl md:text-4xl">
+                    <h3 className="font-serif text-lg font-medium text-slate-700 sm:text-xl md:text-2xl tracking-widest uppercase">
                       {activeCert.cursos?.titulo}
                     </h3>
                   </div>
