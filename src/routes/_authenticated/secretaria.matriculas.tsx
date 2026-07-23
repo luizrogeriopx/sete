@@ -135,12 +135,53 @@ function MatriculasSecretaria() {
   });
 
   const alterarStatus = useMutation({
-    mutationFn: async ({ id, novoStatus }: { id: string; novoStatus: any }) => {
+    mutationFn: async ({
+      id,
+      novoStatus,
+      alunoId,
+      cursoId,
+    }: {
+      id: string;
+      novoStatus: any;
+      alunoId: string;
+      cursoId: string;
+    }) => {
       const { error } = await supabase
         .from("matriculas")
         .update({ status: novoStatus })
         .eq("id", id);
       if (error) throw error;
+
+      if (novoStatus === "concluida") {
+        // Find layout for this course
+        const { data: layout } = await supabase
+          .from("layouts_certificado")
+          .select("id")
+          .eq("curso_id", cursoId)
+          .maybeSingle();
+
+        let layoutId = layout?.id;
+        if (!layoutId) {
+          const { data: defaultLayout } = await supabase
+            .from("layouts_certificado")
+            .select("id")
+            .eq("padrao", true)
+            .maybeSingle();
+          layoutId = defaultLayout?.id;
+        }
+
+        const { error: certError } = await supabase
+          .from("certificados")
+          .insert({
+            aluno_id: alunoId,
+            curso_id: cursoId,
+            layout_id: layoutId || null,
+          });
+
+        if (certError && !certError.message.includes("duplicate key")) {
+          throw certError;
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["secretaria-matriculas-list"] });
@@ -299,19 +340,29 @@ function MatriculasSecretaria() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => alterarStatus.mutate({ id: m.id, novoStatus: "ativa" })}
+                        onClick={() => alterarStatus.mutate({ id: m.id, novoStatus: "ativa", alunoId: m.aluno_id, cursoId: m.curso_id })}
                       >
                         Ativar
                       </Button>
                     )}
                     {m.status === "ativa" && (
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => alterarStatus.mutate({ id: m.id, novoStatus: "cancelada" })}
-                      >
-                        Cancelar
-                      </Button>
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 border-amber-200"
+                          onClick={() => alterarStatus.mutate({ id: m.id, novoStatus: "concluida", alunoId: m.aluno_id, cursoId: m.curso_id })}
+                        >
+                          Concluir
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => alterarStatus.mutate({ id: m.id, novoStatus: "cancelada", alunoId: m.aluno_id, cursoId: m.curso_id })}
+                        >
+                          Cancelar
+                        </Button>
+                      </>
                     )}
                   </TableCell>
                 </TableRow>

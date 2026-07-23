@@ -120,7 +120,21 @@ function UsuariosSuperAdmin() {
 
   // Mutation to update enrollment status
   const updateMatriculaStatus = useMutation({
-    mutationFn: async ({ matriculaId, status, progresso, concluir }: { matriculaId: string; status: any; progresso?: number; concluir?: boolean }) => {
+    mutationFn: async ({
+      matriculaId,
+      status,
+      progresso,
+      concluir,
+      alunoId,
+      cursoId,
+    }: {
+      matriculaId: string;
+      status: any;
+      progresso?: number;
+      concluir?: boolean;
+      alunoId: string;
+      cursoId: string;
+    }) => {
       const updates: any = { status };
       if (concluir) {
         updates.progresso = 100;
@@ -135,6 +149,37 @@ function UsuariosSuperAdmin() {
         .eq("id", matriculaId);
       
       if (error) throw error;
+
+      if (status === "concluida") {
+        // Find layout for this course
+        const { data: layout } = await supabase
+          .from("layouts_certificado")
+          .select("id")
+          .eq("curso_id", cursoId)
+          .maybeSingle();
+
+        let layoutId = layout?.id;
+        if (!layoutId) {
+          const { data: defaultLayout } = await supabase
+            .from("layouts_certificado")
+            .select("id")
+            .eq("padrao", true)
+            .maybeSingle();
+          layoutId = defaultLayout?.id;
+        }
+
+        const { error: certError } = await supabase
+          .from("certificados")
+          .insert({
+            aluno_id: alunoId,
+            curso_id: cursoId,
+            layout_id: layoutId || null,
+          });
+
+        if (certError && !certError.message.includes("duplicate key")) {
+          throw certError;
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["super-admin-user-matriculas", selectedUserMatriculas?.id] });
@@ -376,7 +421,7 @@ function UsuariosSuperAdmin() {
                                 size="sm"
                                 variant="outline"
                                 className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border-emerald-200"
-                                onClick={() => updateMatriculaStatus.mutate({ matriculaId: m.id, status: "ativa" })}
+                                onClick={() => updateMatriculaStatus.mutate({ matriculaId: m.id, status: "ativa", alunoId: m.aluno_id, cursoId: m.curso_id })}
                                 disabled={updateMatriculaStatus.isPending}
                               >
                                 Aprovar/Ativar
@@ -387,7 +432,7 @@ function UsuariosSuperAdmin() {
                                 size="sm"
                                 variant="outline"
                                 className="bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 border-amber-200"
-                                onClick={() => updateMatriculaStatus.mutate({ matriculaId: m.id, status: "concluida", concluir: true })}
+                                onClick={() => updateMatriculaStatus.mutate({ matriculaId: m.id, status: "concluida", concluir: true, alunoId: m.aluno_id, cursoId: m.curso_id })}
                                 disabled={updateMatriculaStatus.isPending}
                               >
                                 Aprovar Conclusão
@@ -396,7 +441,7 @@ function UsuariosSuperAdmin() {
                             
                             <Select
                               value={m.status}
-                              onValueChange={(val) => updateMatriculaStatus.mutate({ matriculaId: m.id, status: val })}
+                              onValueChange={(val) => updateMatriculaStatus.mutate({ matriculaId: m.id, status: val, alunoId: m.aluno_id, cursoId: m.curso_id })}
                               disabled={updateMatriculaStatus.isPending}
                             >
                               <SelectTrigger className="inline-flex w-[120px] h-8 text-xs">
