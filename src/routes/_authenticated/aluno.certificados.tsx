@@ -196,6 +196,20 @@ function Page() {
 
                 {/* Overlays positioned relative to typical blanks */}
                 <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-8 select-none pointer-events-none">
+                  {/* Header text at the top */}
+                  <div className="absolute top-[12%] left-1/2 transform -translate-x-1/2 w-[85%] text-center">
+                    <h1 className="font-serif text-2xl font-bold text-slate-900 tracking-widest sm:text-3xl md:text-4xl uppercase">
+                      SETE
+                    </h1>
+                    <p className="font-sans text-[10px] tracking-wider text-slate-600 uppercase font-semibold sm:text-xs md:text-sm mt-0.5">
+                      Seminário Teológico Esperança
+                    </p>
+                    <div className="h-[1.5px] w-24 bg-gold/50 mx-auto my-3" />
+                    <p className="font-serif text-sm tracking-widest text-gold uppercase font-bold sm:text-base md:text-lg mt-1">
+                      Certificado de Conclusão
+                    </p>
+                  </div>
+
                   {/* Student Name */}
                   <div className="absolute top-[48%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[85%] text-center">
                     <h2 className="font-serif text-3xl font-bold text-slate-800 tracking-wide sm:text-4xl md:text-5xl">
