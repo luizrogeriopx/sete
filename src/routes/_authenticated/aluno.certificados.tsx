@@ -227,14 +227,14 @@ function Page() {
             <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-8 select-none pointer-events-none">
               {/* Header text at the top */}
               <div className="absolute top-[12%] left-1/2 transform -translate-x-1/2 w-[85%] text-center">
-                <h1 className="font-serif text-2xl font-bold text-slate-900 tracking-widest uppercase">
+                <h1 className="font-serif text-5xl font-bold text-slate-900 tracking-widest uppercase">
                   SETE
                 </h1>
-                <p className="font-sans text-[10px] tracking-wider text-slate-600 uppercase font-semibold mt-0.5">
+                <p className="font-sans text-xs tracking-widest text-slate-600 uppercase font-bold mt-2">
                   Seminário Teológico Esperança
                 </p>
-                <div className="h-[1.5px] w-24 bg-gold/50 mx-auto my-3" />
-                <p className="font-serif text-sm tracking-widest text-gold uppercase font-bold mt-1">
+                <div className="h-[2px] w-36 bg-gold/60 mx-auto my-4" />
+                <p className="font-serif text-xl tracking-widest text-gold uppercase font-bold mt-2">
                   Certificado de Conclusão
                 </p>
               </div>
