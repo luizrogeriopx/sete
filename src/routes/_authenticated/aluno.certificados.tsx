@@ -3,11 +3,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Award, Printer, Eye } from "lucide-react";
+import { Award, Loader2, Download } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 export const Route = createFileRoute("/_authenticated/aluno/certificados")({
   component: Page,
@@ -16,6 +18,7 @@ export const Route = createFileRoute("/_authenticated/aluno/certificados")({
 function Page() {
   const { user } = useAuth();
   const [activeCert, setActiveCert] = useState<any>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Fetch certificates with layouts
   const { data } = useQuery({
@@ -66,12 +69,66 @@ function Page() {
     },
   });
 
-  const handleDownloadPDF = (cert: any) => {
-    setActiveCert(cert);
-    setTimeout(() => {
-      window.print();
+  const handleDownloadPDF = async (cert: any) => {
+    if (isGenerating) return;
+    setIsGenerating(true);
+    const toastId = toast.loading("Gerando o arquivo PDF do certificado...");
+
+    try {
+      // 1. Set active certificate so off-screen layout renders
+      setActiveCert(cert);
+
+      // 2. Wait for state update and rendering
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      const element = document.getElementById("printable-certificate-area");
+      if (!element) {
+        throw new Error("Erro ao renderizar o certificado no navegador.");
+      }
+
+      // 3. Make sure image is fully loaded if present
+      const img = element.querySelector("img");
+      if (img && !img.complete) {
+        await new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve; // resolve anyway
+          setTimeout(resolve, 3000); // safety timeout
+        });
+      }
+
+      // 4. Capture element to canvas
+      const canvas = await html2canvas(element, {
+        scale: 2.5, // High resolution for print quality
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+      const isPortrait = cert.layouts_certificado?.orientacao === "retrato";
+      const orientation = isPortrait ? "portrait" : "landscape";
+
+      // 5. Create PDF matching aspect ratio (standard A4 sizes at 72dpi: [595, 842])
+      const pdf = new jsPDF({
+        orientation: orientation,
+        unit: "px",
+        format: isPortrait ? [595, 842] : [842, 595],
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Certificado - ${cert.cursos?.titulo}.pdf`);
+
+      toast.success("Certificado baixado com sucesso!", { id: toastId });
+    } catch (err: any) {
+      console.error("PDF generation error:", err);
+      toast.error(`Erro ao gerar PDF: ${err.message || "Erro desconhecido."}`, { id: toastId });
+    } finally {
       setActiveCert(null);
-    }, 400);
+      setIsGenerating(false);
+    }
   };
 
   const getImageUrl = (c: any) => {
@@ -99,67 +156,46 @@ function Page() {
         </div>
       ) : (
         <div className="mt-8 grid gap-4 md:grid-cols-2">
-          {data!.map((c: any) => (
-            <Card key={c.id}>
-              <CardContent className="p-6">
-                <Award className="h-6 w-6 text-gold" />
-                <div className="mt-2 font-serif text-lg">{c.cursos?.titulo}</div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  Emitido em {new Date(c.emitido_em).toLocaleDateString("pt-BR")}
-                </div>
-                <div className="mt-3 text-xs">
-                  Código: <code>{c.codigo_validacao}</code>
-                </div>
-                <div className="mt-4 flex flex-wrap items-center gap-3">
-                  <Button
-                    size="sm"
-                    className="bg-gold text-gold-foreground hover:bg-gold/90 flex items-center gap-1.5"
-                    onClick={() => handleDownloadPDF(c)}
-                  >
-                    <Printer className="h-4 w-4" /> Baixar PDF
-                  </Button>
-                  <Link
-                    to="/certificado/validar/$codigo"
-                    params={{ codigo: c.codigo_validacao }}
-                    className="text-primary underline text-sm flex items-center text-slate-400 hover:text-slate-100 transition-colors"
-                  >
-                    Página pública de validação
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {data!.map((c: any) => {
+            const isThisGenerating = isGenerating && activeCert?.id === c.id;
+            return (
+              <Card key={c.id}>
+                <CardContent className="p-6">
+                  <Award className="h-6 w-6 text-gold" />
+                  <div className="mt-2 font-serif text-lg">{c.cursos?.titulo}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Emitido em {new Date(c.emitido_em).toLocaleDateString("pt-BR")}
+                  </div>
+                  <div className="mt-3 text-xs">
+                    Código: <code>{c.codigo_validacao}</code>
+                  </div>
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <Button
+                      size="sm"
+                      className="bg-gold text-gold-foreground hover:bg-gold/90 flex items-center gap-1.5"
+                      onClick={() => handleDownloadPDF(c)}
+                      disabled={isGenerating}
+                    >
+                      {isThisGenerating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                      {isThisGenerating ? "Gerando..." : "Baixar PDF"}
+                    </Button>
+                    <Link
+                      to="/certificado/validar/$codigo"
+                      params={{ codigo: c.codigo_validacao }}
+                      className="text-primary underline text-sm flex items-center text-slate-400 hover:text-slate-100 transition-colors"
+                    >
+                      Página pública de validação
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
-      )}
-
-      {/* Dynamic Print Styles for orientation */}
-      {activeCert && (
-        <style dangerouslySetInnerHTML={{ __html: `
-          @media print {
-            body * {
-              visibility: hidden !important;
-            }
-            #printable-certificate-area, #printable-certificate-area * {
-              visibility: visible !important;
-            }
-            #printable-certificate-area {
-              position: fixed !important;
-              left: 0 !important;
-              top: 0 !important;
-              width: 100vw !important;
-              height: 100vh !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              box-shadow: none !important;
-              border: none !important;
-              background-color: white !important;
-            }
-            @page {
-              size: ${activeCert.layouts_certificado?.orientacao === 'retrato' ? 'portrait' : 'landscape'};
-              margin: 0;
-            }
-          }
-        `}} />
       )}
 
       {/* Off-screen Printable Certificate Area */}
@@ -169,9 +205,9 @@ function Page() {
             id="printable-certificate-area" 
             className="relative bg-white"
             style={{ 
-              width: "1123px",
-              height: activeCert.layouts_certificado?.orientacao === 'retrato' ? "1587px" : "794px",
-              aspectRatio: activeCert.layouts_certificado?.orientacao === 'retrato' ? '1/1.414' : '1.414/1' 
+              width: activeCert.layouts_certificado?.orientacao === "retrato" ? "794px" : "1123px",
+              height: activeCert.layouts_certificado?.orientacao === "retrato" ? "1123px" : "794px",
+              aspectRatio: activeCert.layouts_certificado?.orientacao === "retrato" ? "1/1.414" : "1.414/1" 
             }}
           >
             {getImageUrl(activeCert) ? (
