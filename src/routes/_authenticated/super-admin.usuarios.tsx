@@ -296,6 +296,9 @@ function UsuariosSuperAdmin() {
                     )}
                   </div>
                 </TableCell>
+                <TableCell>
+                  <Badge className={SITUACAO_CLASS[u.situacao as Situacao]}>{SITUACAO_LABEL[u.situacao as Situacao]}</Badge>
+                </TableCell>
                 <TableCell>{u.telefone || "—"}</TableCell>
                 <TableCell className="text-right space-x-1">
                   <Button
