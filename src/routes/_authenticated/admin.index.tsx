@@ -13,19 +13,35 @@ function AdminHome() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin-home-dashboard"],
     queryFn: async () => {
-      const [alunosRes, matriculasRes, pagamentosRes, cursosRes] = await Promise.all([
-        supabase.from("user_roles").select("id").eq("role", "aluno"),
+      const [alunosRes, matriculasRes, pagamentosRes, cursosRes, todasMatriculas] = await Promise.all([
+        supabase.from("user_roles").select("user_id").eq("role", "aluno"),
         supabase.from("matriculas").select("id", { count: "exact" }),
         supabase.from("pagamentos").select("valor, status"),
         supabase.from("cursos").select("id", { count: "exact" }),
+        supabase.from("matriculas").select("aluno_id, status"),
       ]);
 
       const approved = pagamentosRes.data?.filter((p) => p.status === "aprovado") ?? [];
       const pending = pagamentosRes.data?.filter((p) => p.status === "pendente") ?? [];
       const totalRevenue = approved.reduce((sum, p) => sum + Number(p.valor), 0);
 
+      const uids = (alunosRes.data ?? []).map((r) => r.user_id);
+      const mats = todasMatriculas.data ?? [];
+      let usuariosCount = 0;
+      let alunosCount = 0;
+      let formadosCount = 0;
+      for (const uid of uids) {
+        const s = classificarSituacao(mats.filter((m) => m.aluno_id === uid));
+        if (s === "usuario") usuariosCount++;
+        else if (s === "aluno") alunosCount++;
+        else formadosCount++;
+      }
+
       return {
-        alunosCount: alunosRes.data?.length ?? 0,
+        usuariosTotal: uids.length,
+        usuariosCount,
+        alunosCount,
+        formadosCount,
         matriculasCount: matriculasRes.count ?? 0,
         totalRevenue,
         pendingPaymentsCount: pending.length,
