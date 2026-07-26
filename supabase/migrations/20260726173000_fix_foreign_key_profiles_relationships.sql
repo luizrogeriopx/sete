@@ -15,9 +15,11 @@ ALTER TABLE public.matriculas
 
 -- 3. public.presencas
 ALTER TABLE public.presencas
-  DROP CONSTRAINT IF EXISTS presencas_registrado_por_fkey;
+  DROP CONSTRAINT IF EXISTS presencas_registrada_por_fkey,
+  DROP CONSTRAINT IF EXISTS presencas_aluno_id_fkey;
 ALTER TABLE public.presencas
-  ADD CONSTRAINT presencas_registrado_por_fkey FOREIGN KEY (registrado_por) REFERENCES public.profiles(id) ON DELETE SET NULL;
+  ADD CONSTRAINT presencas_registrada_por_fkey FOREIGN KEY (registrada_por) REFERENCES public.profiles(id) ON DELETE SET NULL,
+  ADD CONSTRAINT presencas_aluno_id_fkey FOREIGN KEY (aluno_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
 -- 4. public.pagamentos
 ALTER TABLE public.pagamentos
