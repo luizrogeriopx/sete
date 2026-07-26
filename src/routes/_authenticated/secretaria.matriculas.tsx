@@ -60,6 +60,16 @@ function MatriculasSecretaria() {
     },
   });
 
+  const selectedCourseObj = cursos?.find((c) => c.id === cursoId);
+  const modalities = selectedCourseObj?.modalidades_disponiveis || (selectedCourseObj?.modalidade ? [selectedCourseObj.modalidade] : ["online"]);
+
+  const handleCursoChange = (cid: string) => {
+    setCursoId(cid);
+    const selected = cursos?.find((c) => c.id === cid);
+    const opts = selected?.modalidades_disponiveis || (selected?.modalidade ? [selected.modalidade] : ["online"]);
+    setModalidadeEscolhida(opts[0] || "online");
+  };
+
   const matricularAluno = useMutation({
     mutationFn: async () => {
       if (!alunoId || !cursoId) throw new Error("Selecione o aluno e o curso.");
