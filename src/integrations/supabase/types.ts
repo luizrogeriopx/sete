@@ -90,6 +90,8 @@ export type Database = {
           id: string
           modulo_id: string | null
           nota_minima: number
+          quantidade_questoes: number | null
+          questionario_id: string | null
           titulo: string
         }
         Insert: {
@@ -99,6 +101,8 @@ export type Database = {
           id?: string
           modulo_id?: string | null
           nota_minima?: number
+          quantidade_questoes?: number | null
+          questionario_id?: string | null
           titulo: string
         }
         Update: {
@@ -108,6 +112,8 @@ export type Database = {
           id?: string
           modulo_id?: string | null
           nota_minima?: number
+          quantidade_questoes?: number | null
+          questionario_id?: string | null
           titulo?: string
         }
         Relationships: [
@@ -123,6 +129,13 @@ export type Database = {
             columns: ["modulo_id"]
             isOneToOne: false
             referencedRelation: "modulos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_questionario_id_fkey"
+            columns: ["questionario_id"]
+            isOneToOne: false
+            referencedRelation: "questionarios"
             referencedColumns: ["id"]
           },
         ]
@@ -272,6 +285,7 @@ export type Database = {
           ativo: boolean
           carga_horaria: number | null
           categoria_id: string | null
+          cobranca_por: string | null
           created_at: string
           descricao: string | null
           descricao_curta: string | null
@@ -285,18 +299,18 @@ export type Database = {
           modalidade: Database["public"]["Enums"]["curso_modalidade"]
           modalidades_disponiveis: string[] | null
           preco: number
-          slug: string
-          titulo: string
-          tipo: string
+          publico_alvo: string | null
           quantidade_modulos: number | null
-          cobranca_por: string
-          publico_alvo: string
+          slug: string
+          tipo: string | null
+          titulo: string
           updated_at: string
         }
         Insert: {
           ativo?: boolean
           carga_horaria?: number | null
           categoria_id?: string | null
+          cobranca_por?: string | null
           created_at?: string
           descricao?: string | null
           descricao_curta?: string | null
@@ -310,18 +324,18 @@ export type Database = {
           modalidade?: Database["public"]["Enums"]["curso_modalidade"]
           modalidades_disponiveis?: string[] | null
           preco?: number
-          slug: string
-          titulo: string
-          tipo?: string
+          publico_alvo?: string | null
           quantidade_modulos?: number | null
-          cobranca_por?: string
-          publico_alvo?: string
+          slug: string
+          tipo?: string | null
+          titulo: string
           updated_at?: string
         }
         Update: {
           ativo?: boolean
           carga_horaria?: number | null
           categoria_id?: string | null
+          cobranca_por?: string | null
           created_at?: string
           descricao?: string | null
           descricao_curta?: string | null
@@ -335,12 +349,11 @@ export type Database = {
           modalidade?: Database["public"]["Enums"]["curso_modalidade"]
           modalidades_disponiveis?: string[] | null
           preco?: number
-          slug?: string
-          titulo?: string
-          tipo?: string
+          publico_alvo?: string | null
           quantidade_modulos?: number | null
-          cobranca_por?: string
-          publico_alvo?: string
+          slug?: string
+          tipo?: string | null
+          titulo?: string
           updated_at?: string
         }
         Relationships: [
@@ -400,42 +413,42 @@ export type Database = {
       matriculas: {
         Row: {
           aluno_id: string
+          congregacao: string | null
           curso_id: string
           data_conclusao: string | null
           data_matricula: string
           id: string
+          modalidade_escolhida: string | null
           observacao: string | null
           progresso: number
-          status: Database["public"]["Enums"]["matricula_status"]
-          modalidade_escolhida: string | null
           regional: string | null
-          congregacao: string | null
+          status: Database["public"]["Enums"]["matricula_status"]
         }
         Insert: {
           aluno_id: string
+          congregacao?: string | null
           curso_id: string
           data_conclusao?: string | null
           data_matricula?: string
           id?: string
+          modalidade_escolhida?: string | null
           observacao?: string | null
           progresso?: number
-          status?: Database["public"]["Enums"]["matricula_status"]
-          modalidade_escolhida?: string | null
           regional?: string | null
-          congregacao?: string | null
+          status?: Database["public"]["Enums"]["matricula_status"]
         }
         Update: {
           aluno_id?: string
+          congregacao?: string | null
           curso_id?: string
           data_conclusao?: string | null
           data_matricula?: string
           id?: string
+          modalidade_escolhida?: string | null
           observacao?: string | null
           progresso?: number
-          status?: Database["public"]["Enums"]["matricula_status"]
-          modalidade_escolhida?: string | null
           regional?: string | null
-          congregacao?: string | null
+          status?: Database["public"]["Enums"]["matricula_status"]
         }
         Relationships: [
           {
@@ -690,6 +703,27 @@ export type Database = {
           },
         ]
       }
+      questionarios: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          titulo: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          titulo: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       questoes: {
         Row: {
           alternativas: Json
@@ -724,6 +758,44 @@ export type Database = {
             columns: ["avaliacao_id"]
             isOneToOne: false
             referencedRelation: "avaliacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      questoes_questionario: {
+        Row: {
+          alternativas: Json
+          created_at: string
+          enunciado: string
+          id: string
+          peso: number
+          questionario_id: string
+          resposta_correta: string
+        }
+        Insert: {
+          alternativas: Json
+          created_at?: string
+          enunciado: string
+          id?: string
+          peso?: number
+          questionario_id: string
+          resposta_correta: string
+        }
+        Update: {
+          alternativas?: Json
+          created_at?: string
+          enunciado?: string
+          id?: string
+          peso?: number
+          questionario_id?: string
+          resposta_correta?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questoes_questionario_questionario_id_fkey"
+            columns: ["questionario_id"]
+            isOneToOne: false
+            referencedRelation: "questionarios"
             referencedColumns: ["id"]
           },
         ]

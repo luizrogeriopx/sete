@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Users, Wallet, FileText, Bell, GraduationCap, ChevronRight, TrendingUp } from "lucide-react";
+import { classificarSituacao } from "@/lib/situacao";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminHome,
@@ -13,19 +14,35 @@ function AdminHome() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin-home-dashboard"],
     queryFn: async () => {
-      const [alunosRes, matriculasRes, pagamentosRes, cursosRes] = await Promise.all([
-        supabase.from("user_roles").select("id").eq("role", "aluno"),
+      const [alunosRes, matriculasRes, pagamentosRes, cursosRes, todasMatriculas] = await Promise.all([
+        supabase.from("user_roles").select("user_id").eq("role", "aluno"),
         supabase.from("matriculas").select("id", { count: "exact" }),
         supabase.from("pagamentos").select("valor, status"),
         supabase.from("cursos").select("id", { count: "exact" }),
+        supabase.from("matriculas").select("aluno_id, status"),
       ]);
 
       const approved = pagamentosRes.data?.filter((p) => p.status === "aprovado") ?? [];
       const pending = pagamentosRes.data?.filter((p) => p.status === "pendente") ?? [];
       const totalRevenue = approved.reduce((sum, p) => sum + Number(p.valor), 0);
 
+      const uids = (alunosRes.data ?? []).map((r) => r.user_id);
+      const mats = todasMatriculas.data ?? [];
+      let usuariosCount = 0;
+      let alunosCount = 0;
+      let formadosCount = 0;
+      for (const uid of uids) {
+        const s = classificarSituacao(mats.filter((m) => m.aluno_id === uid));
+        if (s === "usuario") usuariosCount++;
+        else if (s === "aluno") alunosCount++;
+        else formadosCount++;
+      }
+
       return {
-        alunosCount: alunosRes.data?.length ?? 0,
+        usuariosTotal: uids.length,
+        usuariosCount,
+        alunosCount,
+        formadosCount,
         matriculasCount: matriculasRes.count ?? 0,
         totalRevenue,
         pendingPaymentsCount: pending.length,
@@ -50,11 +67,14 @@ function AdminHome() {
         <Card className="relative overflow-hidden">
           <CardContent className="p-6">
             <Users className="absolute right-4 top-4 h-10 w-10 text-gold/20" />
-            <div className="text-xs uppercase tracking-widest text-muted-foreground">Alunos Totais</div>
-            <div className="mt-2 text-3xl font-bold font-serif text-primary">{data?.alunosCount}</div>
-            <p className="text-[10px] text-muted-foreground mt-1">Contas cadastradas como alunos</p>
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">Usuários Cadastrados</div>
+            <div className="mt-2 text-3xl font-bold font-serif text-primary">{data?.usuariosTotal}</div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {data?.usuariosCount} sem matrícula · {data?.alunosCount} alunos · {data?.formadosCount} formados
+            </p>
           </CardContent>
         </Card>
+
 
         <Card className="relative overflow-hidden">
           <CardContent className="p-6">
@@ -106,7 +126,7 @@ function AdminHome() {
             </Link>
             <Link to="/admin/alunos">
               <Button variant="outline" className="w-full justify-start gap-2 h-11">
-                <Users className="h-4 w-4 text-gold" /> Painel de Alunos
+                <Users className="h-4 w-4 text-gold" /> Painel de Usuários
               </Button>
             </Link>
             <Link to="/admin/financeiro">

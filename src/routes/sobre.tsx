@@ -28,7 +28,7 @@ const sobreSettingsQO = queryOptions({
       console.warn("Falling back to default about settings:", error);
       return null;
     }
-    return (data?.valor as SobreConfig) ?? null;
+    return (data?.valor as unknown as SobreConfig) ?? null;
   },
 });
 

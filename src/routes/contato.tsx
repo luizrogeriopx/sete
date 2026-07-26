@@ -26,7 +26,7 @@ const contatoSettingsQO = queryOptions({
       console.warn("Falling back to default contact settings:", error);
       return null;
     }
-    return (data?.valor as ContatoConfig) ?? null;
+    return (data?.valor as unknown as ContatoConfig) ?? null;
   },
 });
 

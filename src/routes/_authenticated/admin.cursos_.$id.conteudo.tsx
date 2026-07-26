@@ -364,7 +364,7 @@ function CursoConteudoAdmin() {
                   <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                     <Video className="h-4 w-4 text-gold" /> Aulas ({m.aulas.length})
                   </h3>
-                  <Button variant="outline" size="xs" onClick={() => openNewClass(m.id)} className="text-xs h-7 px-2">
+                  <Button variant="outline" size="sm" onClick={() => openNewClass(m.id)} className="text-xs h-7 px-2">
                     <Plus className="h-3 w-3 mr-1" /> Adicionar Aula
                   </Button>
                 </div>
@@ -406,7 +406,7 @@ function CursoConteudoAdmin() {
                   <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                     <FileQuestion className="h-4 w-4 text-gold" /> Provas e Avaliações ({m.avaliacoes.length})
                   </h3>
-                  <Button variant="outline" size="xs" onClick={() => openNewEval(m.id)} className="text-xs h-7 px-2 border-dashed">
+                  <Button variant="outline" size="sm" onClick={() => openNewEval(m.id)} className="text-xs h-7 px-2 border-dashed">
                     <Plus className="h-3 w-3 mr-1" /> Adicionar Avaliação
                   </Button>
                 </div>

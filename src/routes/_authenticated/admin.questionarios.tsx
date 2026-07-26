@@ -447,10 +447,10 @@ function QuestionariosAdmin() {
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
                           <ul className="space-y-1">
-                            <li><span className="font-bold text-white/75">A:</span> {alts[0] || "—"}</li>
-                            <li><span className="font-bold text-white/75">B:</span> {alts[1] || "—"}</li>
-                            <li><span className="font-bold text-white/75">C:</span> {alts[2] || "—"}</li>
-                            <li><span className="font-bold text-white/75">D:</span> {alts[3] || "—"}</li>
+                            <li><span className="font-bold text-white/75">A:</span> {String(alts[0] ?? "—")}</li>
+                            <li><span className="font-bold text-white/75">B:</span> {String(alts[1] ?? "—")}</li>
+                            <li><span className="font-bold text-white/75">C:</span> {String(alts[2] ?? "—")}</li>
+                            <li><span className="font-bold text-white/75">D:</span> {String(alts[3] ?? "—")}</li>
                           </ul>
                         </TableCell>
                         <TableCell>
