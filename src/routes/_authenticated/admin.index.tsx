@@ -126,7 +126,7 @@ function AdminHome() {
             </Link>
             <Link to="/admin/alunos">
               <Button variant="outline" className="w-full justify-start gap-2 h-11">
-                <Users className="h-4 w-4 text-gold" /> Painel de Alunos
+                <Users className="h-4 w-4 text-gold" /> Painel de Usuários
               </Button>
             </Link>
             <Link to="/admin/financeiro">
