@@ -44,12 +44,16 @@ function UsuariosSuperAdmin() {
 
       if (rError) throw rError;
 
+      // 3. Fetch enrollments to classify academic status
+      const { data: matriculas } = await supabase.from("matriculas").select("aluno_id, status");
+
       // Map roles to profiles
       const mapped = (profiles ?? []).map((p) => {
         const userRoles = roles?.filter((r) => r.user_id === p.id).map((r) => r.role) ?? [];
         return {
           ...p,
           roles: userRoles,
+          situacao: classificarSituacao((matriculas ?? []).filter((m) => m.aluno_id === p.id)),
         };
       });
 
