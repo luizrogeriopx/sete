@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Shield, Key, Search, GraduationCap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { classificarSituacao, SITUACAO_CLASS, SITUACAO_LABEL, type Situacao } from "@/lib/situacao";
 
 export const Route = createFileRoute("/_authenticated/super-admin/usuarios")({
   component: UsuariosSuperAdmin,
