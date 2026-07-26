@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Edit, Search, UserCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { classificarSituacao, SITUACAO_CLASS, SITUACAO_LABEL, type Situacao } from "@/lib/situacao";
 
 export const Route = createFileRoute("/_authenticated/admin/alunos")({
   component: AlunosAdmin,
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/admin/alunos")({
 function AlunosAdmin() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [filtroSituacao, setFiltroSituacao] = useState<"todos" | Situacao>("todos");
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [editNome, setEditNome] = useState("");
   const [editCpf, setEditCpf] = useState("");
@@ -32,16 +34,19 @@ function AlunosAdmin() {
       const uids = (roleData ?? []).map((r) => r.user_id);
       if (uids.length === 0) return [];
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .in("id", uids)
-        .order("nome_completo", { ascending: true });
+      const [{ data, error }, { data: matriculas }] = await Promise.all([
+        supabase.from("profiles").select("*").in("id", uids).order("nome_completo", { ascending: true }),
+        supabase.from("matriculas").select("aluno_id, status").in("aluno_id", uids),
+      ]);
 
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []).map((p) => ({
+        ...p,
+        situacao: classificarSituacao((matriculas ?? []).filter((m) => m.aluno_id === p.id)),
+      }));
     },
   });
+
 
   const atualizarPerfil = useMutation({
     mutationFn: async () => {
