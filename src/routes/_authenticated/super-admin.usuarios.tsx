@@ -261,6 +261,7 @@ function UsuariosSuperAdmin() {
             <TableRow>
               <TableHead>Nome Completo</TableHead>
               <TableHead>Nível de Acesso (Cargo)</TableHead>
+              <TableHead>Situação Acadêmica</TableHead>
               <TableHead>Telefone</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
