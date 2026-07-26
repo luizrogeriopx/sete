@@ -18,6 +18,15 @@ export const Route = createFileRoute("/_authenticated/admin/professores")({
   component: ProfessoresAdmin,
 });
 
+function generateProvisionalPassword() {
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%&*";
+  let pass = "Sete@";
+  for (let i = 0; i < 8; i++) {
+    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return pass;
+}
+
 function ProfessoresAdmin() {
   const qc = useQueryClient();
   const [isLinkOpen, setIsLinkOpen] = useState(false);
@@ -27,7 +36,7 @@ function ProfessoresAdmin() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [regNome, setRegNome] = useState("");
   const [regEmail, setRegEmail] = useState("");
-  const [regPassword, setRegPassword] = useState("123456");
+  const [regPassword, setRegPassword] = useState(() => generateProvisionalPassword());
   const [regTelefone, setRegTelefone] = useState("");
   const [regCpf, setRegCpf] = useState("");
   const [regDataNasc, setRegDataNasc] = useState("");
@@ -153,7 +162,7 @@ function ProfessoresAdmin() {
       // Reset form
       setRegNome("");
       setRegEmail("");
-      setRegPassword("123456");
+      setRegPassword(generateProvisionalPassword());
       setRegTelefone("");
       setRegCpf("");
       setRegDataNasc("");
@@ -218,7 +227,7 @@ function ProfessoresAdmin() {
                   <Label htmlFor="reg-password">Senha Provisória *</Label>
                   <Input
                     id="reg-password"
-                    type="password"
+                    type="text"
                     required
                     minLength={6}
                     value={regPassword}
