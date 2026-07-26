@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Users, Wallet, FileText, Bell, GraduationCap, ChevronRight, TrendingUp } from "lucide-react";
+import { classificarSituacao } from "@/lib/situacao";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminHome,
