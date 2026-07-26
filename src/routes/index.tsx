@@ -64,7 +64,7 @@ const heroSettingsQO = queryOptions({
       console.warn("Falling back to default hero settings:", error);
       return null;
     }
-    return (data?.valor as HeroConfig) ?? null;
+    return (data?.valor as unknown as HeroConfig) ?? null;
   },
 });
 
