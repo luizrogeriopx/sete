@@ -67,11 +67,14 @@ function AdminHome() {
         <Card className="relative overflow-hidden">
           <CardContent className="p-6">
             <Users className="absolute right-4 top-4 h-10 w-10 text-gold/20" />
-            <div className="text-xs uppercase tracking-widest text-muted-foreground">Alunos Totais</div>
-            <div className="mt-2 text-3xl font-bold font-serif text-primary">{data?.alunosCount}</div>
-            <p className="text-[10px] text-muted-foreground mt-1">Contas cadastradas como alunos</p>
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">Usuários Cadastrados</div>
+            <div className="mt-2 text-3xl font-bold font-serif text-primary">{data?.usuariosTotal}</div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {data?.usuariosCount} sem matrícula · {data?.alunosCount} alunos · {data?.formadosCount} formados
+            </p>
           </CardContent>
         </Card>
+
 
         <Card className="relative overflow-hidden">
           <CardContent className="p-6">
