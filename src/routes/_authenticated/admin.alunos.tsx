@@ -65,7 +65,7 @@ function AlunosAdmin() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-alunos-list"] });
-      toast.success("Perfil do aluno atualizado pelo administrador!");
+      toast.success("Perfil do usuário atualizado pelo administrador!");
       setSelectedProfile(null);
     },
     onError: (err: Error) => {
