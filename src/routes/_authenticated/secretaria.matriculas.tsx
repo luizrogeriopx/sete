@@ -23,15 +23,6 @@ function MatriculasSecretaria() {
   const [status, setStatus] = useState<"ativa" | "pendente">("ativa");
   const [modalidadeEscolhida, setModalidadeEscolhida] = useState("");
 
-  const selectedCourseObj = cursos?.find((c) => c.id === cursoId);
-  const modalities = selectedCourseObj?.modalidades_disponiveis || (selectedCourseObj?.modalidade ? [selectedCourseObj.modalidade] : ["online"]);
-
-  const handleCursoChange = (cid: string) => {
-    setCursoId(cid);
-    const selected = cursos?.find((c) => c.id === cid);
-    const opts = selected?.modalidades_disponiveis || (selected?.modalidade ? [selected.modalidade] : ["online"]);
-    setModalidadeEscolhida(opts[0] || "online");
-  };
 
   // Fetch all enrollments
   const { data: matriculas, isLoading } = useQuery({
@@ -68,6 +59,16 @@ function MatriculasSecretaria() {
       return data ?? [];
     },
   });
+
+  const selectedCourseObj = cursos?.find((c) => c.id === cursoId);
+  const modalities = selectedCourseObj?.modalidades_disponiveis || (selectedCourseObj?.modalidade ? [selectedCourseObj.modalidade] : ["online"]);
+
+  const handleCursoChange = (cid: string) => {
+    setCursoId(cid);
+    const selected = cursos?.find((c) => c.id === cid);
+    const opts = selected?.modalidades_disponiveis || (selected?.modalidade ? [selected.modalidade] : ["online"]);
+    setModalidadeEscolhida(opts[0] || "online");
+  };
 
   const matricularAluno = useMutation({
     mutationFn: async () => {

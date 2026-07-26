@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Shield, Key, Search, GraduationCap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { classificarSituacao, SITUACAO_CLASS, SITUACAO_LABEL, type Situacao } from "@/lib/situacao";
 
 export const Route = createFileRoute("/_authenticated/super-admin/usuarios")({
   component: UsuariosSuperAdmin,
@@ -43,12 +44,16 @@ function UsuariosSuperAdmin() {
 
       if (rError) throw rError;
 
+      // 3. Fetch enrollments to classify academic status
+      const { data: matriculas } = await supabase.from("matriculas").select("aluno_id, status");
+
       // Map roles to profiles
       const mapped = (profiles ?? []).map((p) => {
         const userRoles = roles?.filter((r) => r.user_id === p.id).map((r) => r.role) ?? [];
         return {
           ...p,
           roles: userRoles,
+          situacao: classificarSituacao((matriculas ?? []).filter((m) => m.aluno_id === p.id)),
         };
       });
 
@@ -261,6 +266,7 @@ function UsuariosSuperAdmin() {
             <TableRow>
               <TableHead>Nome Completo</TableHead>
               <TableHead>Nível de Acesso (Cargo)</TableHead>
+              <TableHead>Situação Acadêmica</TableHead>
               <TableHead>Telefone</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -294,6 +300,9 @@ function UsuariosSuperAdmin() {
                       ))
                     )}
                   </div>
+                </TableCell>
+                <TableCell>
+                  <Badge className={SITUACAO_CLASS[u.situacao as Situacao]}>{SITUACAO_LABEL[u.situacao as Situacao]}</Badge>
                 </TableCell>
                 <TableCell>{u.telefone || "—"}</TableCell>
                 <TableCell className="text-right space-x-1">

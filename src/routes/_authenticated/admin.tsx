@@ -6,7 +6,7 @@ const items: NavItem[] = [
   { to: "/admin/cursos", label: "Cursos", icon: BookOpen },
   { to: "/admin/questionarios", label: "Questionários", icon: HelpCircle },
   { to: "/admin/professores", label: "Professores", icon: GraduationCap },
-  { to: "/admin/alunos", label: "Alunos", icon: Users },
+  { to: "/admin/alunos", label: "Usuários", icon: Users },
   { to: "/admin/financeiro", label: "Rel. financeiro", icon: Wallet },
   { to: "/admin/matriculas", label: "Rel. matrículas", icon: FileBarChart },
   { to: "/admin/certificados", label: "Layouts de certificado", icon: Award },

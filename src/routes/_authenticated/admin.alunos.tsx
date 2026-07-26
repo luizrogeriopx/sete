@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Edit, Search, UserCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { classificarSituacao, SITUACAO_CLASS, SITUACAO_LABEL, type Situacao } from "@/lib/situacao";
 
 export const Route = createFileRoute("/_authenticated/admin/alunos")({
   component: AlunosAdmin,
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/admin/alunos")({
 function AlunosAdmin() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [filtroSituacao, setFiltroSituacao] = useState<"todos" | Situacao>("todos");
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [editNome, setEditNome] = useState("");
   const [editCpf, setEditCpf] = useState("");
@@ -32,16 +34,19 @@ function AlunosAdmin() {
       const uids = (roleData ?? []).map((r) => r.user_id);
       if (uids.length === 0) return [];
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .in("id", uids)
-        .order("nome_completo", { ascending: true });
+      const [{ data, error }, { data: matriculas }] = await Promise.all([
+        supabase.from("profiles").select("*").in("id", uids).order("nome_completo", { ascending: true }),
+        supabase.from("matriculas").select("aluno_id, status").in("aluno_id", uids),
+      ]);
 
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []).map((p) => ({
+        ...p,
+        situacao: classificarSituacao((matriculas ?? []).filter((m) => m.aluno_id === p.id)),
+      }));
     },
   });
+
 
   const atualizarPerfil = useMutation({
     mutationFn: async () => {
@@ -60,7 +65,7 @@ function AlunosAdmin() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-alunos-list"] });
-      toast.success("Perfil do aluno atualizado pelo administrador!");
+      toast.success("Perfil do usuário atualizado pelo administrador!");
       setSelectedProfile(null);
     },
     onError: (err: Error) => {
@@ -76,32 +81,76 @@ function AlunosAdmin() {
     setEditAtivo(profile.ativo ?? true);
   }
 
+  const counts = {
+    usuario: (profiles ?? []).filter((p) => p.situacao === "usuario").length,
+    aluno: (profiles ?? []).filter((p) => p.situacao === "aluno").length,
+    formado: (profiles ?? []).filter((p) => p.situacao === "formado").length,
+  };
+
   const filtered = (profiles ?? []).filter((p) => {
     const q = search.toLowerCase();
-    return (
+    const matchesSearch =
       (p.nome_completo ?? "").toLowerCase().includes(q) ||
-      (p.cpf ?? "").toLowerCase().includes(q)
-    );
+      (p.cpf ?? "").toLowerCase().includes(q);
+    const matchesSituacao = filtroSituacao === "todos" || p.situacao === filtroSituacao;
+    return matchesSearch && matchesSituacao;
   });
 
   if (isLoading) {
-    return <p className="text-muted-foreground p-4">Carregando alunos…</p>;
+    return <p className="text-muted-foreground p-4">Carregando usuários…</p>;
   }
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-serif text-4xl">Diretório de Alunos</h1>
-        <p className="mt-1 text-muted-foreground">Gerenciamento administrativo das credenciais e status dos alunos.</p>
+        <h1 className="font-serif text-4xl">Diretório de Usuários</h1>
+        <p className="mt-1 text-muted-foreground">
+          Usuários são contas cadastradas; Alunos possuem matrícula em andamento; Formados concluíram todos os cursos em que se matricularam.
+        </p>
       </div>
 
-      <div className="flex items-center gap-2 max-w-sm">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar aluno por nome ou CPF..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">Usuários (sem matrícula)</div>
+            <div className="mt-2 text-3xl font-bold font-serif text-primary">{counts.usuario}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">Alunos (matriculados)</div>
+            <div className="mt-2 text-3xl font-bold font-serif text-emerald-600">{counts.aluno}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">Formados</div>
+            <div className="mt-2 text-3xl font-bold font-serif text-indigo-600">{counts.formado}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2 max-w-sm flex-1 min-w-[220px]">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome ou CPF..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2">
+          {(["todos", "usuario", "aluno", "formado"] as const).map((f) => (
+            <Button
+              key={f}
+              size="sm"
+              variant={filtroSituacao === f ? "default" : "outline"}
+              onClick={() => setFiltroSituacao(f)}
+            >
+              {f === "todos" ? "Todos" : SITUACAO_LABEL[f] + "s"}
+            </Button>
+          ))}
+        </div>
       </div>
 
       <Card className="overflow-x-auto">
@@ -111,6 +160,7 @@ function AlunosAdmin() {
               <TableHead>Nome Completo</TableHead>
               <TableHead>CPF</TableHead>
               <TableHead>Telefone</TableHead>
+              <TableHead>Situação Acadêmica</TableHead>
               <TableHead>Status da Conta</TableHead>
               <TableHead className="text-right">Ação</TableHead>
             </TableRow>
@@ -121,6 +171,9 @@ function AlunosAdmin() {
                 <TableCell className="font-medium">{p.nome_completo}</TableCell>
                 <TableCell>{p.cpf || "—"}</TableCell>
                 <TableCell>{p.telefone || "—"}</TableCell>
+                <TableCell>
+                  <Badge className={SITUACAO_CLASS[p.situacao]}>{SITUACAO_LABEL[p.situacao]}</Badge>
+                </TableCell>
                 <TableCell>
                   <Badge variant={p.ativo ? "default" : "destructive"}>
                     {p.ativo ? "Ativa" : "Bloqueada"}
@@ -135,8 +188,8 @@ function AlunosAdmin() {
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
                       <DialogHeader>
-                        <DialogTitle>Modificar Cadastro de Aluno</DialogTitle>
-                        <DialogDescription>Alterações administrativas no perfil escolar do estudante.</DialogDescription>
+                        <DialogTitle>Modificar Cadastro de Usuário</DialogTitle>
+                        <DialogDescription>Alterações administrativas no perfil do usuário.</DialogDescription>
                       </DialogHeader>
 
                       <div className="space-y-4 py-2">
@@ -160,7 +213,7 @@ function AlunosAdmin() {
                             onChange={(e) => setEditAtivo(e.target.checked)}
                           />
                           <label htmlFor="ativo-chk-adm" className="text-sm font-semibold cursor-pointer select-none">
-                            Liberar Acesso do Aluno
+                            Liberar Acesso
                           </label>
                         </div>
                       </div>
