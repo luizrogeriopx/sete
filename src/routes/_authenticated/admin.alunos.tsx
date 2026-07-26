@@ -188,8 +188,8 @@ function AlunosAdmin() {
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
                       <DialogHeader>
-                        <DialogTitle>Modificar Cadastro de Aluno</DialogTitle>
-                        <DialogDescription>Alterações administrativas no perfil escolar do estudante.</DialogDescription>
+                        <DialogTitle>Modificar Cadastro de Usuário</DialogTitle>
+                        <DialogDescription>Alterações administrativas no perfil do usuário.</DialogDescription>
                       </DialogHeader>
 
                       <div className="space-y-4 py-2">
@@ -213,7 +213,7 @@ function AlunosAdmin() {
                             onChange={(e) => setEditAtivo(e.target.checked)}
                           />
                           <label htmlFor="ativo-chk-adm" className="text-sm font-semibold cursor-pointer select-none">
-                            Liberar Acesso do Aluno
+                            Liberar Acesso
                           </label>
                         </div>
                       </div>
