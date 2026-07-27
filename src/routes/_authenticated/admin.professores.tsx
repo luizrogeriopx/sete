@@ -120,7 +120,7 @@ function ProfessoresAdmin() {
         }
       );
 
-      // 2. SignUp the user in auth
+      // 2. SignUp the user in auth with the 'professor' role in metadata
       const { data: signUpData, error: signUpError } = await tempClient.auth.signUp({
         email: regEmail,
         password: regPassword,
@@ -130,30 +130,13 @@ function ProfessoresAdmin() {
             telefone: regTelefone || null,
             cpf: regCpf || null,
             data_nascimento: regDataNasc || null,
+            role: "professor",
           },
         },
       });
 
       if (signUpError) throw signUpError;
       if (!signUpData.user?.id) throw new Error("Erro ao criar usuário.");
-
-      const newUserId = signUpData.user.id;
-
-      // 3. Delete automatic 'aluno' role created by trigger
-      await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", newUserId);
-
-      // 4. Assign role 'professor'
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({
-          user_id: newUserId,
-          role: "professor",
-        });
-
-      if (roleError) throw roleError;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-professores-list"] });
