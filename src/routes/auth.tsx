@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { useAuth, primaryPanelPath } from "@/hooks/use-auth";
 
 const searchSchema = z.object({
-  modo: z.enum(["login", "cadastro"]).optional().default("login").catch("login"),
+  modo: z.enum(["login", "cadastro"]).optional().catch(undefined),
   redirect: z.string().optional(),
 });
 
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const search = Route.useSearch();
-  const [modo, setModo] = useState<"login" | "cadastro">(search.modo);
+  const [modo, setModo] = useState<"login" | "cadastro">(search.modo ?? "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nome, setNome] = useState("");

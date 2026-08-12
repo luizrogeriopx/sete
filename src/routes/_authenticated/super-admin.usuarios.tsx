@@ -8,7 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, Key, Search, GraduationCap } from "lucide-react";
+import { Key, Search, GraduationCap, UserPlus } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { criarAdmin } from "@/lib/admin-users.functions";
+import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
 import { classificarSituacao, SITUACAO_CLASS, SITUACAO_LABEL, type Situacao } from "@/lib/situacao";
@@ -24,6 +27,27 @@ function UsuariosSuperAdmin() {
   const [novaRole, setNovaRole] = useState<any>("aluno");
   const [selectedUserMatriculas, setSelectedUserMatriculas] = useState<any>(null);
   const [cursoIdParaMatricular, setCursoIdParaMatricular] = useState("");
+  const [novoAdminOpen, setNovoAdminOpen] = useState(false);
+  const [novoAdminEmail, setNovoAdminEmail] = useState("");
+  const [novoAdminNome, setNovoAdminNome] = useState("");
+  const [novoAdminRole, setNovoAdminRole] = useState<"admin" | "secretaria" | "professor" | "super_admin">("admin");
+  const criarAdminFn = useServerFn(criarAdmin);
+
+  const criarAdminMut = useMutation({
+    mutationFn: async () =>
+      criarAdminFn({
+        data: { email: novoAdminEmail.trim(), nome_completo: novoAdminNome.trim(), role: novoAdminRole },
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["super-admin-users-list"] });
+      toast.success("Conta criada! Senha provisória: 123456 (troca obrigatória no primeiro acesso).");
+      setNovoAdminOpen(false);
+      setNovoAdminEmail("");
+      setNovoAdminNome("");
+      setNovoAdminRole("admin");
+    },
+    onError: (err: Error) => toast.error(`Erro ao criar conta: ${err.message}`),
+  });
 
   // Fetch all profiles and their roles
   const { data: users, isLoading } = useQuery({
@@ -255,9 +279,65 @@ function UsuariosSuperAdmin() {
         <p className="mt-1 text-muted-foreground">Gerencie o nível de acesso e permissões das contas registradas.</p>
       </div>
 
-      <div className="flex items-center gap-2 max-w-sm">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar usuário por nome..." value={search} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)} />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 max-w-sm flex-1">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Buscar usuário por nome..." value={search} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)} />
+        </div>
+
+        <Dialog open={novoAdminOpen} onOpenChange={setNovoAdminOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-gold text-gold-foreground hover:bg-gold/90">
+              <UserPlus className="mr-2 h-4 w-4" /> Cadastrar administrador
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-serif text-2xl">Cadastrar administrador</DialogTitle>
+              <DialogDescription>
+                A conta é criada com a senha provisória <strong>123456</strong>. No primeiro acesso o usuário será
+                obrigado a definir uma nova senha.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="admin-nome">Nome completo</Label>
+                <Input id="admin-nome" value={novoAdminNome} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNovoAdminNome(e.target.value)} placeholder="Nome do administrador" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="admin-email">E-mail de acesso</Label>
+                <Input id="admin-email" type="email" value={novoAdminEmail} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNovoAdminEmail(e.target.value)} placeholder="admin@seteteologia.com.br" />
+              </div>
+              <div className="space-y-2">
+                <Label>Nível de acesso</Label>
+                <Select value={novoAdminRole} onValueChange={(v: any) => setNovoAdminRole(v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                    <SelectItem value="secretaria">Secretaria</SelectItem>
+                    <SelectItem value="professor">Professor</SelectItem>
+                    <SelectItem value="super_admin">Super Administrador</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="rounded-lg border bg-slate-50 dark:bg-slate-900 p-3 text-xs text-muted-foreground">
+                Senha provisória fixa: <strong>123456</strong>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button variant="outline" className="w-full" onClick={() => setNovoAdminOpen(false)}>Cancelar</Button>
+              <Button
+                className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
+                disabled={criarAdminMut.isPending || !novoAdminEmail.trim() || novoAdminNome.trim().length < 3}
+                onClick={() => criarAdminMut.mutate()}
+              >
+                {criarAdminMut.isPending ? "Criando..." : "Criar conta"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card className="overflow-x-auto">

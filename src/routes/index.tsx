@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery, useQuery, queryOptions } from "@tanstack/react-query";
+import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader, SiteFooter } from "@/components/site/site-chrome";
 import { Button } from "@/components/ui/button";
@@ -90,7 +90,7 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const { data: destaques } = useSuspenseQuery(destaquesQO);
-  const { data: heroConfig } = useQuery(heroSettingsQO);
+  const { data: heroConfig } = useSuspenseQuery(heroSettingsQO);
 
   const heroBadge = heroConfig?.badge ?? "SEMINÁRIO TEOLÓGICO ESPERANÇA";
   const heroTitle = heroConfig?.title ?? "Ensino que transforma\nMinistérios que edificam";
