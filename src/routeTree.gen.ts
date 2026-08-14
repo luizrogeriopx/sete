@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CursosIndexRouteImport } from './routes/cursos.index'
 import { Route as CursosSlugRouteImport } from './routes/cursos.$slug'
 import { Route as CheckoutSlugRouteImport } from './routes/checkout.$slug'
+import { Route as AuthenticatedTrocarSenhaRouteImport } from './routes/_authenticated/trocar-senha'
 import { Route as AuthenticatedSuperAdminRouteImport } from './routes/_authenticated/super-admin'
 import { Route as AuthenticatedSecretariaRouteImport } from './routes/_authenticated/secretaria'
 import { Route as AuthenticatedProfessorRouteImport } from './routes/_authenticated/professor'
@@ -108,6 +109,12 @@ const CheckoutSlugRoute = CheckoutSlugRouteImport.update({
   path: '/checkout/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTrocarSenhaRoute =
+  AuthenticatedTrocarSenhaRouteImport.update({
+    id: '/trocar-senha',
+    path: '/trocar-senha',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSuperAdminRoute = AuthenticatedSuperAdminRouteImport.update({
   id: '/super-admin',
   path: '/super-admin',
@@ -382,6 +389,7 @@ export interface FileRoutesByFullPath {
   '/professor': typeof AuthenticatedProfessorRouteWithChildren
   '/secretaria': typeof AuthenticatedSecretariaRouteWithChildren
   '/super-admin': typeof AuthenticatedSuperAdminRouteWithChildren
+  '/trocar-senha': typeof AuthenticatedTrocarSenhaRoute
   '/checkout/$slug': typeof CheckoutSlugRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos/': typeof CursosIndexRoute
@@ -432,6 +440,7 @@ export interface FileRoutesByTo {
   '/contato': typeof ContatoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sobre': typeof SobreRoute
+  '/trocar-senha': typeof AuthenticatedTrocarSenhaRoute
   '/checkout/$slug': typeof CheckoutSlugRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos': typeof CursosIndexRoute
@@ -489,6 +498,7 @@ export interface FileRoutesById {
   '/_authenticated/professor': typeof AuthenticatedProfessorRouteWithChildren
   '/_authenticated/secretaria': typeof AuthenticatedSecretariaRouteWithChildren
   '/_authenticated/super-admin': typeof AuthenticatedSuperAdminRouteWithChildren
+  '/_authenticated/trocar-senha': typeof AuthenticatedTrocarSenhaRoute
   '/checkout/$slug': typeof CheckoutSlugRoute
   '/cursos/$slug': typeof CursosSlugRoute
   '/cursos/': typeof CursosIndexRoute
@@ -546,6 +556,7 @@ export interface FileRouteTypes {
     | '/professor'
     | '/secretaria'
     | '/super-admin'
+    | '/trocar-senha'
     | '/checkout/$slug'
     | '/cursos/$slug'
     | '/cursos/'
@@ -596,6 +607,7 @@ export interface FileRouteTypes {
     | '/contato'
     | '/redefinir-senha'
     | '/sobre'
+    | '/trocar-senha'
     | '/checkout/$slug'
     | '/cursos/$slug'
     | '/cursos'
@@ -652,6 +664,7 @@ export interface FileRouteTypes {
     | '/_authenticated/professor'
     | '/_authenticated/secretaria'
     | '/_authenticated/super-admin'
+    | '/_authenticated/trocar-senha'
     | '/checkout/$slug'
     | '/cursos/$slug'
     | '/cursos/'
@@ -775,6 +788,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkout/$slug'
       preLoaderRoute: typeof CheckoutSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/trocar-senha': {
+      id: '/_authenticated/trocar-senha'
+      path: '/trocar-senha'
+      fullPath: '/trocar-senha'
+      preLoaderRoute: typeof AuthenticatedTrocarSenhaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/super-admin': {
       id: '/_authenticated/super-admin'
@@ -1238,6 +1258,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfessorRoute: typeof AuthenticatedProfessorRouteWithChildren
   AuthenticatedSecretariaRoute: typeof AuthenticatedSecretariaRouteWithChildren
   AuthenticatedSuperAdminRoute: typeof AuthenticatedSuperAdminRouteWithChildren
+  AuthenticatedTrocarSenhaRoute: typeof AuthenticatedTrocarSenhaRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1246,6 +1267,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfessorRoute: AuthenticatedProfessorRouteWithChildren,
   AuthenticatedSecretariaRoute: AuthenticatedSecretariaRouteWithChildren,
   AuthenticatedSuperAdminRoute: AuthenticatedSuperAdminRouteWithChildren,
+  AuthenticatedTrocarSenhaRoute: AuthenticatedTrocarSenhaRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
