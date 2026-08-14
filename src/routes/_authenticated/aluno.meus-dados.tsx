@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, KeyRound, Lock, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/aluno/meus-dados")({
   component: MeusDadosPage,
@@ -24,6 +24,11 @@ function MeusDadosPage() {
   const [telefone, setTelefone] = useState("");
   const [fotoUrl, setFotoUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+
+  // Password change states
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
 
   const { data: perfil, isLoading } = useQuery({
     queryKey: ["perfil", user?.id],
@@ -101,6 +106,31 @@ function MeusDadosPage() {
       toast.error(`Erro ao salvar dados: ${err.message || err}`);
     },
   });
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast.error("A nova senha deve ter no mínimo 6 caracteres.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("As senhas informadas não coincidem.");
+      return;
+    }
+
+    setIsSavingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success("Senha alterada com sucesso!");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao alterar senha.");
+    } finally {
+      setIsSavingPassword(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -223,6 +253,75 @@ function MeusDadosPage() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Card de Alteração de Senha */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-serif flex items-center gap-2">
+            <KeyRound className="h-5 w-5 text-gold" /> Segurança e Senha
+          </CardTitle>
+          <CardDescription>
+            Atualize sua senha de acesso ao portal para manter sua conta protegida.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleUpdatePassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="perfil-new-pwd">Nova Senha</Label>
+              <div className="relative">
+                <Input
+                  id="perfil-new-pwd"
+                  type="password"
+                  required
+                  minLength={6}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  className="pl-9"
+                />
+                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="perfil-conf-pwd">Confirmar Nova Senha</Label>
+              <div className="relative">
+                <Input
+                  id="perfil-conf-pwd"
+                  type="password"
+                  required
+                  minLength={6}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repita a nova senha"
+                  className="pl-9"
+                />
+                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <Button
+                type="submit"
+                variant="outline"
+                className="flex items-center gap-2 hover:bg-gold/10 hover:text-gold border-gold/40"
+                disabled={isSavingPassword || !newPassword}
+              >
+                {isSavingPassword ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Alterando Senha...
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="h-4 w-4 text-gold" /> Atualizar Senha
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
+

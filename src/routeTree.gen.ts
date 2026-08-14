@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SobreRouteImport } from './routes/sobre'
+import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as ContatoRouteImport } from './routes/contato'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -66,6 +67,11 @@ import { Route as AuthenticatedAdminCursosIdConteudoRouteImport } from './routes
 const SobreRoute = SobreRouteImport.update({
   id: '/sobre',
   path: '/sobre',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContatoRoute = ContatoRouteImport.update({
@@ -369,6 +375,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/contato': typeof ContatoRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sobre': typeof SobreRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/aluno': typeof AuthenticatedAlunoRouteWithChildren
@@ -423,6 +430,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/contato': typeof ContatoRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sobre': typeof SobreRoute
   '/checkout/$slug': typeof CheckoutSlugRoute
   '/cursos/$slug': typeof CursosSlugRoute
@@ -474,6 +482,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/contato': typeof ContatoRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sobre': typeof SobreRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/aluno': typeof AuthenticatedAlunoRouteWithChildren
@@ -530,6 +539,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/contato'
+    | '/redefinir-senha'
     | '/sobre'
     | '/admin'
     | '/aluno'
@@ -584,6 +594,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/contato'
+    | '/redefinir-senha'
     | '/sobre'
     | '/checkout/$slug'
     | '/cursos/$slug'
@@ -634,6 +645,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/contato'
+    | '/redefinir-senha'
     | '/sobre'
     | '/_authenticated/admin'
     | '/_authenticated/aluno'
@@ -690,6 +702,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ContatoRoute: typeof ContatoRoute
+  RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   SobreRoute: typeof SobreRoute
   CheckoutSlugRoute: typeof CheckoutSlugRoute
   CursosSlugRoute: typeof CursosSlugRoute
@@ -705,6 +718,13 @@ declare module '@tanstack/react-router' {
       path: '/sobre'
       fullPath: '/sobre'
       preLoaderRoute: typeof SobreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redefinir-senha': {
+      id: '/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof RedefinirSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contato': {
@@ -1236,6 +1256,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ContatoRoute: ContatoRoute,
+  RedefinirSenhaRoute: RedefinirSenhaRoute,
   SobreRoute: SobreRoute,
   CheckoutSlugRoute: CheckoutSlugRoute,
   CursosSlugRoute: CursosSlugRoute,
@@ -1246,3 +1267,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -135,7 +135,20 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
+    // If the page loads with a recovery/invite hash, route to /auth in password reset mode
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash || "";
+      if (hash.includes("type=recovery") || hash.includes("type=invite")) {
+        router.navigate({ to: "/auth", search: { modo: "redefinir" } });
+      }
+    }
+
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        router.navigate({ to: "/auth", search: { modo: "redefinir" } });
+        return;
+      }
+
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();

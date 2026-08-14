@@ -1,12 +1,22 @@
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { BookOpen, LogOut, Menu } from "lucide-react";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { BookOpen, LogOut, Menu, KeyRound, Lock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export interface NavItem {
   to: string;
@@ -24,6 +34,11 @@ export function PanelLayout({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+
   const { user } = useAuth();
   const router = useRouter();
   const qc = useQueryClient();
@@ -33,6 +48,32 @@ export function PanelLayout({
     qc.clear();
     await supabase.auth.signOut();
     router.navigate({ to: "/", replace: true });
+  }
+
+  async function handlePasswordChange(e: React.FormEvent) {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast.error("A nova senha deve ter no mínimo 6 caracteres.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("As senhas informadas não coincidem.");
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success("Sua senha foi atualizada com sucesso!");
+      setIsPasswordModalOpen(false);
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao atualizar senha.");
+    } finally {
+      setChangingPassword(false);
+    }
   }
 
   return (
@@ -68,13 +109,97 @@ export function PanelLayout({
             </Link>
           ))}
         </nav>
-        <div className="border-t border-sidebar-border p-3">
-          <div className="mb-2 truncate text-xs text-sidebar-foreground/60">{user?.email}</div>
+        <div className="border-t border-sidebar-border p-3 space-y-1">
+          <div className="mb-2 truncate text-xs text-sidebar-foreground/60 px-1">{user?.email}</div>
+
+          <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-xs"
+              >
+                <KeyRound className="mr-2 h-4 w-4 text-gold" /> Alterar Senha
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="font-serif text-xl flex items-center gap-2">
+                  <KeyRound className="h-5 w-5 text-gold" /> Alterar Minha Senha
+                </DialogTitle>
+                <DialogDescription>
+                  Defina uma nova senha para acessar sua conta no portal SETE.
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={handlePasswordChange} className="space-y-4 py-2">
+                <div className="space-y-1">
+                  <Label htmlFor="panel-new-pwd">Nova Senha</Label>
+                  <div className="relative">
+                    <Input
+                      id="panel-new-pwd"
+                      type="password"
+                      required
+                      minLength={6}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Mínimo 6 caracteres"
+                      className="pl-9"
+                    />
+                    <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="panel-conf-pwd">Confirmar Nova Senha</Label>
+                  <div className="relative">
+                    <Input
+                      id="panel-conf-pwd"
+                      type="password"
+                      required
+                      minLength={6}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Repita a nova senha"
+                      className="pl-9"
+                    />
+                    <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setIsPasswordModalOpen(false)}
+                    disabled={changingPassword}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
+                    disabled={changingPassword}
+                  >
+                    {changingPassword ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...
+                      </>
+                    ) : (
+                      "Salvar Senha"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+
           <Button
             variant="ghost"
             size="sm"
             onClick={handleSignOut}
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-xs"
           >
             <LogOut className="mr-2 h-4 w-4" /> Sair
           </Button>
@@ -97,3 +222,4 @@ export function PanelLayout({
     </div>
   );
 }
+
