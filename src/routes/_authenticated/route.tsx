@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useLocation, Navigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -40,13 +40,14 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthenticatedLayout() {
   const { user } = Route.useRouteContext();
-  const location = Route.useLocation();
+  const location = useLocation();
   
   // Safety check in component level too for client-side transitions
   if (user?.user_metadata?.["must_change_password"] === true && location.pathname !== "/trocar-senha") {
-    return <redirect to="/trocar-senha" />;
+    return <Navigate to="/trocar-senha" replace />;
   }
 
   return <Outlet />;
 }
+
 
