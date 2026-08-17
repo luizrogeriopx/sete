@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader, SiteFooter } from "@/components/site/site-chrome";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Play, Info, BookOpen } from "lucide-react";
+import { z } from "zod";
 
 const catalogoQO = queryOptions({
   queryKey: ["catalogo-cursos"],
@@ -55,7 +56,12 @@ const catalogoQO = queryOptions({
   },
 });
 
+const searchSchema = z.object({
+  categoria: z.string().optional(),
+});
+
 export const Route = createFileRoute("/cursos/")({
+  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "Cursos — SETE" },
@@ -193,7 +199,20 @@ function CoursePosterCard({ curso }: { curso: any }) {
 
 function CursosPage() {
   const { data } = useSuspenseQuery(catalogoQO);
+  const search = Route.useSearch();
   const [ativa, setAtiva] = useState<string | null>(null);
+
+  // Sync search param with local state
+  useEffect(() => {
+    if (search.categoria) {
+      const cat = data.categorias.find((c: any) => c.slug === search.categoria);
+      if (cat) {
+        setAtiva(cat.id);
+      }
+    } else {
+      setAtiva(null);
+    }
+  }, [search.categoria, data.categorias]);
 
   // Filter logic
   const filteredCursos = ativa
