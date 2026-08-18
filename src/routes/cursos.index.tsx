@@ -103,7 +103,7 @@ function CategoryRow({
       {/* Slider Container */}
       <div
         ref={rowRef}
-        className="flex gap-4 overflow-x-auto pb-6 pt-2 no-scrollbar snap-x snap-mandatory scroll-smooth px-2"
+        className="flex gap-5 sm:gap-6 overflow-x-auto pb-6 pt-3 no-scrollbar snap-x snap-mandatory scroll-smooth px-2"
       >
         {cursos.map((c) => (
           <CoursePosterCard key={c.id} curso={c} />
