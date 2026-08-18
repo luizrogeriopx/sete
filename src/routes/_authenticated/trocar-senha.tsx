@@ -24,7 +24,7 @@ function TrocarSenha() {
   const [confirma, setConfirma] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { roles } = useAuth();
+  const { roles, loading: authLoading, user } = useAuth();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,6 +38,10 @@ function TrocarSenha() {
         data: { must_change_password: false },
       });
       if (error) throw error;
+      
+      // Invalidate session to ensure metadata is updated everywhere
+      await supabase.auth.refreshSession();
+      
       toast.success("Senha atualizada com sucesso!");
       navigate({ to: primaryPanelPath(roles), replace: true });
     } catch (err) {
@@ -45,6 +49,14 @@ function TrocarSenha() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gold border-t-transparent" />
+      </div>
+    );
   }
 
   return (
@@ -80,3 +92,4 @@ function TrocarSenha() {
     </div>
   );
 }
+

@@ -127,9 +127,18 @@ function AuthPage() {
         const dest = search.redirect ?? primaryPanelPath(roles);
         navigate({ to: dest, replace: true });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (error) throw error;
+        
+        // Check for forced password change right after login
+        if (data.user?.user_metadata?.["must_change_password"] === true) {
+          toast.info("Por favor, defina uma nova senha.");
+          navigate({ to: "/trocar-senha", replace: true });
+          return;
+        }
+
         toast.success("Bem-vindo(a)!");
+
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro ao processar solicitação";

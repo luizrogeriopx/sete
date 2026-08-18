@@ -1,7 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { useAuth, primaryPanelPath } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function SiteHeader() {
   const { user, roles } = useAuth();
@@ -24,9 +30,33 @@ export function SiteHeader() {
           <Link to="/" activeOptions={{ exact: true }} activeProps={{ className: "text-primary" }} className="text-muted-foreground hover:text-foreground">
             Início
           </Link>
-          <Link to="/cursos" activeProps={{ className: "text-primary" }} className="text-muted-foreground hover:text-foreground">
-            Cursos
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-1 text-muted-foreground hover:text-foreground focus:outline-none transition-colors">
+              Cursos <ChevronDown className="h-3.5 w-3.5" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800">
+              <DropdownMenuItem asChild>
+                <Link to="/cursos" activeOptions={{ exact: true }} className="cursor-pointer font-medium uppercase text-[11px] tracking-wider">
+                  TODOS OS CURSOS
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/cursos" search={{ categoria: "formacao-teologica" }} className="cursor-pointer font-medium uppercase text-[11px] tracking-wider">
+                  FORMAÇÃO TEOLÓGICA
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/cursos" search={{ categoria: "formacao-ministerial" }} className="cursor-pointer font-medium uppercase text-[11px] tracking-wider">
+                  FORMAÇÃO MINISTERIAL
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/cursos" search={{ categoria: "cursos-extensao" }} className="cursor-pointer font-medium uppercase text-[11px] tracking-wider">
+                  CURSOS DE EXTENSÃO
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Link to="/sobre" activeProps={{ className: "text-primary" }} className="text-muted-foreground hover:text-foreground">
             Sobre
           </Link>
