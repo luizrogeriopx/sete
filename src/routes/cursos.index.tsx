@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Play, Info, BookOpen } from "lucide-react";
 import { z } from "zod";
+import { cn } from "@/lib/utils";
 
 const catalogoQO = queryOptions({
   queryKey: ["catalogo-cursos"],
@@ -112,7 +113,11 @@ function CategoryRow({
         className="flex gap-5 sm:gap-6 overflow-x-auto pb-6 pt-3 no-scrollbar snap-x snap-mandatory scroll-smooth px-2"
       >
         {cursos.map((c) => (
-          <CoursePosterCard key={c.id} curso={c} />
+          <CoursePosterCard
+            key={c.id}
+            curso={c}
+            className="w-[170px] sm:w-[210px] md:w-[240px] flex-shrink-0 snap-start"
+          />
         ))}
       </div>
 
@@ -127,12 +132,15 @@ function CategoryRow({
   );
 }
 
-function CoursePosterCard({ curso }: { curso: any }) {
+function CoursePosterCard({ curso, className }: { curso: any; className?: string }) {
   return (
     <Link
       to="/cursos/$slug"
       params={{ slug: curso.slug }}
-      className="w-[170px] sm:w-[210px] md:w-[240px] flex-shrink-0 snap-start group relative rounded-lg overflow-hidden border border-slate-800 bg-slate-900 aspect-[4/5] transition-all duration-300 ease-out hover:scale-105 hover:shadow-2xl hover:border-gold/50"
+      className={cn(
+        "group relative rounded-lg overflow-hidden border border-slate-800 bg-slate-900 aspect-[4/5] transition-all duration-300 ease-out hover:scale-105 hover:shadow-2xl hover:border-gold/50",
+        className
+      )}
     >
       {curso.imagem_card ? (
         <img
@@ -323,11 +331,9 @@ function CursosPage() {
             <p className="mt-12 text-center text-slate-500 font-medium">Nenhum curso publicado nesta categoria.</p>
           ) : ativa ? (
             /* Vertical grid view when a single category is filtered */
-            <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
               {filteredCursos.map((c) => (
-                <div key={c.id} className="flex justify-center">
-                  <CoursePosterCard curso={c} />
-                </div>
+                <CoursePosterCard key={c.id} curso={c} className="w-full" />
               ))}
             </div>
           ) : (
