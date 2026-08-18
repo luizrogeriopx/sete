@@ -314,6 +314,7 @@ export type Database = {
           ministrante_id: string | null
           modalidade: Database["public"]["Enums"]["curso_modalidade"]
           modalidades_disponiveis: string[] | null
+          ordem: number
           preco: number
           publico_alvo: string | null
           quantidade_modulos: number | null
@@ -339,6 +340,7 @@ export type Database = {
           ministrante_id?: string | null
           modalidade?: Database["public"]["Enums"]["curso_modalidade"]
           modalidades_disponiveis?: string[] | null
+          ordem?: number
           preco?: number
           publico_alvo?: string | null
           quantidade_modulos?: number | null
@@ -364,6 +366,7 @@ export type Database = {
           ministrante_id?: string | null
           modalidade?: Database["public"]["Enums"]["curso_modalidade"]
           modalidades_disponiveis?: string[] | null
+          ordem?: number
           preco?: number
           publico_alvo?: string | null
           quantidade_modulos?: number | null

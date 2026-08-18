@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Edit3, Trash2, Loader2, Upload, X, BookOpen } from "lucide-react";
+import { Plus, Search, Edit3, Trash2, Loader2, Upload, X, BookOpen, ArrowUp, ArrowDown } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -159,6 +159,7 @@ function CursosAdmin() {
   const [cobrancaPor, setCobrancaPor] = useState("curso");
   const [publicoAlvo, setPublicoAlvo] = useState("ambos");
   const [ativo, setAtivo] = useState(true);
+  const [cursoOrdem, setCursoOrdem] = useState("0");
   const [imagemCard, setImagemCard] = useState("");
   const [imagemCapa, setImagemCapa] = useState("");
   const [categoriaId, setCategoriaId] = useState<string | null>(null);
@@ -170,19 +171,40 @@ function CursosAdmin() {
   const [catNome, setCatNome] = useState("");
   const [catSlug, setCatSlug] = useState("");
   const [catDescricao, setCatDescricao] = useState("");
+  const [catOrdem, setCatOrdem] = useState("0");
   const [catAtiva, setCatAtiva] = useState(true);
 
   // Query courses
   const { data: cursos, isLoading } = useQuery({
     queryKey: ["admin-cursos-list"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("cursos")
-        .select("*, categorias(nome)")
-        .order("titulo");
+      try {
+        const { data, error } = await supabase
+          .from("cursos")
+          .select("*, categorias(nome)")
+          .order("ordem", { ascending: true })
+          .order("titulo");
 
-      if (error) throw error;
-      return data ?? [];
+        if (error) {
+          if (error.code === "42703") { // column does not exist fallback
+            const { data: fbData, error: fbError } = await supabase
+              .from("cursos")
+              .select("*, categorias(nome)")
+              .order("titulo");
+            if (fbError) throw fbError;
+            return (fbData ?? []).map((c: any) => ({ ...c, ordem: 0 }));
+          }
+          throw error;
+        }
+        return data ?? [];
+      } catch (err) {
+        console.warn("Fallback query for cursos:", err);
+        const { data: fbData } = await supabase
+          .from("cursos")
+          .select("*, categorias(nome)")
+          .order("titulo");
+        return (fbData ?? []).map((c: any) => ({ ...c, ordem: 0 }));
+      }
     },
   });
 
@@ -193,6 +215,7 @@ function CursosAdmin() {
       const { data, error } = await supabase
         .from("categorias")
         .select("*")
+        .order("ordem", { ascending: true })
         .order("nome");
       if (error) throw error;
       return data ?? [];
@@ -207,7 +230,7 @@ function CursosAdmin() {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "");
 
-      const payload = {
+      const payload: any = {
         titulo,
         slug,
         descricao,
@@ -219,6 +242,7 @@ function CursosAdmin() {
         cobranca_por: cobrancaPor,
         publico_alvo: publicoAlvo,
         ativo,
+        ordem: parseInt(cursoOrdem) || 0,
         imagem_card: imagemCard || null,
         imagem_capa: imagemCapa || null,
         categoria_id: categoriaId || null,
@@ -240,6 +264,7 @@ function CursosAdmin() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-cursos-list"] });
+      qc.invalidateQueries({ queryKey: ["catalogo-cursos"] });
       toast.success(selectedCurso ? "Curso atualizado com sucesso!" : "Curso criado com sucesso!");
       setIsAddOpen(false);
       setSelectedCurso(null);
@@ -262,6 +287,7 @@ function CursosAdmin() {
         nome: catNome,
         slug: finalSlug,
         descricao: catDescricao || null,
+        ordem: parseInt(catOrdem) || 0,
         ativa: catAtiva,
       };
 
@@ -281,6 +307,7 @@ function CursosAdmin() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-categorias-list"] });
       qc.invalidateQueries({ queryKey: ["admin-cursos-list"] });
+      qc.invalidateQueries({ queryKey: ["catalogo-cursos"] });
       toast.success(selectedCategoria ? "Categoria atualizada!" : "Categoria criada!");
       setIsCatOpen(false);
       setSelectedCategoria(null);
@@ -298,6 +325,7 @@ function CursosAdmin() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-cursos-list"] });
+      qc.invalidateQueries({ queryKey: ["catalogo-cursos"] });
       toast.success("Curso removido!");
     },
     onError: (err: Error) => {
@@ -313,12 +341,65 @@ function CursosAdmin() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-categorias-list"] });
       qc.invalidateQueries({ queryKey: ["admin-cursos-list"] });
+      qc.invalidateQueries({ queryKey: ["catalogo-cursos"] });
       toast.success("Categoria removida!");
     },
     onError: (err: Error) => {
       toast.error(`Erro ao excluir: ${err.message}`);
     },
   });
+
+  async function moverCurso(cIndex: number, direcao: -1 | 1) {
+    const lista = [...filtered];
+    const targetIndex = cIndex + direcao;
+    if (targetIndex < 0 || targetIndex >= lista.length) return;
+    const current = lista[cIndex];
+    const target = lista[targetIndex];
+
+    const currentOrdem = current.ordem ?? cIndex + 1;
+    let targetOrdem = target.ordem ?? targetIndex + 1;
+    if (currentOrdem === targetOrdem) {
+      targetOrdem = direcao === -1 ? currentOrdem - 1 : currentOrdem + 1;
+    }
+
+    try {
+      await Promise.all([
+        supabase.from("cursos").update({ ordem: targetOrdem } as any).eq("id", current.id),
+        supabase.from("cursos").update({ ordem: currentOrdem } as any).eq("id", target.id),
+      ]);
+      qc.invalidateQueries({ queryKey: ["admin-cursos-list"] });
+      qc.invalidateQueries({ queryKey: ["catalogo-cursos"] });
+      toast.success("Ordem do curso atualizada!");
+    } catch (err: any) {
+      toast.error(`Erro ao mover curso: ${err.message}`);
+    }
+  }
+
+  async function moverCategoria(catIndex: number, direcao: -1 | 1) {
+    const lista = [...(categorias ?? [])];
+    const targetIndex = catIndex + direcao;
+    if (targetIndex < 0 || targetIndex >= lista.length) return;
+    const current = lista[catIndex];
+    const target = lista[targetIndex];
+
+    const currentOrdem = current.ordem ?? catIndex + 1;
+    let targetOrdem = target.ordem ?? targetIndex + 1;
+    if (currentOrdem === targetOrdem) {
+      targetOrdem = direcao === -1 ? currentOrdem - 1 : currentOrdem + 1;
+    }
+
+    try {
+      await Promise.all([
+        supabase.from("categorias").update({ ordem: targetOrdem }).eq("id", current.id),
+        supabase.from("categorias").update({ ordem: currentOrdem }).eq("id", target.id),
+      ]);
+      qc.invalidateQueries({ queryKey: ["admin-categorias-list"] });
+      qc.invalidateQueries({ queryKey: ["catalogo-cursos"] });
+      toast.success("Ordem da categoria atualizada!");
+    } catch (err: any) {
+      toast.error(`Erro ao mover categoria: ${err.message}`);
+    }
+  }
 
   function resetForm() {
     setTitulo("");
@@ -330,6 +411,7 @@ function CursosAdmin() {
     setCobrancaPor("curso");
     setPublicoAlvo("ambos");
     setAtivo(true);
+    setCursoOrdem("0");
     setImagemCard("");
     setImagemCapa("");
     setCategoriaId(null);
@@ -340,6 +422,7 @@ function CursosAdmin() {
     setCatNome("");
     setCatSlug("");
     setCatDescricao("");
+    setCatOrdem("0");
     setCatAtiva(true);
   }
 
@@ -354,6 +437,7 @@ function CursosAdmin() {
     setCobrancaPor(c.cobranca_por || "curso");
     setPublicoAlvo(c.publico_alvo || "ambos");
     setAtivo(c.ativo);
+    setCursoOrdem((c.ordem ?? 0).toString());
     setImagemCard(c.imagem_card || "");
     setImagemCapa(c.imagem_capa || "");
     setCategoriaId(c.categoria_id || null);
@@ -366,6 +450,7 @@ function CursosAdmin() {
     setCatNome(cat.nome);
     setCatSlug(cat.slug || "");
     setCatDescricao(cat.descricao || "");
+    setCatOrdem((cat.ordem ?? 0).toString());
     setCatAtiva(cat.ativa);
     setIsCatOpen(true);
   }
@@ -507,7 +592,11 @@ function CursosAdmin() {
                     </Select>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold">Ordem</label>
+                      <Input type="number" value={cursoOrdem} onChange={(e) => setCursoOrdem(e.target.value)} placeholder="0" min="0" />
+                    </div>
                     <div className="space-y-2">
                       <label className="text-sm font-semibold">Preço (R$)</label>
                       <Input type="number" step="0.01" value={preco} onChange={(e) => setPreco(e.target.value)} />
@@ -608,6 +697,7 @@ function CursosAdmin() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-16 text-center">Ordem</TableHead>
                   <TableHead>Título</TableHead>
                   <TableHead>Categoria</TableHead>
                   <TableHead>Modalidade</TableHead>
@@ -620,8 +710,33 @@ function CursosAdmin() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((c) => (
+                {filtered.map((c, idx) => (
                   <TableRow key={c.id}>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-0.5">
+                        <span className="font-mono text-xs font-semibold w-5 text-center">{c.ordem ?? 0}</span>
+                        <div className="flex flex-col">
+                          <button
+                            type="button"
+                            onClick={() => moverCurso(idx, -1)}
+                            disabled={idx === 0}
+                            className="p-0.5 hover:bg-slate-800/20 disabled:opacity-20 text-muted-foreground hover:text-foreground rounded transition-colors"
+                            title="Mover para cima"
+                          >
+                            <ArrowUp className="h-3 w-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moverCurso(idx, 1)}
+                            disabled={idx === filtered.length - 1}
+                            className="p-0.5 hover:bg-slate-800/20 disabled:opacity-20 text-muted-foreground hover:text-foreground rounded transition-colors"
+                            title="Mover para baixo"
+                          >
+                            <ArrowDown className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell className="font-semibold">{c.titulo}</TableCell>
                     <TableCell>
                       {c.categorias?.nome ? (
@@ -708,9 +823,15 @@ function CursosAdmin() {
                     <Input value={catNome} onChange={(e) => setCatNome(e.target.value)} placeholder="Ex: Bacharelado, Extensão..." />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold">Slug (Identificador na URL)</label>
-                    <Input value={catSlug} onChange={(e) => setCatSlug(e.target.value)} placeholder="Ex: bacharelado, extensao (opcional)" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold">Slug (Identificador na URL)</label>
+                      <Input value={catSlug} onChange={(e) => setCatSlug(e.target.value)} placeholder="Ex: bacharelado (opcional)" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold">Ordem de Exibição</label>
+                      <Input type="number" value={catOrdem} onChange={(e) => setCatOrdem(e.target.value)} placeholder="0" min="0" />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -751,6 +872,7 @@ function CursosAdmin() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-16 text-center">Ordem</TableHead>
                   <TableHead>Nome</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Slug</TableHead>
@@ -759,8 +881,33 @@ function CursosAdmin() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(categorias ?? []).map((cat) => (
+                {(categorias ?? []).map((cat, idx) => (
                   <TableRow key={cat.id}>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-0.5">
+                        <span className="font-mono text-xs font-semibold w-5 text-center">{cat.ordem ?? 0}</span>
+                        <div className="flex flex-col">
+                          <button
+                            type="button"
+                            onClick={() => moverCategoria(idx, -1)}
+                            disabled={idx === 0}
+                            className="p-0.5 hover:bg-slate-800/20 disabled:opacity-20 text-muted-foreground hover:text-foreground rounded transition-colors"
+                            title="Mover para cima"
+                          >
+                            <ArrowUp className="h-3 w-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moverCategoria(idx, 1)}
+                            disabled={idx === (categorias?.length ?? 0) - 1}
+                            className="p-0.5 hover:bg-slate-800/20 disabled:opacity-20 text-muted-foreground hover:text-foreground rounded transition-colors"
+                            title="Mover para baixo"
+                          >
+                            <ArrowDown className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell className="font-semibold">{cat.nome}</TableCell>
                     <TableCell>{cat.descricao || "—"}</TableCell>
                     <TableCell className="font-mono text-xs">{cat.slug}</TableCell>
@@ -781,7 +928,7 @@ function CursosAdmin() {
                 ))}
                 {categorias && categorias.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground p-4">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground p-4">
                       Nenhuma categoria cadastrada.
                     </TableCell>
                   </TableRow>

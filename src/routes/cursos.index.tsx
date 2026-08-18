@@ -14,18 +14,19 @@ const catalogoQO = queryOptions({
   queryFn: async () => {
     try {
       const [{ data: cats }, { data: cursos, error: cursosError }] = await Promise.all([
-        supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem"),
+        supabase.from("categorias").select("id, nome, slug, ordem").eq("ativa", true).order("ordem", { ascending: true }),
         supabase
           .from("cursos")
-          .select("id, titulo, slug, descricao_curta, preco, cobranca_por, publico_alvo, modalidade, categoria_id, imagem_card, imagem_capa, destaque, quantidade_modulos, categorias(nome)")
+          .select("id, titulo, slug, descricao_curta, preco, cobranca_por, publico_alvo, modalidade, categoria_id, imagem_card, imagem_capa, destaque, quantidade_modulos, ordem, categorias(nome)")
           .eq("ativo", true)
+          .order("ordem", { ascending: true })
           .order("titulo"),
       ]);
 
       if (cursosError) {
-        if (cursosError.code === "42703") { // Column does not exist
+        if (cursosError.code === "42703") { // Column does not exist fallback
           const [{ data: fallbackCats }, { data: fallbackCursos, error: fallbackError }] = await Promise.all([
-            supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem"),
+            supabase.from("categorias").select("id, nome, slug, ordem").eq("ativa", true).order("ordem", { ascending: true }),
             supabase
               .from("cursos")
               .select("id, titulo, slug, descricao_curta, preco, cobranca_por, publico_alvo, modalidade, categoria_id, imagem_capa, destaque, quantidade_modulos, categorias(nome)")
@@ -33,7 +34,7 @@ const catalogoQO = queryOptions({
               .order("titulo"),
           ]);
           if (fallbackError) throw fallbackError;
-          const mappedCursos = (fallbackCursos ?? []).map(c => ({ ...c, imagem_card: null }));
+          const mappedCursos = (fallbackCursos ?? []).map(c => ({ ...c, imagem_card: null, ordem: 0 }));
           return { categorias: fallbackCats ?? [], cursos: mappedCursos };
         }
         throw cursosError;
@@ -41,9 +42,9 @@ const catalogoQO = queryOptions({
 
       return { categorias: cats ?? [], cursos: cursos ?? [] };
     } catch (e) {
-      console.warn("Falling back to catalog query without imagem_card:", e);
+      console.warn("Falling back to catalog query without imagem_card/ordem:", e);
       const [{ data: fallbackCats }, { data: fallbackCursos, error: fallbackError }] = await Promise.all([
-        supabase.from("categorias").select("id, nome, slug").eq("ativa", true).order("ordem"),
+        supabase.from("categorias").select("id, nome, slug, ordem").eq("ativa", true).order("ordem", { ascending: true }),
         supabase
           .from("cursos")
           .select("id, titulo, slug, descricao_curta, preco, cobranca_por, publico_alvo, modalidade, categoria_id, imagem_capa, destaque, quantidade_modulos, categorias(nome)")
@@ -51,7 +52,7 @@ const catalogoQO = queryOptions({
           .order("titulo"),
       ]);
       if (fallbackError) throw fallbackError;
-      const mappedCursos = (fallbackCursos ?? []).map(c => ({ ...c, imagem_card: null }));
+      const mappedCursos = (fallbackCursos ?? []).map(c => ({ ...c, imagem_card: null, ordem: 0 }));
       return { categorias: fallbackCats ?? [], cursos: mappedCursos };
     }
   },
