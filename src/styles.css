@@ -6,14 +6,16 @@
 
 /*
  * SETE — Seminário Teológico Esperança
- * Design tokens: acadêmico, sóbrio.
- * Azul-marinho profundo, dourado suave, off-white, cinza-pedra.
- * Serifada (Cormorant Garamond) nos títulos, Inter no corpo.
+ * Design tokens inspirados na FTSA (Faculdade Teológica Sul Americana):
+ * Fundo linho/areia (#f3f0e9), destaque vermelho-coral (#ff3403),
+ * contraste vinho escuro (#490905) e grafite (#161922),
+ * superfícies brancas (#ffffff), bordas suaves (#e5e3d8).
+ * Tipografia: Archivo (moderna, editorial, institucional).
  */
 
 @theme inline {
-  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Archivo", "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans: "Archivo", "Inter", ui-sans-serif, system-ui, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -54,89 +56,86 @@
 }
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 
-  /* off-white / ice-white clean background */
-  --background: oklch(0.985 0.008 240);
-  --foreground: oklch(0.20 0.07 260);
+  /* Fundo linho / areia acolhedor da FTSA (#f3f0e9) */
+  --background: #f3f0e9;
+  --foreground: #1c1917;
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.20 0.07 260);
+  --card: #ffffff;
+  --card-foreground: #1c1917;
 
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.20 0.07 260);
+  --popover: #ffffff;
+  --popover-foreground: #1c1917;
 
-  /* azul-marinho profundo do logotipo */
-  --primary: oklch(0.20 0.07 260);
-  --primary-foreground: oklch(0.985 0.008 240);
+  /* Vermelho vibrante/coral assinatura da FTSA (#ff3403) */
+  --primary: #ff3403;
+  --primary-foreground: #ffffff;
 
-  /* cinza-gelo claro */
-  --secondary: oklch(0.95 0.01 240);
-  --secondary-foreground: oklch(0.20 0.07 260);
+  /* Areia suave para superfícies secundárias */
+  --secondary: #e9e5dc;
+  --secondary-foreground: #1c1917;
 
-  --muted: oklch(0.95 0.01 240);
-  --muted-foreground: oklch(0.45 0.02 260);
+  --muted: #e9e5dc;
+  --muted-foreground: #66594e;
 
-  --accent: oklch(0.95 0.01 240);
-  --accent-foreground: oklch(0.20 0.07 260);
+  --accent: #e9e5dc;
+  --accent-foreground: #1c1917;
 
-  /* vermelho carmesim do logotipo (antigo gold) */
-  --gold: oklch(0.48 0.20 28);
-  --gold-foreground: oklch(1 0 0);
+  /* Destaques e badges em coral FTSA */
+  --gold: #ff3403;
+  --gold-foreground: #ffffff;
 
-  --destructive: oklch(0.48 0.20 28);
-  --destructive-foreground: oklch(1 0 0);
+  --destructive: #cf2e2e;
+  --destructive-foreground: #ffffff;
 
-  --border: oklch(0.90 0.01 240);
-  --input: oklch(0.90 0.01 240);
-  --ring: oklch(0.48 0.20 28);
+  --border: #e3ded5;
+  --input: #e3ded5;
+  --ring: #ff3403;
 
-  --sidebar: oklch(0.18 0.06 260);
-  --sidebar-foreground: oklch(0.95 0.01 240);
-  --sidebar-primary: oklch(0.48 0.20 28);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.25 0.07 260);
-  --sidebar-accent-foreground: oklch(0.985 0.008 240);
-  --sidebar-border: oklch(0.25 0.07 260);
-  --sidebar-ring: oklch(0.48 0.20 28);
+  --sidebar: #161922;
+  --sidebar-foreground: #f3f0e9;
+  --sidebar-primary: #ff3403;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #232734;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #2a2f3e;
+  --sidebar-ring: #ff3403;
 }
 
 .dark {
-  /* azul-marinho escuro/grafite de fundo */
-  --background: oklch(0.12 0.03 260);
-  --foreground: oklch(0.96 0.01 240);
-  --card: oklch(0.16 0.04 260);
-  --card-foreground: oklch(0.96 0.01 240);
-  --popover: oklch(0.16 0.04 260);
-  --popover-foreground: oklch(0.96 0.01 240);
+  --background: #111317;
+  --foreground: #f3f0e9;
+  --card: #161922;
+  --card-foreground: #f3f0e9;
+  --popover: #161922;
+  --popover-foreground: #f3f0e9;
   
-  /* em modo escuro, o vermelho assume papel de destaque primario */
-  --primary: oklch(0.55 0.22 28);
-  --primary-foreground: oklch(0.12 0.03 260);
-  --secondary: oklch(0.20 0.05 260);
-  --secondary-foreground: oklch(0.96 0.01 240);
-  --muted: oklch(0.20 0.05 260);
-  --muted-foreground: oklch(0.70 0.02 240);
-  --accent: oklch(0.22 0.05 260);
-  --accent-foreground: oklch(0.96 0.01 240);
+  --primary: #ff3403;
+  --primary-foreground: #ffffff;
+  --secondary: #222631;
+  --secondary-foreground: #f3f0e9;
+  --muted: #222631;
+  --muted-foreground: #a39e94;
+  --accent: #262b38;
+  --accent-foreground: #f3f0e9;
   
-  /* vermelho carmesim vibrante */
-  --gold: oklch(0.58 0.22 28);
-  --gold-foreground: oklch(1 0 0);
-  --destructive: oklch(0.55 0.22 28);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.55 0.22 28);
+  --gold: #ff3403;
+  --gold-foreground: #ffffff;
+  --destructive: #e02e00;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #ff3403;
   
-  --sidebar: oklch(0.09 0.03 260);
-  --sidebar-foreground: oklch(0.96 0.01 240);
-  --sidebar-primary: oklch(0.55 0.22 28);
-  --sidebar-primary-foreground: oklch(0.09 0.03 260);
-  --sidebar-accent: oklch(0.18 0.05 260);
-  --sidebar-accent-foreground: oklch(0.96 0.01 240);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.55 0.22 28);
+  --sidebar: #0e1014;
+  --sidebar-foreground: #f3f0e9;
+  --sidebar-primary: #ff3403;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #191c24;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #ff3403;
 }
 
 @layer base {
@@ -149,7 +148,8 @@
   }
   h1, h2, h3, h4, .font-serif {
     font-family: var(--font-serif);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+    font-weight: 700;
   }
   #lovable-badge {
     display: none !important;
@@ -159,6 +159,14 @@
 @utility text-gold { color: var(--gold); }
 @utility bg-gold { background-color: var(--gold); }
 @utility border-gold { border-color: var(--gold); }
+
+@utility bg-ftsa-sand { background-color: #f3f0e9; }
+@utility bg-ftsa-wine { background-color: #490905; }
+@utility text-ftsa-wine { color: #490905; }
+@utility bg-ftsa-red { background-color: #ff3403; }
+@utility text-ftsa-red { color: #ff3403; }
+@utility border-ftsa-red { border-color: #ff3403; }
+@utility bg-ftsa-dark { background-color: #161922; }
 
 @utility no-scrollbar {
   scrollbar-width: none;

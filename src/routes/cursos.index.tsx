@@ -98,12 +98,12 @@ function CategoryRow({
 
   return (
     <div className="relative group/row my-8">
-      <h2 className="font-serif text-2xl font-semibold mb-4 text-white tracking-wide">{categoria.nome}</h2>
+      <h2 className="font-serif text-2xl font-black mb-4 text-[#1c1917] tracking-tight">{categoria.nome}</h2>
       
       {/* Scroll Left Button */}
       <button
         onClick={() => scroll("left")}
-        className="absolute left-0 top-[50%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/80 text-white p-2 rounded-r-lg opacity-0 group-hover/row:opacity-100 transition-opacity hidden md:flex items-center justify-center h-[200px]"
+        className="absolute left-0 top-[50%] -translate-y-1/2 z-20 bg-black/60 hover:bg-[#ff3403] text-white p-2 rounded-r-xl opacity-0 group-hover/row:opacity-100 transition-all hidden md:flex items-center justify-center h-[200px]"
       >
         <ChevronLeft className="h-6 w-6" />
       </button>
@@ -125,7 +125,7 @@ function CategoryRow({
       {/* Scroll Right Button */}
       <button
         onClick={() => scroll("right")}
-        className="absolute right-0 top-[50%] -translate-y-1/2 z-20 bg-black/60 hover:bg-black/80 text-white p-2 rounded-l-lg opacity-0 group-hover/row:opacity-100 transition-opacity hidden md:flex items-center justify-center h-[200px]"
+        className="absolute right-0 top-[50%] -translate-y-1/2 z-20 bg-black/60 hover:bg-[#ff3403] text-white p-2 rounded-l-xl opacity-0 group-hover/row:opacity-100 transition-all hidden md:flex items-center justify-center h-[200px]"
       >
         <ChevronRight className="h-6 w-6" />
       </button>
@@ -139,7 +139,7 @@ function CoursePosterCard({ curso, className }: { curso: any; className?: string
       to="/cursos/$slug"
       params={{ slug: curso.slug }}
       className={cn(
-        "group relative rounded-lg overflow-hidden border border-slate-800 bg-slate-900 aspect-[4/5] transition-all duration-300 ease-out hover:scale-105 hover:shadow-2xl hover:border-gold/50",
+        "group relative rounded-2xl overflow-hidden border border-[#e2ddd3] bg-white aspect-[4/5] transition-all duration-300 ease-out hover:scale-102 hover:shadow-xl hover:border-[#ff3403]",
         className
       )}
     >
@@ -147,11 +147,13 @@ function CoursePosterCard({ curso, className }: { curso: any; className?: string
         <img
           src={curso.imagem_card}
           alt={curso.titulo}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
       ) : (
-        <div className="w-full h-full bg-gradient-to-br from-primary/95 to-slate-900 flex flex-col justify-between p-4 transition-transform duration-500 group-hover:scale-110">
-          <BookOpen className="h-8 w-8 text-gold/80" />
+        <div className="w-full h-full bg-gradient-to-br from-[#161922] to-[#490905] flex flex-col justify-between p-5 transition-transform duration-500 group-hover:scale-105">
+          <div className="h-10 w-10 rounded-full bg-[#ff3403] flex items-center justify-center text-white">
+            <BookOpen className="h-5 w-5" />
+          </div>
           <h4 className="font-serif text-lg text-white font-bold leading-tight line-clamp-3">
             {curso.titulo}
           </h4>
@@ -159,32 +161,27 @@ function CoursePosterCard({ curso, className }: { curso: any; className?: string
       )}
 
       {/* Hover Overlay Details */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/20 flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col justify-end p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <div className="space-y-2">
           <div className="flex gap-1.5 flex-wrap">
-            <Badge variant="outline" className="border-gold/50 text-gold text-[10px] py-0 px-1.5 capitalize">
+            <span className="rounded-full bg-[#ff3403] text-white text-[10px] font-bold py-0.5 px-2 capitalize">
               {curso.modalidade === "hibrido" ? "Semi-presencial" : curso.modalidade}
-            </Badge>
-            <Badge variant="secondary" className="bg-slate-800 text-slate-200 text-[10px] py-0 px-1.5 border-none">
+            </span>
+            <span className="rounded-full bg-white/20 backdrop-blur-xs text-white text-[10px] font-bold py-0.5 px-2">
               {curso.categorias?.nome}
-            </Badge>
-            {curso.publico_alvo && curso.publico_alvo !== "ambos" && (
-              <Badge variant="secondary" className="bg-slate-900/60 text-slate-200 text-[10px] py-0 px-1.5 border-none capitalize">
-                {curso.publico_alvo === "homens" ? "👨 Homens" : "👩 Mulheres"}
-              </Badge>
-            )}
+            </span>
           </div>
           
           <h4 className="font-serif text-base text-white font-bold leading-tight">
             {curso.titulo}
           </h4>
           
-          <p className="text-[11px] text-slate-300 line-clamp-2 leading-snug">
+          <p className="text-[11px] text-white/80 line-clamp-2 leading-snug font-light">
             {curso.descricao_curta}
           </p>
 
-          <div className="flex items-center justify-between pt-1 border-t border-slate-800/80">
-            <span className="text-xs font-serif text-gold font-semibold">
+          <div className="flex items-center justify-between pt-2 border-t border-white/20">
+            <span className="text-xs font-serif text-[#ff3403] font-bold">
               {curso.preco > 0 ? (
                 <>
                   R$ {Number(curso.preco).toFixed(2).replace(".", ",")}
@@ -193,11 +190,11 @@ function CoursePosterCard({ curso, className }: { curso: any; className?: string
               ) : "Gratuito"}
             </span>
             {curso.quantidade_modulos ? (
-              <span className="text-[10px] text-slate-400 font-medium">
+              <span className="text-[10px] text-white/70 font-medium">
                 {curso.quantidade_modulos} {curso.quantidade_modulos === 1 ? "módulo" : "módulos"}
               </span>
             ) : (
-              <span className="text-[10px] text-slate-400 font-medium">Ver detalhes</span>
+              <span className="text-[10px] text-white/70 font-medium">Ver detalhes</span>
             )}
           </div>
         </div>
@@ -234,54 +231,54 @@ function CursosPage() {
                    data.cursos[0];
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#080a10] text-slate-100">
+    <div className="flex min-h-screen flex-col bg-[#f3f0e9] text-[#1c1917]">
       <SiteHeader />
       <main className="flex-1 pb-16">
         
-        {/* Netflix Billboard Hero Section */}
+        {/* Billboard Hero Section */}
         {featured && !ativa && (
-          <div className="relative w-full h-[50vh] min-h-[300px] max-h-[500px] overflow-hidden bg-slate-950">
+          <div className="relative w-full h-[50vh] min-h-[320px] max-h-[500px] overflow-hidden bg-[#161922]">
             {featured.imagem_capa ? (
               <img
                 src={featured.imagem_capa}
                 alt={featured.titulo}
-                className="w-full h-full object-cover opacity-60"
+                className="w-full h-full object-cover opacity-50"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-r from-primary to-slate-900 opacity-60" />
+              <div className="w-full h-full bg-gradient-to-r from-[#490905] to-[#161922] opacity-70" />
             )}
             
             {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#080a10] via-[#080a10]/50 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#080a10]/90 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#161922] via-[#161922]/50 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#161922]/95 via-transparent to-transparent" />
 
             {/* Billboard Text Content */}
             <div className="absolute bottom-0 left-0 right-0 max-w-6xl mx-auto px-4 pb-8 md:pb-12 flex flex-col justify-end h-full">
               <div className="max-w-xl space-y-3">
                 <div className="flex gap-2 items-center">
-                  <Badge className="bg-gold text-slate-950 font-bold hover:bg-gold px-2.5 py-0.5">
-                    DESTAQUE
-                  </Badge>
-                  <span className="text-xs text-slate-300 font-medium tracking-wide uppercase">
+                  <span className="rounded-full bg-[#ff3403] text-white font-black text-[10px] uppercase tracking-wider px-3 py-1">
+                    DESTAQUE ACADÊMICO
+                  </span>
+                  <span className="text-xs text-[#f3f0e9]/80 font-bold tracking-wide uppercase">
                     {featured.categorias?.nome}
                   </span>
                 </div>
                 
-                <h1 className="font-serif text-3xl md:text-5xl lg:text-6xl text-white leading-none font-bold drop-shadow-md">
+                <h1 className="font-serif text-3xl md:text-5xl lg:text-6xl text-white leading-none font-black drop-shadow-md">
                   {featured.titulo}
                 </h1>
                 
-                <p className="text-sm md:text-base text-slate-200 line-clamp-3 drop-shadow">
+                <p className="text-sm md:text-base text-[#f3f0e9]/85 line-clamp-3 font-light">
                   {featured.descricao_curta}
                 </p>
 
                 <div className="flex gap-3 pt-2">
-                  <Button asChild className="bg-gold hover:bg-gold/90 text-slate-950 font-bold gap-2 shadow-lg">
+                  <Button asChild className="rounded-full bg-[#ff3403] hover:bg-[#e02e00] text-white font-bold text-xs uppercase tracking-wider px-6 py-3 gap-2 shadow-lg">
                     <Link to="/cursos/$slug" params={{ slug: featured.slug }}>
                       <Play className="h-4 w-4 fill-current" /> Matricular-se
                     </Link>
                   </Button>
-                  <Button asChild variant="secondary" className="bg-slate-800/80 hover:bg-slate-800 text-white border-none gap-2">
+                  <Button asChild variant="outline" className="rounded-full border-white/30 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider px-6 py-3 gap-2">
                     <Link to="/cursos/$slug" params={{ slug: featured.slug }}>
                       <Info className="h-4 w-4" /> Mais Informações
                     </Link>
@@ -292,22 +289,22 @@ function CursosPage() {
           </div>
         )}
 
-        <div className="mx-auto w-full max-w-6xl px-4 mt-8">
+        <div className="mx-auto w-full max-w-6xl px-4 mt-10">
           
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-slate-900 pb-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-[#e2ddd3] pb-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Catálogo Acadêmico</p>
-              <h1 className="mt-1 font-serif text-3xl md:text-4xl text-white">Nossos Cursos</h1>
+              <p className="text-xs font-black uppercase tracking-[0.25em] text-[#ff3403]">Catálogo Acadêmico</p>
+              <h1 className="mt-1 font-serif text-3xl md:text-4xl text-[#1c1917] font-black">Nossos Cursos</h1>
             </div>
 
-            {/* Premium Category Filter Buttons */}
+            {/* Premium Category Filter Buttons — Pílulas FTSA */}
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setAtiva(null)}
-                className={`rounded-full border px-4 py-1 text-xs font-medium tracking-wide transition-all ${
+                className={`rounded-full border px-5 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ${
                   !ativa
-                    ? "border-gold bg-gold text-slate-950 font-bold shadow-md shadow-gold/20"
-                    : "border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900/50"
+                    ? "border-[#ff3403] bg-[#ff3403] text-white shadow-sm"
+                    : "border-[#e2ddd3] bg-white text-[#1c1917] hover:border-[#ff3403]/60 hover:bg-[#f3f0e9]"
                 }`}
               >
                 Todos
@@ -316,10 +313,10 @@ function CursosPage() {
                 <button
                   key={c.id}
                   onClick={() => setAtiva(c.id)}
-                  className={`rounded-full border px-4 py-1 text-xs font-medium tracking-wide transition-all ${
+                  className={`rounded-full border px-5 py-2 text-xs font-bold tracking-wider uppercase transition-all cursor-pointer ${
                     ativa === c.id
-                      ? "border-gold bg-gold text-slate-950 font-bold shadow-md shadow-gold/20"
-                      : "border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900/50"
+                      ? "border-[#ff3403] bg-[#ff3403] text-white shadow-sm"
+                      : "border-[#e2ddd3] bg-white text-[#1c1917] hover:border-[#ff3403]/60 hover:bg-[#f3f0e9]"
                   }`}
                 >
                   {c.nome}
@@ -329,7 +326,7 @@ function CursosPage() {
           </div>
 
           {filteredCursos.length === 0 ? (
-            <p className="mt-12 text-center text-slate-500 font-medium">Nenhum curso publicado nesta categoria.</p>
+            <p className="mt-12 text-center text-[#66594e] font-medium">Nenhum curso publicado nesta categoria.</p>
           ) : ativa ? (
             /* Vertical grid view when a single category is filtered */
             <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
@@ -338,8 +335,8 @@ function CursosPage() {
               ))}
             </div>
           ) : (
-            /* Netflix horizontal-scrolling category rows when viewing 'Todos' */
-            <div className="mt-4 space-y-6">
+            /* Horizontal-scrolling category rows when viewing 'Todos' */
+            <div className="mt-4 space-y-8">
               {data.categorias.map((cat) => {
                 const catCursos = data.cursos.filter((c) => c.categoria_id === cat.id);
                 if (catCursos.length === 0) return null;

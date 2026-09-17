@@ -167,13 +167,13 @@ function CursoDetail() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-[#f3f0e9] text-[#1c1917]">
       <SiteHeader />
-      <main className="flex-1 pb-12">
+      <main className="flex-1 pb-16">
         {curso.imagem_capa && (
-          <div className="w-full bg-slate-950 border-b border-slate-900">
-            <div className="mx-auto max-w-6xl px-4 py-4">
-              <div className="aspect-[1584/396] w-full overflow-hidden rounded-xl md:rounded-2xl bg-slate-900 shadow-lg border border-slate-800/60">
+          <div className="w-full bg-[#161922] border-b border-[#232734]">
+            <div className="mx-auto max-w-6xl px-4 py-6">
+              <div className="aspect-[1584/396] w-full overflow-hidden rounded-2xl bg-black/40 shadow-xl border border-white/10">
                 <img
                   src={curso.imagem_capa}
                   alt={curso.titulo}
@@ -183,84 +183,100 @@ function CursoDetail() {
             </div>
           </div>
         )}
-        <section className="bg-primary text-primary-foreground">
+        <section className="bg-[#161922] text-white border-b border-[#232734]">
           <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:py-16 md:grid-cols-3">
             <div className="md:col-span-2">
               <div className="flex flex-wrap gap-2">
                 {curso.categorias?.nome && (
-                  <Badge variant="outline" className="border-primary-foreground/30 text-primary-foreground">
+                  <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
                     {curso.categorias.nome}
-                  </Badge>
+                  </span>
                 )}
-                <Badge className="bg-gold text-gold-foreground">{curso.modalidade}</Badge>
+                <span className="rounded-full bg-[#ff3403] text-white px-3 py-1 text-xs font-black uppercase tracking-wider">
+                  {curso.modalidade}
+                </span>
                 {curso.publico_alvo && curso.publico_alvo !== "ambos" && (
-                  <Badge variant="secondary" className="bg-slate-800 text-slate-100 border-none capitalize">
+                  <span className="rounded-full bg-white/15 text-white px-3 py-1 text-xs font-semibold capitalize">
                     Público: {curso.publico_alvo}
-                  </Badge>
+                  </span>
                 )}
               </div>
-              <h1 className="mt-4 font-serif text-4xl md:text-5xl">{curso.titulo}</h1>
-              <p className="mt-4 text-lg text-primary-foreground/80">{curso.descricao_curta}</p>
+              <h1 className="mt-4 font-serif text-3xl md:text-5xl font-black text-white leading-tight">
+                {curso.titulo}
+              </h1>
+              <p className="mt-4 text-base md:text-lg text-[#f3f0e9]/80 font-light leading-relaxed">
+                {curso.descricao_curta}
+              </p>
 
-              <div className="mt-6 flex flex-wrap gap-6 text-sm text-primary-foreground/70">
+              <div className="mt-6 flex flex-wrap gap-6 text-sm text-[#f3f0e9]/75 font-medium">
                 {curso.carga_horaria && (
-                  <span className="flex items-center gap-2"><Clock className="h-4 w-4" /> {curso.carga_horaria}h</span>
+                  <span className="flex items-center gap-2"><Clock className="h-4 w-4 text-[#ff3403]" /> {curso.carga_horaria}h</span>
                 )}
                 {curso.quantidade_modulos && (
-                  <span className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> {curso.quantidade_modulos} {curso.quantidade_modulos === 1 ? "módulo" : "módulos"}</span>
+                  <span className="flex items-center gap-2"><BookOpen className="h-4 w-4 text-[#ff3403]" /> {curso.quantidade_modulos} {curso.quantidade_modulos === 1 ? "módulo" : "módulos"}</span>
                 )}
                 {curso.ministrante && (
-                  <span className="flex items-center gap-2"><User className="h-4 w-4" /> {curso.ministrante.nome_completo}</span>
+                  <span className="flex items-center gap-2"><User className="h-4 w-4 text-[#ff3403]" /> {curso.ministrante.nome_completo}</span>
                 )}
               </div>
             </div>
-            <aside className="rounded-2xl bg-card p-6 text-card-foreground shadow-xl">
-              <div className="font-serif text-3xl text-primary">
-                {Number(curso.preco) > 0 ? (
-                  <>
-                    R$ {Number(curso.preco).toFixed(2).replace(".", ",")}
-                    {curso.cobranca_por === "modulo" && (
-                      <span className="text-xs font-sans font-normal text-muted-foreground block mt-1">por módulo</span>
-                    )}
-                  </>
-                ) : (
-                  "Gratuito"
-                )}
+            <aside className="rounded-3xl bg-white p-7 text-[#1c1917] shadow-xl border border-[#e2ddd3] flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#66594e] block">
+                  Valor da Formação
+                </span>
+                <div className="font-serif text-3xl font-black text-[#ff3403] mt-1">
+                  {Number(curso.preco) > 0 ? (
+                    <>
+                      R$ {Number(curso.preco).toFixed(2).replace(".", ",")}
+                      {curso.cobranca_por === "modulo" && (
+                        <span className="text-xs font-sans font-normal text-[#66594e] block mt-1">por módulo</span>
+                      )}
+                    </>
+                  ) : (
+                    "Gratuito"
+                  )}
+                </div>
+                <p className="mt-3 text-xs text-[#66594e] leading-relaxed">
+                  Acesso ao ambiente de aulas, material didático em PDF e certificação oficial.
+                </p>
               </div>
-              <Button onClick={matricular} className="mt-4 w-full bg-gold text-gold-foreground hover:bg-gold/90" size="lg">
-                Matricule-se
-              </Button>
-              <p className="mt-3 text-xs text-muted-foreground">
-                Pagamento online via Mercado Pago ou presencial na secretaria.
-              </p>
+              <div className="mt-6">
+                <Button onClick={matricular} className="w-full rounded-full bg-[#ff3403] text-white hover:bg-[#e02e00] font-bold text-xs uppercase tracking-wider py-3.5 shadow-md" size="lg">
+                  Matricule-se Agora
+                </Button>
+                <p className="mt-3 text-center text-[11px] text-[#66594e]">
+                  Pagamento online ou presencial na secretaria.
+                </p>
+              </div>
             </aside>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 py-12">
+        <section className="mx-auto max-w-6xl px-4 py-14">
           <div className="grid gap-12 md:grid-cols-3">
-            <div className="md:col-span-2 space-y-8">
+            <div className="md:col-span-2 space-y-10">
               {curso.descricao && (
-                <div>
-                  <h2 className="font-serif text-2xl">Sobre o curso</h2>
-                  <p className="mt-3 whitespace-pre-line text-muted-foreground">{curso.descricao}</p>
+                <div className="rounded-3xl bg-white p-8 border border-[#e2ddd3] shadow-xs">
+                  <h2 className="font-serif text-2xl font-black text-[#1c1917] border-b border-[#e2ddd3] pb-3">Sobre o curso</h2>
+                  <p className="mt-4 whitespace-pre-line text-[#66594e] leading-relaxed">{curso.descricao}</p>
                 </div>
               )}
               {curso.ementa && (
-                <div>
-                  <h2 className="font-serif text-2xl">Ementa</h2>
-                  <p className="mt-3 whitespace-pre-line text-muted-foreground">{curso.ementa}</p>
+                <div className="rounded-3xl bg-white p-8 border border-[#e2ddd3] shadow-xs">
+                  <h2 className="font-serif text-2xl font-black text-[#1c1917] border-b border-[#e2ddd3] pb-3">Ementa</h2>
+                  <p className="mt-4 whitespace-pre-line text-[#66594e] leading-relaxed">{curso.ementa}</p>
                 </div>
               )}
               {modulos.length > 0 && (
-                <div>
-                  <h2 className="font-serif text-2xl">Módulos</h2>
-                  <ol className="mt-4 space-y-3">
+                <div className="rounded-3xl bg-white p-8 border border-[#e2ddd3] shadow-xs">
+                  <h2 className="font-serif text-2xl font-black text-[#1c1917] border-b border-[#e2ddd3] pb-3">Grade de Módulos</h2>
+                  <ol className="mt-6 space-y-4">
                     {modulos.map((m, idx) => (
-                      <li key={m.id} className="rounded-lg border border-border bg-card p-4">
-                        <div className="text-xs text-muted-foreground">Módulo {idx + 1}</div>
-                        <div className="font-serif text-lg">{m.titulo}</div>
-                        {m.descricao && <p className="mt-1 text-sm text-muted-foreground">{m.descricao}</p>}
+                      <li key={m.id} className="rounded-2xl border border-[#e2ddd3] bg-[#f3f0e9]/40 p-5 hover:border-[#ff3403]/40 transition-colors">
+                        <div className="text-[11px] font-black uppercase tracking-wider text-[#ff3403]">Módulo {idx + 1}</div>
+                        <div className="font-serif text-lg font-black text-[#1c1917] mt-1">{m.titulo}</div>
+                        {m.descricao && <p className="mt-2 text-xs text-[#66594e] leading-relaxed">{m.descricao}</p>}
                       </li>
                     ))}
                   </ol>
@@ -272,7 +288,7 @@ function CursoDetail() {
       </main>
       {/* Dialog para Escolha de Modalidade */}
       <Dialog open={isModalityOpen} onOpenChange={setIsModalityOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm bg-white rounded-3xl border-[#e2ddd3] p-6 shadow-2xl">
           <DialogHeader>
             <DialogTitle>Escolha a Modalidade</DialogTitle>
             <DialogDescription>

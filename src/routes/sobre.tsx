@@ -72,32 +72,59 @@ function SobrePage() {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-[#f3f0e9] text-[#1c1917]">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-16">
-        <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">{tagline}</p>
-        <h1 className="mt-2 font-serif text-5xl">{title}</h1>
-        <div className="prose prose-neutral mt-8 max-w-none text-foreground">
-          <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line">
-            {intro}
-          </p>
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-16 sm:py-20">
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <span className="inline-block text-xs font-black uppercase tracking-[0.25em] text-[#ff3403] bg-[#ff3403]/10 border border-[#ff3403]/20 px-4 py-1.5 rounded-full mb-3">
+            {tagline}
+          </span>
+          <h1 className="font-serif text-4xl sm:text-5xl font-black text-[#1c1917] tracking-tight">{title}</h1>
+        </div>
 
-          <h2 className="mt-10 font-serif text-3xl">{missionTitle}</h2>
-          <p className="whitespace-pre-line">
-            {missionText}
-          </p>
+        <div className="space-y-8">
+          <div className="rounded-3xl bg-white p-8 sm:p-10 border border-[#e2ddd3] shadow-xs">
+            <p className="text-base sm:text-lg leading-relaxed text-[#66594e] font-normal whitespace-pre-line">
+              {intro}
+            </p>
+          </div>
 
-          <h2 className="mt-8 font-serif text-3xl">{visionTitle}</h2>
-          <p className="whitespace-pre-line">
-            {visionText}
-          </p>
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="rounded-3xl bg-white p-8 border border-[#e2ddd3] shadow-xs">
+              <span className="text-xs font-black uppercase tracking-widest text-[#ff3403] block mb-2">
+                Nosso Propósito
+              </span>
+              <h2 className="font-serif text-2xl font-black text-[#1c1917]">{missionTitle}</h2>
+              <p className="mt-3 text-sm text-[#66594e] leading-relaxed whitespace-pre-line font-normal">
+                {missionText}
+              </p>
+            </div>
 
-          <h2 className="mt-8 font-serif text-3xl">{valuesTitle}</h2>
-          <ul>
-            {values.map((v, i) => (
-              <li key={i}>{v}</li>
-            ))}
-          </ul>
+            <div className="rounded-3xl bg-white p-8 border border-[#e2ddd3] shadow-xs">
+              <span className="text-xs font-black uppercase tracking-widest text-[#ff3403] block mb-2">
+                Onde Queremos Chegar
+              </span>
+              <h2 className="font-serif text-2xl font-black text-[#1c1917]">{visionTitle}</h2>
+              <p className="mt-3 text-sm text-[#66594e] leading-relaxed whitespace-pre-line font-normal">
+                {visionText}
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-3xl bg-white p-8 sm:p-10 border border-[#e2ddd3] shadow-xs">
+            <span className="text-xs font-black uppercase tracking-widest text-[#ff3403] block mb-2">
+              Princípios Inegociáveis
+            </span>
+            <h2 className="font-serif text-2xl font-black text-[#1c1917] mb-6">{valuesTitle}</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {values.map((v, i) => (
+                <div key={i} className="flex items-center gap-3 rounded-2xl bg-[#f3f0e9]/50 border border-[#e2ddd3] p-4 text-sm font-semibold text-[#1c1917]">
+                  <div className="h-2 w-2 rounded-full bg-[#ff3403]" />
+                  <span>{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
       <SiteFooter />

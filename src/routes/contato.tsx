@@ -54,25 +54,31 @@ function ContatoPage() {
   const address = contatoConfig?.address ?? "Sede do seminário — a definir";
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-[#f3f0e9] text-[#1c1917]">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-16">
-        <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">{tagline}</p>
-        <h1 className="mt-2 font-serif text-5xl">{title}</h1>
-        <p className="mt-4 max-w-xl text-muted-foreground whitespace-pre-line">
-          {description}
-        </p>
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-16 sm:py-20">
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <span className="inline-block text-xs font-black uppercase tracking-[0.25em] text-[#ff3403] bg-[#ff3403]/10 border border-[#ff3403]/20 px-4 py-1.5 rounded-full mb-3">
+            {tagline}
+          </span>
+          <h1 className="font-serif text-4xl sm:text-5xl font-black text-[#1c1917] tracking-tight">{title}</h1>
+          <p className="mt-4 text-base text-[#66594e] font-normal leading-relaxed whitespace-pre-line">
+            {description}
+          </p>
+        </div>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-3">
           {[
             { icon: Mail, t: "E-mail", d: email },
             { icon: Phone, t: "Telefone", d: phone },
             { icon: MapPin, t: "Endereço", d: address },
           ].map((i) => (
-            <div key={i.t} className="rounded-xl border border-border bg-card p-6">
-              <i.icon className="h-5 w-5 text-gold" />
-              <div className="mt-3 font-serif text-lg">{i.t}</div>
-              <div className="text-sm text-muted-foreground whitespace-pre-line">{i.d}</div>
+            <div key={i.t} className="rounded-3xl border border-[#e2ddd3] bg-white p-7 shadow-xs hover:border-[#ff3403] hover:shadow-md transition-all">
+              <div className="h-12 w-12 rounded-2xl bg-[#ff3403]/10 text-[#ff3403] flex items-center justify-center mb-4">
+                <i.icon className="h-6 w-6" />
+              </div>
+              <div className="font-serif text-xl font-black text-[#1c1917]">{i.t}</div>
+              <div className="mt-2 text-sm text-[#66594e] font-medium whitespace-pre-line leading-relaxed">{i.d}</div>
             </div>
           ))}
         </div>

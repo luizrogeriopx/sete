@@ -149,21 +149,23 @@ function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-[#f3f0e9] text-[#1c1917]">
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-4 py-12">
-        <Card className="w-full shadow-lg border-border/70">
-          <CardContent className="p-8">
-            <p className="text-xs font-medium uppercase tracking-[0.25em] text-gold">Portal SETE</p>
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-4 py-16">
+        <Card className="w-full shadow-xl border border-[#e2ddd3] bg-white rounded-3xl">
+          <CardContent className="p-8 sm:p-10">
+            <span className="inline-block text-xs font-black uppercase tracking-[0.25em] text-[#ff3403] bg-[#ff3403]/10 border border-[#ff3403]/20 px-3.5 py-1 rounded-full mb-3">
+              Portal SETE
+            </span>
             
-            <h1 className="mt-2 font-serif text-3xl text-foreground">
+            <h1 className="font-serif text-3xl font-black text-[#1c1917]">
               {modo === "login" && "Entrar"}
               {modo === "cadastro" && "Criar conta"}
               {modo === "recuperar" && "Recuperar Senha"}
               {modo === "redefinir" && "Definir Nova Senha"}
             </h1>
             
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-[#66594e]">
               {modo === "login" && "Acesse o portal do aluno ou administrativo."}
               {modo === "cadastro" && "Cadastre-se para se matricular em cursos."}
               {modo === "recuperar" && "Informe seu e-mail para receber as instruções de recuperação."}
@@ -172,19 +174,19 @@ function AuthPage() {
 
             {modo === "recuperar" && recoverySent ? (
               <div className="mt-6 space-y-4 text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
                   <CheckCircle2 className="h-8 w-8" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-serif text-lg font-semibold">Link de acesso enviado!</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-serif text-lg font-bold text-[#1c1917]">Link de acesso enviado!</h3>
+                  <p className="text-sm text-[#66594e]">
                     Enviamos um e-mail para <strong>{email}</strong> com o link seguro para você definir sua nova senha.
                   </p>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full mt-4 flex items-center justify-center gap-2"
+                  className="w-full mt-4 flex items-center justify-center gap-2 rounded-full border-[#e2ddd3] text-[#1c1917] hover:bg-[#f3f0e9] font-bold text-xs uppercase tracking-wider"
                   onClick={() => {
                     setRecoverySent(false);
                     setModo("login");
@@ -198,29 +200,29 @@ function AuthPage() {
                 {modo === "cadastro" && (
                   <>
                     <div>
-                      <Label htmlFor="nome">Nome completo *</Label>
-                      <Input id="nome" required value={nome} onChange={(e) => setNome(e.target.value)} />
+                      <Label htmlFor="nome" className="text-xs font-bold text-[#1c1917]">Nome completo *</Label>
+                      <Input id="nome" required value={nome} onChange={(e) => setNome(e.target.value)} className="rounded-xl border-[#e2ddd3] focus:border-[#ff3403]" />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <Label htmlFor="dataNasc">Data de Nascimento</Label>
-                        <Input id="dataNasc" type="date" value={dataNasc} onChange={(e) => setDataNasc(e.target.value)} className="w-full text-slate-300" />
+                        <Label htmlFor="dataNasc" className="text-xs font-bold text-[#1c1917]">Data de Nascimento</Label>
+                        <Input id="dataNasc" type="date" value={dataNasc} onChange={(e) => setDataNasc(e.target.value)} className="w-full rounded-xl border-[#e2ddd3] focus:border-[#ff3403]" />
                       </div>
                       <div>
-                        <Label htmlFor="cpf">CPF</Label>
-                        <Input id="cpf" value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="000.000.000-00" />
+                        <Label htmlFor="cpf" className="text-xs font-bold text-[#1c1917]">CPF</Label>
+                        <Input id="cpf" value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="000.000.000-00" className="rounded-xl border-[#e2ddd3] focus:border-[#ff3403]" />
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="telefone">Telefone / WhatsApp</Label>
-                      <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+                      <Label htmlFor="telefone" className="text-xs font-bold text-[#1c1917]">Telefone / WhatsApp</Label>
+                      <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" className="rounded-xl border-[#e2ddd3] focus:border-[#ff3403]" />
                     </div>
                   </>
                 )}
 
                 {modo !== "redefinir" && (
                   <div>
-                    <Label htmlFor="email">E-mail</Label>
+                    <Label htmlFor="email" className="text-xs font-bold text-[#1c1917]">E-mail</Label>
                     <div className="relative mt-1">
                       <Input
                         id="email"
@@ -229,9 +231,9 @@ function AuthPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="seu.email@exemplo.com"
-                        className="pl-9"
+                        className="pl-9 rounded-xl border-[#e2ddd3] focus:border-[#ff3403]"
                       />
-                      <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <Mail className="absolute left-3 top-2.5 h-4 w-4 text-[#66594e] pointer-events-none" />
                     </div>
                   </div>
                 )}
@@ -239,11 +241,11 @@ function AuthPage() {
                 {modo === "login" && (
                   <div>
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="password">Senha</Label>
+                      <Label htmlFor="password" className="text-xs font-bold text-[#1c1917]">Senha</Label>
                       <button
                         type="button"
                         onClick={() => setModo("recuperar")}
-                        className="text-xs text-gold hover:underline"
+                        className="text-xs text-[#ff3403] font-bold hover:underline cursor-pointer"
                       >
                         Esqueceu a senha?
                       </button>
@@ -256,16 +258,16 @@ function AuthPage() {
                         minLength={6}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-9"
+                        className="pl-9 rounded-xl border-[#e2ddd3] focus:border-[#ff3403]"
                       />
-                      <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <Lock className="absolute left-3 top-2.5 h-4 w-4 text-[#66594e] pointer-events-none" />
                     </div>
                   </div>
                 )}
 
                 {modo === "cadastro" && (
                   <div>
-                    <Label htmlFor="password">Senha</Label>
+                    <Label htmlFor="password" className="text-xs font-bold text-[#1c1917]">Senha</Label>
                     <div className="relative mt-1">
                       <Input
                         id="password"
@@ -274,9 +276,9 @@ function AuthPage() {
                         minLength={6}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-9"
+                        className="pl-9 rounded-xl border-[#e2ddd3] focus:border-[#ff3403]"
                       />
-                      <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <Lock className="absolute left-3 top-2.5 h-4 w-4 text-[#66594e] pointer-events-none" />
                     </div>
                   </div>
                 )}
@@ -284,7 +286,7 @@ function AuthPage() {
                 {modo === "redefinir" && (
                   <>
                     <div>
-                      <Label htmlFor="new-password">Nova Senha *</Label>
+                      <Label htmlFor="new-password" className="text-xs font-bold text-[#1c1917]">Nova Senha *</Label>
                       <div className="relative mt-1">
                         <Input
                           id="new-password"
@@ -294,13 +296,13 @@ function AuthPage() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="Mínimo 6 caracteres"
-                          className="pl-9"
+                          className="pl-9 rounded-xl border-[#e2ddd3] focus:border-[#ff3403]"
                         />
-                        <KeyRound className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        <KeyRound className="absolute left-3 top-2.5 h-4 w-4 text-[#66594e] pointer-events-none" />
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="confirm-password">Confirmar Nova Senha *</Label>
+                      <Label htmlFor="confirm-password" className="text-xs font-bold text-[#1c1917]">Confirmar Nova Senha *</Label>
                       <div className="relative mt-1">
                         <Input
                           id="confirm-password"
@@ -310,15 +312,15 @@ function AuthPage() {
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="Repita a nova senha"
-                          className="pl-9"
+                          className="pl-9 rounded-xl border-[#e2ddd3] focus:border-[#ff3403]"
                         />
-                        <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        <Lock className="absolute left-3 top-2.5 h-4 w-4 text-[#66594e] pointer-events-none" />
                       </div>
                     </div>
                   </>
                 )}
 
-                <Button type="submit" className="w-full bg-gold text-gold-foreground hover:bg-gold/90" disabled={loading}>
+                <Button type="submit" className="w-full rounded-full bg-[#ff3403] text-white hover:bg-[#e02e00] font-bold text-xs uppercase tracking-wider py-3.5 shadow-md cursor-pointer" disabled={loading}>
                   {loading ? (
                     "Aguarde..."
                   ) : modo === "login" ? (
@@ -335,11 +337,11 @@ function AuthPage() {
             )}
 
             {/* Alternância de Modos */}
-            <div className="mt-6 text-center text-sm text-muted-foreground space-y-2">
+            <div className="mt-6 text-center text-sm text-[#66594e] space-y-2">
               {modo === "login" && (
                 <div>
                   Ainda não tem conta?{" "}
-                  <button className="text-primary underline font-medium" onClick={() => setModo("cadastro")}>
+                  <button className="text-[#ff3403] underline font-bold cursor-pointer" onClick={() => setModo("cadastro")}>
                     Cadastre-se
                   </button>
                 </div>
@@ -348,7 +350,7 @@ function AuthPage() {
               {modo === "cadastro" && (
                 <div>
                   Já tem conta?{" "}
-                  <button className="text-primary underline font-medium" onClick={() => setModo("login")}>
+                  <button className="text-[#ff3403] underline font-bold cursor-pointer" onClick={() => setModo("login")}>
                     Entrar
                   </button>
                 </div>
@@ -357,7 +359,7 @@ function AuthPage() {
               {modo === "recuperar" && !recoverySent && (
                 <div>
                   Lembrou sua senha?{" "}
-                  <button className="text-primary underline font-medium" onClick={() => setModo("login")}>
+                  <button className="text-[#ff3403] underline font-bold cursor-pointer" onClick={() => setModo("login")}>
                     Voltar ao Login
                   </button>
                 </div>
@@ -366,15 +368,15 @@ function AuthPage() {
               {modo === "redefinir" && (
                 <div>
                   Deseja entrar com outra conta?{" "}
-                  <button className="text-primary underline font-medium" onClick={() => setModo("login")}>
+                  <button className="text-[#ff3403] underline font-bold cursor-pointer" onClick={() => setModo("login")}>
                     Ir para o Login
                   </button>
                 </div>
               )}
             </div>
 
-            <div className="mt-4 text-center">
-              <Link to="/" className="text-xs text-muted-foreground underline hover:text-foreground">
+            <div className="mt-5 text-center">
+              <Link to="/" className="text-xs text-[#66594e] underline hover:text-[#1c1917]">
                 Voltar ao início
               </Link>
             </div>
