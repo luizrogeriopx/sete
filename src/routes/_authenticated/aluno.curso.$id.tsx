@@ -78,7 +78,7 @@ function CursoAluno() {
       }
 
       const [{ data: curso }, { data: progresso }, { data: tentativas }] = await Promise.all([
-        supabase.from("cursos").select("id, titulo, descricao, modulos(id, ordem, titulo, aulas(id, ordem, titulo, video_url, material_url, conteudo), avaliacoes(id, titulo, descricao, nota_minima, questionario_id, quantidade_questoes))").eq("id", id).maybeSingle(),
+        supabase.from("cursos").select("id, titulo, descricao, modulos(id, ordem, titulo, aulas(*), avaliacoes(id, titulo, descricao, nota_minima, questionario_id, quantidade_questoes))").eq("id", id).maybeSingle(),
         matricula?.id
           ? supabase.from("progresso_aula").select("aula_id, concluida").eq("matricula_id", matricula.id)
           : Promise.resolve({ data: [] }),
@@ -337,6 +337,15 @@ function CursoAluno() {
                           {embed && (
                             <div className="mt-3 aspect-video overflow-hidden rounded-md bg-black">
                               <iframe src={embed} className="h-full w-full" allowFullScreen title={a.titulo} />
+                            </div>
+                          )}
+                          {a.imagem_url && (
+                            <div className="mt-3 overflow-hidden rounded-xl border border-border bg-slate-950/40">
+                              <img
+                                src={a.imagem_url}
+                                alt={a.titulo}
+                                className="w-full max-h-[440px] object-contain mx-auto"
+                              />
                             </div>
                           )}
                           {a.conteudo && (

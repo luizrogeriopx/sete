@@ -50,6 +50,7 @@ export type Database = {
           descricao: string | null
           duracao_minutos: number | null
           id: string
+          imagem_url: string | null
           material_url: string | null
           modulo_id: string
           ordem: number
@@ -62,6 +63,7 @@ export type Database = {
           descricao?: string | null
           duracao_minutos?: number | null
           id?: string
+          imagem_url?: string | null
           material_url?: string | null
           modulo_id: string
           ordem?: number
@@ -74,6 +76,7 @@ export type Database = {
           descricao?: string | null
           duracao_minutos?: number | null
           id?: string
+          imagem_url?: string | null
           material_url?: string | null
           modulo_id?: string
           ordem?: number

@@ -25,6 +25,8 @@ import {
   BookOpen,
   CheckCircle2,
   Sparkles,
+  Image as ImageIcon,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -66,6 +68,8 @@ function CursoConteudoAdmin() {
   const [classMaterialUrl, setClassMaterialUrl] = useState("");
   const [classConteudo, setClassConteudo] = useState("");
   const [classOrdem, setClassOrdem] = useState("0");
+  const [classImagemUrl, setClassImagemUrl] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Form State Avaliacao
   const [selectedEval, setSelectedEval] = useState<any>(null);
@@ -290,10 +294,21 @@ function CursoConteudoAdmin() {
           conteudo: aula.conteudo || null,
           ordem: aula.ordem || 0,
           duracao_minutos: aula.duracao_minutos || null,
+          imagem_url: aula.imagem_url || null,
         }));
 
-        const { error: aulasErr } = await supabase.from("aulas").insert(aulasPayload);
-        if (aulasErr) throw aulasErr;
+        try {
+          const { error: aulasErr } = await supabase.from("aulas").insert(aulasPayload);
+          if (aulasErr) throw aulasErr;
+        } catch (err: any) {
+          if (err?.message?.includes("imagem_url")) {
+            const fallbackAulas = aulasPayload.map(({ imagem_url, ...rest }: any) => rest);
+            const { error: fErr } = await supabase.from("aulas").insert(fallbackAulas);
+            if (fErr) throw fErr;
+          } else {
+            throw err;
+          }
+        }
         aulasCount = aulasPayload.length;
       }
 
@@ -343,27 +358,48 @@ function CursoConteudoAdmin() {
   const salvarAula = useMutation({
     mutationFn: async () => {
       if (!classTitulo.trim()) throw new Error("Título da aula é obrigatório.");
-      const payload = {
+      const payload: any = {
         modulo_id: activeModuloId!,
-        titulo: classTitulo,
-        descricao: classDescricao || null,
-        video_url: classVideoUrl || null,
-        material_url: classMaterialUrl || null,
-        conteudo: classConteudo || null,
+        titulo: classTitulo.trim(),
+        descricao: classDescricao ? classDescricao.trim() : null,
+        video_url: classVideoUrl ? classVideoUrl.trim() : null,
+        material_url: classMaterialUrl ? classMaterialUrl.trim() : null,
+        conteudo: classConteudo ? classConteudo.trim() : null,
         ordem: parseInt(classOrdem) || 0,
+        imagem_url: classImagemUrl ? classImagemUrl.trim() : null,
       };
 
-      if (selectedAula) {
-        const { error } = await supabase
-          .from("aulas")
-          .update(payload)
-          .eq("id", selectedAula.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("aulas")
-          .insert(payload);
-        if (error) throw error;
+      try {
+        if (selectedAula) {
+          const { error } = await supabase
+            .from("aulas")
+            .update(payload)
+            .eq("id", selectedAula.id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase
+            .from("aulas")
+            .insert(payload);
+          if (error) throw error;
+        }
+      } catch (err: any) {
+        if (err?.message?.includes("imagem_url")) {
+          const { imagem_url, ...fallbackPayload } = payload;
+          if (selectedAula) {
+            const { error: fErr } = await supabase
+              .from("aulas")
+              .update(fallbackPayload)
+              .eq("id", selectedAula.id);
+            if (fErr) throw fErr;
+          } else {
+            const { error: fErr } = await supabase
+              .from("aulas")
+              .insert(fallbackPayload);
+            if (fErr) throw fErr;
+          }
+        } else {
+          throw err;
+        }
       }
     },
     onSuccess: () => {
@@ -437,6 +473,48 @@ function CursoConteudoAdmin() {
     onError: (err: any) => toast.error(err.message),
   });
 
+  async function handleUploadClassImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor, selecione um arquivo de imagem válido (PNG, JPG, WebP, etc.).");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 10MB.");
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      const fileExt = file.name.split(".").pop() || "jpg";
+      const fileName = `aulas/${crypto.randomUUID()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("cursos")
+        .upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("cursos").getPublicUrl(fileName);
+      if (!data.publicUrl) throw new Error("Não foi possível gerar a URL pública.");
+
+      setClassImagemUrl(data.publicUrl);
+      toast.success("Imagem carregada com sucesso!");
+    } catch (err: any) {
+      console.error("Erro ao subir imagem da aula:", err);
+      toast.error(err.message || "Erro ao fazer upload da imagem.");
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = "";
+    }
+  }
+
   function resetAulaForm() {
     setClassTitulo("");
     setClassDescricao("");
@@ -444,6 +522,7 @@ function CursoConteudoAdmin() {
     setClassMaterialUrl("");
     setClassConteudo("");
     setClassOrdem("0");
+    setClassImagemUrl("");
   }
 
   function resetEvalForm() {
@@ -478,6 +557,7 @@ function CursoConteudoAdmin() {
     setClassMaterialUrl(aula.material_url || "");
     setClassConteudo(aula.conteudo || "");
     setClassOrdem((aula.ordem || 0).toString());
+    setClassImagemUrl(aula.imagem_url || "");
     setIsClassOpen(true);
   }
 
@@ -614,6 +694,11 @@ function CursoConteudoAdmin() {
                             {aula.material_url && (
                               <span className="flex items-center gap-1">
                                 <FileText className="h-3 w-3" /> Possui Material
+                              </span>
+                            )}
+                            {aula.imagem_url && (
+                              <span className="flex items-center gap-1 text-emerald-400">
+                                <ImageIcon className="h-3 w-3" /> Possui Imagem
                               </span>
                             )}
                           </div>
@@ -984,6 +1069,7 @@ function CursoConteudoAdmin() {
                             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground shrink-0">
                               {aula.video_url && <Video className="h-3 w-3 text-gold" />}
                               {aula.material_url && <FileText className="h-3 w-3 text-sky-400" />}
+                              {aula.imagem_url && <ImageIcon className="h-3 w-3 text-emerald-400" />}
                             </div>
                           </div>
                         ))}
@@ -1183,6 +1269,78 @@ function CursoConteudoAdmin() {
                 onChange={(e) => setClassMaterialUrl(e.target.value)}
                 placeholder="https://..."
               />
+            </div>
+
+            {/* Upload de Imagem Ilustrativa da Aula */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="class-image-file">Imagem da Aula (Upload ou URL)</Label>
+                <span className="text-[11px] text-muted-foreground">Opcional</span>
+              </div>
+
+              {classImagemUrl ? (
+                <div className="relative rounded-lg overflow-hidden border border-border bg-slate-950 p-2 flex flex-col items-center gap-2">
+                  <img
+                    src={classImagemUrl}
+                    alt="Prévia da imagem da aula"
+                    className="max-h-48 w-full object-contain rounded-md bg-black/40"
+                  />
+                  <div className="flex items-center justify-between w-full px-1 gap-2">
+                    <span className="text-[11px] text-muted-foreground truncate flex-1">
+                      {classImagemUrl}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setClassImagemUrl("")}
+                      className="text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 text-xs h-7 px-2 shrink-0"
+                    >
+                      <Trash2 className="h-3.5 w-3.5 mr-1" /> Remover
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <label
+                    htmlFor="class-image-file"
+                    className={`flex flex-col items-center justify-center border-2 border-dashed border-border hover:border-gold/60 rounded-lg p-4 cursor-pointer transition-colors bg-muted/10 ${
+                      isUploadingImage ? "opacity-60 pointer-events-none" : ""
+                    }`}
+                  >
+                    {isUploadingImage ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-6 w-6 animate-spin text-gold" />
+                        <span className="text-xs text-muted-foreground">Fazendo upload da imagem...</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-1 text-center">
+                        <div className="p-2 rounded-full bg-gold/10 text-gold mb-1">
+                          <Upload className="h-4 w-4" />
+                        </div>
+                        <span className="text-xs font-semibold">Clique para fazer upload de imagem</span>
+                        <span className="text-[10px] text-muted-foreground">PNG, JPG, WebP ou GIF (máx. 10MB)</span>
+                      </div>
+                    )}
+                    <input
+                      id="class-image-file"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleUploadClassImage}
+                      disabled={isUploadingImage}
+                    />
+                  </label>
+
+                  <Input
+                    id="class-image-url-manual"
+                    value={classImagemUrl}
+                    onChange={(e) => setClassImagemUrl(e.target.value)}
+                    placeholder="Ou cole a URL direta da imagem (https://...)"
+                    className="text-xs"
+                  />
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="class-content">Conteúdo Completo (Texto de Estudo)</Label>
