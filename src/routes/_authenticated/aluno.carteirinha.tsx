@@ -25,7 +25,7 @@ function CarteirinhaEstudantil() {
         supabase.from("matriculas")
           .select("id, status, cursos(titulo)")
           .eq("aluno_id", user!.id)
-          .eq("status", "ativa"),
+          .in("status", ["ativa", "concluida"]),
       ]);
 
       if (profileRes.error) throw profileRes.error;

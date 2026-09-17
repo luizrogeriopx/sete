@@ -5,7 +5,7 @@ import { SiteHeader, SiteFooter } from "@/components/site/site-chrome";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, User, BookOpen } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, hasAnyRole } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -69,8 +69,9 @@ export const Route = createFileRoute("/cursos/$slug")({
 
 function CursoDetail() {
   const curso = Route.useLoaderData();
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const navigate = useNavigate();
+  const isAdminOrSuper = hasAnyRole(roles, "admin", "super_admin");
   const [isModalityOpen, setIsModalityOpen] = useState(false);
   const [selectedModality, setSelectedModality] = useState("");
   const [isInternalOpen, setIsInternalOpen] = useState(false);
@@ -88,11 +89,13 @@ function CursoDetail() {
       .eq("curso_id", curso.id)
       .maybeSingle();
 
-    if (existente && existente.status === "ativa") {
-      toast.success("Você já está matriculado.");
+    if (existente && (existente.status === "ativa" || existente.status === "concluida")) {
+      toast.success("Você já tem acesso a este curso.");
       navigate({ to: "/aluno/curso/$id", params: { id: curso.id } });
       return;
     }
+
+    const novoStatus = isAdminOrSuper ? "ativa" : (Number(curso.preco) > 0 ? "pendente" : "ativa");
 
     if (!existente) {
       const { error } = await supabase
@@ -100,7 +103,7 @@ function CursoDetail() {
         .insert({
           aluno_id: user!.id,
           curso_id: curso.id,
-          status: "pendente",
+          status: novoStatus,
           modalidade_escolhida: escolhida,
           regional: reg || null,
           congregacao: cong || null,
@@ -110,6 +113,7 @@ function CursoDetail() {
       const { error } = await supabase
         .from("matriculas")
         .update({
+          status: isAdminOrSuper ? "ativa" : existente.status,
           modalidade_escolhida: escolhida,
           regional: reg || null,
           congregacao: cong || null,
@@ -118,11 +122,11 @@ function CursoDetail() {
       if (error) return toast.error(error.message);
     }
 
-    if (Number(curso.preco) > 0) {
+    if (!isAdminOrSuper && Number(curso.preco) > 0) {
       navigate({ to: "/checkout/$slug", params: { slug: curso.slug } });
     } else {
-      toast.success("Matrícula realizada!");
-      navigate({ to: "/aluno" });
+      toast.success(isAdminOrSuper ? "Matrícula liberada com isenção administrativa!" : "Matrícula realizada!");
+      navigate({ to: "/aluno/curso/$id", params: { id: curso.id } });
     }
   }
 
@@ -226,7 +230,12 @@ function CursoDetail() {
                   Valor da Formação
                 </span>
                 <div className="font-serif text-3xl font-black text-[#ff3403] mt-1">
-                  {Number(curso.preco) > 0 ? (
+                  {isAdminOrSuper ? (
+                    <>
+                      <span>Isento</span>
+                      <span className="text-xs font-sans font-normal text-[#66594e] block mt-1">Acesso administrativo total</span>
+                    </>
+                  ) : Number(curso.preco) > 0 ? (
                     <>
                       R$ {Number(curso.preco).toFixed(2).replace(".", ",")}
                       {curso.cobranca_por === "modulo" && (
@@ -238,15 +247,17 @@ function CursoDetail() {
                   )}
                 </div>
                 <p className="mt-3 text-xs text-[#66594e] leading-relaxed">
-                  Acesso ao ambiente de aulas, material didático em PDF e certificação oficial.
+                  {isAdminOrSuper
+                    ? "Como administrador, seu acesso a todas as aulas, módulos e materiais é 100% liberado e isento de taxas."
+                    : "Acesso ao ambiente de aulas, material didático em PDF e certificação oficial."}
                 </p>
               </div>
               <div className="mt-6">
                 <Button onClick={matricular} className="w-full rounded-full bg-[#ff3403] text-white hover:bg-[#e02e00] font-bold text-xs uppercase tracking-wider py-3.5 shadow-md" size="lg">
-                  Matricule-se Agora
+                  {isAdminOrSuper ? "Acessar Curso (Isento)" : "Matricule-se Agora"}
                 </Button>
                 <p className="mt-3 text-center text-[11px] text-[#66594e]">
-                  Pagamento online ou presencial na secretaria.
+                  {isAdminOrSuper ? "Liberação imediata no ambiente do aluno." : "Pagamento online ou presencial na secretaria."}
                 </p>
               </div>
             </aside>

@@ -66,7 +66,15 @@ function MeusCursos() {
                       <Badge variant="outline" className="text-[9px] py-0 px-1.5 leading-none">
                         {m.modalidade_escolhida === "online" ? "Online (AVA)" : m.modalidade_escolhida === "hibrido" ? "Semi-presencial" : m.modalidade_escolhida || (m.cursos?.modalidade === "hibrido" ? "Semi-presencial" : m.cursos?.modalidade)}
                       </Badge>
-                      <Badge className="text-[9px] py-0 px-1.5 leading-none capitalize">{m.status}</Badge>
+                      <Badge className={`text-[9px] py-0 px-1.5 leading-none capitalize ${
+                        m.status === "concluida"
+                          ? "bg-emerald-600 hover:bg-emerald-600 text-white"
+                          : m.status === "ativa"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-amber-600 text-white"
+                      }`}>
+                        {m.status === "concluida" ? "Concluído" : m.status === "ativa" ? "Ativo" : m.status}
+                      </Badge>
                     </div>
                     <h3 className="mt-2 font-serif text-sm font-bold line-clamp-1 text-slate-100">{m.cursos?.titulo}</h3>
                   </CardContent>

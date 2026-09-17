@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, hasAnyRole } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -10,7 +10,8 @@ export const Route = createFileRoute("/_authenticated/aluno/cursos-disponiveis")
 });
 
 function Page() {
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
+  const isAdminOrSuper = hasAnyRole(roles, "admin", "super_admin");
   const { data } = useQuery({
     queryKey: ["disponiveis", user?.id],
     enabled: !!user,
@@ -87,6 +88,8 @@ function Page() {
                 <div className="font-serif text-xs text-primary font-bold">
                   {c.jaMatriculado ? (
                     "Acesso Liberado"
+                  ) : isAdminOrSuper ? (
+                    "Isento (Admin)"
                   ) : Number(c.preco) > 0 ? (
                     <>
                       R$ {Number(c.preco).toFixed(2).replace(".", ",")}

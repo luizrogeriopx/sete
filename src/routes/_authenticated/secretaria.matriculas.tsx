@@ -99,13 +99,17 @@ function MatriculasSecretaria() {
 
       if (matError) throw matError;
 
-      // Get course price to generate billing if pending or active
-      const courseDetails = cursos?.find((c) => c.id === cursoId);
-      const { data: courseFull } = await supabase.from("cursos").select("preco").eq("id", cursoId).single();
-      const preco = courseFull?.preco ?? 0;
+      // Verificar se o aluno é admin ou super_admin (isentos de cobrança)
+      const { data: userRoles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", alunoId);
+      const isAlunoAdminOrSuper = (userRoles ?? []).some(
+        (r) => r.role === "admin" || r.role === "super_admin"
+      );
 
-      if (preco > 0) {
-        // Insert a pending payment bill
+      if (preco > 0 && !isAlunoAdminOrSuper) {
+        // Insert a pending payment bill only if not admin/super_admin
         const { error: payError } = await supabase
           .from("pagamentos")
           .insert({

@@ -1,7 +1,7 @@
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, hasAnyRole } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,8 +30,9 @@ function getEmbedUrl(url: string | null): string | null {
 
 function CursoAluno() {
   const { id } = useParams({ from: "/_authenticated/aluno/curso/$id" });
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const qc = useQueryClient();
+  const isAdminOrSuper = hasAnyRole(roles, "admin", "super_admin");
 
   // Active Assessment State
   const [activeEval, setActiveEval] = useState<any | null>(null);
@@ -42,13 +43,45 @@ function CursoAluno() {
   const [loadingQuestions, setLoadingQuestions] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["curso-aluno", id, user?.id],
+    queryKey: ["curso-aluno", id, user?.id, isAdminOrSuper],
     enabled: !!user,
     queryFn: async () => {
-      const [{ data: matricula }, { data: curso }, { data: progresso }, { data: tentativas }] = await Promise.all([
-        supabase.from("matriculas").select("id, status").eq("curso_id", id).eq("aluno_id", user!.id).maybeSingle(),
+      let { data: matricula } = await supabase
+        .from("matriculas")
+        .select("id, status")
+        .eq("curso_id", id)
+        .eq("aluno_id", user!.id)
+        .maybeSingle();
+
+      // Admins e Super Admins nunca são cobrados e possuem acesso irrestrito
+      if (isAdminOrSuper) {
+        if (!matricula) {
+          const { data: novaMatricula } = await supabase
+            .from("matriculas")
+            .insert({
+              aluno_id: user!.id,
+              curso_id: id,
+              status: "ativa",
+              progresso: 0,
+              modalidade_escolhida: "online",
+            })
+            .select("id, status")
+            .single();
+          matricula = novaMatricula;
+        } else if (matricula.status === "pendente") {
+          await supabase
+            .from("matriculas")
+            .update({ status: "ativa" })
+            .eq("id", matricula.id);
+          matricula = { ...matricula, status: "ativa" };
+        }
+      }
+
+      const [{ data: curso }, { data: progresso }, { data: tentativas }] = await Promise.all([
         supabase.from("cursos").select("id, titulo, descricao, modulos(id, ordem, titulo, aulas(id, ordem, titulo, video_url, material_url, conteudo), avaliacoes(id, titulo, descricao, nota_minima, questionario_id, quantidade_questoes))").eq("id", id).maybeSingle(),
-        supabase.from("progresso_aula").select("aula_id, concluida").eq("matricula_id", (await supabase.from("matriculas").select("id").eq("curso_id", id).eq("aluno_id", user!.id).maybeSingle()).data?.id ?? ""),
+        matricula?.id
+          ? supabase.from("progresso_aula").select("aula_id, concluida").eq("matricula_id", matricula.id)
+          : Promise.resolve({ data: [] }),
         supabase.from("tentativas_avaliacao").select("avaliacao_id, nota, aprovado, realizada_em").eq("aluno_id", user!.id),
       ]);
       return { matricula, curso, progresso: progresso ?? [], tentativas: tentativas ?? [] };
@@ -57,7 +90,17 @@ function CursoAluno() {
 
   const marcarConcluida = useMutation({
     mutationFn: async ({ aulaId, concluida }: { aulaId: string; concluida: boolean }) => {
-      const matriculaId = data?.matricula?.id;
+      let matriculaId = data?.matricula?.id;
+      if (!matriculaId && isAdminOrSuper) {
+        const { data: nova } = await supabase.from("matriculas").insert({
+          aluno_id: user!.id,
+          curso_id: id,
+          status: "ativa",
+          progresso: 0,
+          modalidade_escolhida: "online",
+        }).select("id").single();
+        matriculaId = nova?.id;
+      }
       if (!matriculaId) throw new Error("Matrícula não encontrada");
       const { error } = await supabase.from("progresso_aula").upsert({
         matricula_id: matriculaId,
@@ -166,20 +209,71 @@ function CursoAluno() {
   });
 
   if (isLoading) return <p>Carregando…</p>;
-  if (!data?.matricula) return (
+
+  const matricula = data?.matricula;
+  const curso = data?.curso;
+
+  if (!matricula && !isAdminOrSuper) return (
     <div className="rounded-lg border border-dashed p-8 text-center">
       <p>Você não está matriculado neste curso.</p>
       <Button asChild className="mt-3"><Link to="/aluno/cursos-disponiveis">Ver cursos</Link></Button>
     </div>
   );
-  if (data.matricula.status !== "ativa") return (
-    <div className="rounded-lg border border-dashed p-8 text-center">
-      <p>Sua matrícula está <strong>{data.matricula.status}</strong>.</p>
-      <p className="mt-2 text-sm text-muted-foreground">Regularize pagamento em <Link to="/aluno/financeiro" className="text-primary underline">Financeiro</Link>.</p>
-    </div>
-  );
 
-  const curso = data.curso;
+  const status = matricula?.status;
+  // Acesso liberado: Admin/Super Admin sempre tem acesso; alunos têm acesso se a matrícula for 'ativa' ou 'concluida'
+  const isLiberado = isAdminOrSuper || status === "ativa" || status === "concluida";
+
+  if (!isLiberado) {
+    if (status === "pendente") {
+      return (
+        <div className="rounded-lg border border-dashed p-8 text-center max-w-md mx-auto my-12 space-y-3">
+          <p className="font-semibold text-lg">Matrícula Pendente</p>
+          <p className="text-sm text-muted-foreground">
+            Sua matrícula está aguardando confirmação de pagamento.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Regularize o pagamento em <Link to="/aluno/financeiro" className="text-primary underline font-medium">Financeiro</Link> para liberar o acesso às aulas e materiais.
+          </p>
+          <Button asChild className="mt-2">
+            <Link to="/aluno/financeiro">Ir para o Financeiro</Link>
+          </Button>
+        </div>
+      );
+    }
+    if (status === "trancada") {
+      return (
+        <div className="rounded-lg border border-dashed p-8 text-center max-w-md mx-auto my-12 space-y-3">
+          <p className="font-semibold text-lg">Matrícula Trancada</p>
+          <p className="text-sm text-muted-foreground">
+            Sua matrícula neste curso está trancada.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Entre em contato com a secretaria do seminário para solicitar o destrancamento.
+          </p>
+        </div>
+      );
+    }
+    if (status === "cancelada") {
+      return (
+        <div className="rounded-lg border border-dashed p-8 text-center max-w-md mx-auto my-12 space-y-3">
+          <p className="font-semibold text-lg">Matrícula Cancelada</p>
+          <p className="text-sm text-muted-foreground">
+            Esta matrícula foi cancelada. Entre em contato com a secretaria caso tenha dúvidas.
+          </p>
+        </div>
+      );
+    }
+    return (
+      <div className="rounded-lg border border-dashed p-8 text-center max-w-md mx-auto my-12 space-y-3">
+        <p>Sua matrícula está <strong>{status || "inativa"}</strong>.</p>
+        <p className="text-sm text-muted-foreground">
+          Entre em contato com a secretaria do seminário para mais informações.
+        </p>
+      </div>
+    );
+  }
+
   const doneMap = new Map(data.progresso.map((p) => [p.aula_id, p.concluida]));
   const modulos = [...(curso?.modulos ?? [])].sort((a, b) => a.ordem - b.ordem);
 
@@ -195,7 +289,30 @@ function CursoAluno() {
     <div className="space-y-8">
       <div>
         <Link to="/aluno/meus-cursos" className="text-xs text-muted-foreground underline">← Meus cursos</Link>
-        <h1 className="mt-2 font-serif text-4xl">{curso?.titulo}</h1>
+        <div className="mt-2 flex items-center gap-3 flex-wrap">
+          <h1 className="font-serif text-4xl">{curso?.titulo}</h1>
+          {status === "concluida" && (
+            <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white font-semibold">
+              Curso Concluído
+            </Badge>
+          )}
+          {isAdminOrSuper && (
+            <Badge variant="outline" className="border-primary text-primary font-medium">
+              Acesso Administrativo (Isento)
+            </Badge>
+          )}
+        </div>
+        {status === "concluida" && (
+          <div className="mt-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-4 text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+              <span>Você concluiu esta formação com sucesso! Todas as aulas e materiais permanecem liberados para consulta.</span>
+            </div>
+            <Button asChild size="sm" variant="outline" className="border-emerald-600 text-emerald-700 hover:bg-emerald-600 hover:text-white shrink-0">
+              <Link to="/aluno/certificados">Ver Certificados</Link>
+            </Button>
+          </div>
+        )}
       </div>
 
       {modulos.map((m, i) => {

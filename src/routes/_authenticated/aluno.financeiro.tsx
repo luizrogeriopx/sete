@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, hasAnyRole } from "@/hooks/use-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,14 +16,24 @@ export const Route = createFileRoute("/_authenticated/aluno/financeiro")({
 });
 
 function FinanceiroAluno() {
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const qc = useQueryClient();
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const isAdminOrSuper = hasAnyRole(roles, "admin", "super_admin");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["financeiro-aluno", user?.id],
+    queryKey: ["financeiro-aluno", user?.id, isAdminOrSuper],
     enabled: !!user,
     queryFn: async () => {
+      // Admins e Super Admins nunca são cobrados - ativar qualquer pendência existente
+      if (isAdminOrSuper) {
+        await supabase
+          .from("matriculas")
+          .update({ status: "ativa" })
+          .eq("aluno_id", user!.id)
+          .eq("status", "pendente");
+      }
+
       // Fetch all matriculas and their pagamentos
       const { data: matriculas, error: mError } = await supabase
         .from("matriculas")
@@ -47,7 +57,9 @@ function FinanceiroAluno() {
 
       return {
         matriculas: matriculas ?? [],
-        pagamentos: pagamentos ?? [],
+        pagamentos: isAdminOrSuper
+          ? (pagamentos ?? []).filter((p) => p.status !== "pendente")
+          : (pagamentos ?? []),
       };
     },
   });
@@ -96,6 +108,22 @@ function FinanceiroAluno() {
           <p className="mt-1 text-muted-foreground">Acompanhe suas mensalidades e realize pagamentos.</p>
         </div>
       </div>
+
+      {isAdminOrSuper && (
+        <Card className="border-[#ff3403]/30 bg-[#ff3403]/5 p-6 rounded-2xl">
+          <div className="flex items-start gap-4">
+            <div className="rounded-full bg-[#ff3403]/10 p-2 text-[#ff3403] shrink-0">
+              <CheckCircle2 className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="font-serif text-lg font-bold text-[#1c1917]">Isenção Administrativa Ativa</h3>
+              <p className="mt-1 text-sm text-[#66594e]">
+                Como <strong>Administrador / Super Admin</strong>, você possui isenção total de cobranças e mensalidades em todos os cursos do SETE. Seu acesso aos conteúdos é 100% liberado.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {pagamentos.length === 0 ? (
         <Card className="p-8 text-center border-dashed">
