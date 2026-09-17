@@ -6,7 +6,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle2, Circle, FileText, HelpCircle, Loader2 } from "lucide-react";
+import {
+  CheckCircle2,
+  Circle,
+  FileText,
+  HelpCircle,
+  Loader2,
+  ChevronDown,
+  Video,
+  BookOpen,
+  Image as ImageIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -41,6 +51,42 @@ function CursoAluno() {
   const [isEvalStarted, setIsEvalStarted] = useState(false);
   const [evalResult, setEvalResult] = useState<any | null>(null);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
+
+  // Estados de acordeão: módulos e aulas fechados por padrão
+  const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
+  const [openAulas, setOpenAulas] = useState<Record<string, boolean>>({});
+
+  const toggleModulo = (moduloId: string) => {
+    setOpenModules((prev) => ({
+      ...prev,
+      [moduloId]: !prev[moduloId],
+    }));
+  };
+
+  const toggleAula = (aulaId: string) => {
+    setOpenAulas((prev) => ({
+      ...prev,
+      [aulaId]: !prev[aulaId],
+    }));
+  };
+
+  const expandAll = (modulosList: any[]) => {
+    const allMods: Record<string, boolean> = {};
+    const allAulas: Record<string, boolean> = {};
+    (modulosList ?? []).forEach((m: any) => {
+      allMods[m.id] = true;
+      (m.aulas ?? []).forEach((a: any) => {
+        allAulas[a.id] = true;
+      });
+    });
+    setOpenModules(allMods);
+    setOpenAulas(allAulas);
+  };
+
+  const collapseAll = () => {
+    setOpenModules({});
+    setOpenAulas({});
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["curso-aluno", id, user?.id, isAdminOrSuper],
@@ -315,133 +361,367 @@ function CursoAluno() {
         )}
       </div>
 
-      {modulos.map((m, i) => {
-        const aulas = [...(m.aulas ?? [])].sort((a, b) => a.ordem - b.ordem);
-        const avaliacoes = m.avaliacoes ?? [];
+      {/* Barra de Ações Rápidas: Contagem e Expandir/Recolher */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 pb-1 border-b border-border/60">
+        <div className="text-sm text-muted-foreground flex items-center gap-2">
+          <BookOpen className="h-4 w-4 text-[#ff3403]" />
+          <span>
+            {modulos.length} {modulos.length === 1 ? "módulo" : "módulos"} •{" "}
+            {modulos.reduce((acc, m) => acc + (m.aulas?.length || 0), 0)} aulas no total
+          </span>
+        </div>
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => expandAll(modulos)}
+            className="text-xs h-8 text-muted-foreground hover:text-foreground"
+          >
+            Expandir Todos
+          </Button>
+          <span className="text-muted-foreground/30">•</span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={collapseAll}
+            className="text-xs h-8 text-muted-foreground hover:text-foreground"
+          >
+            Recolher Todos
+          </Button>
+        </div>
+      </div>
 
-        return (
-          <div key={m.id} className="space-y-4">
-            <h2 className="font-serif text-2xl">Módulo {i + 1} · {m.titulo}</h2>
-            
-            {/* Aulas */}
-            <div className="mt-3 space-y-3">
-              {aulas.map((a) => {
-                const done = !!doneMap.get(a.id);
-                const embed = getEmbedUrl(a.video_url);
-                return (
-                  <Card key={a.id}>
-                    <CardContent className="p-5">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="font-serif text-lg">{a.titulo}</div>
-                          {embed && (
-                            <div className="mt-3 aspect-video overflow-hidden rounded-md bg-black">
-                              <iframe src={embed} className="h-full w-full" allowFullScreen title={a.titulo} />
-                            </div>
-                          )}
-                          {a.imagem_url && (
-                            <div className="mt-3 overflow-hidden rounded-xl border border-border bg-slate-950/40">
-                              <img
-                                src={a.imagem_url}
-                                alt={a.titulo}
-                                className="w-full max-h-[440px] object-contain mx-auto"
-                              />
-                            </div>
-                          )}
-                          {a.conteudo && (
-                            <div className="mt-4 pt-3 border-t border-border/40 text-foreground/90">
-                              {/<[a-z][\s\S]*>/i.test(a.conteudo) ? (
-                                <div
-                                  className="prose prose-slate dark:prose-invert max-w-none text-sm leading-relaxed
-                                    [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:font-serif [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:text-foreground
-                                    [&_h2]:text-xl [&_h2]:font-bold [&_h2]:font-serif [&_h2]:mt-5 [&_h2]:mb-2.5 [&_h2]:text-foreground
-                                    [&_h3]:text-base [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-foreground
-                                    [&_p]:mb-3 [&_p]:leading-relaxed
-                                    [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-3 [&_ul]:space-y-1
-                                    [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-3 [&_ol]:space-y-1
-                                    [&_blockquote]:border-l-4 [&_blockquote]:border-[#ff3403] [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:my-3
-                                    [&_a]:text-[#ff3403] [&_a]:underline [&_a]:font-medium hover:[&_a]:text-[#d92c02]
-                                    [&_img]:max-w-full [&_img]:rounded-xl [&_img]:my-4 [&_img]:border [&_img]:border-border [&_img]:shadow-sm"
-                                  dangerouslySetInnerHTML={{ __html: a.conteudo }}
-                                />
-                              ) : (
-                                <p className="whitespace-pre-line text-sm text-muted-foreground">{a.conteudo}</p>
-                              )}
-                            </div>
-                          )}
-                          {a.material_url && (
-                            <a href={a.material_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-sm text-primary underline">
-                              <FileText className="h-4 w-4" /> Material da aula
-                            </a>
-                          )}
-                        </div>
-                        <Button
-                          variant={done ? "secondary" : "outline"}
-                          size="sm"
-                          onClick={() => marcarConcluida.mutate({ aulaId: a.id, concluida: !done })}
+      {/* Lista de Módulos (Acordeão: fechados por padrão) */}
+      <div className="space-y-4">
+        {modulos.map((m, i) => {
+          const aulas = [...(m.aulas ?? [])].sort((a, b) => a.ordem - b.ordem);
+          const avaliacoes = m.avaliacoes ?? [];
+          const isModOpen = !!openModules[m.id];
+          const completedAulasCount = aulas.filter((a) => !!doneMap.get(a.id)).length;
+          const isModDone = aulas.length > 0 && completedAulasCount === aulas.length;
+
+          return (
+            <div
+              key={m.id}
+              className={`rounded-2xl border transition-all duration-200 overflow-hidden bg-card ${
+                isModOpen
+                  ? "border-[#ff3403]/40 shadow-sm"
+                  : "border-border/80 hover:border-border"
+              }`}
+            >
+              {/* Header do Módulo (Clicável para abrir/fechar) */}
+              <button
+                type="button"
+                onClick={() => toggleModulo(m.id)}
+                className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-4 transition-colors hover:bg-muted/40 cursor-pointer"
+                aria-expanded={isModOpen}
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div
+                    className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 ${
+                      isModOpen
+                        ? "bg-[#ff3403] text-white rotate-180"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[11px] font-black uppercase tracking-wider text-[#ff3403]">
+                        Módulo {i + 1}
+                      </span>
+                      {isModDone && (
+                        <Badge className="bg-emerald-600/90 text-white text-[10px] py-0 px-2 font-medium">
+                          <CheckCircle2 className="h-3 w-3 mr-1" /> Concluído
+                        </Badge>
+                      )}
+                    </div>
+                    <h2 className="font-serif text-lg sm:text-xl font-bold text-foreground truncate mt-0.5">
+                      {m.titulo}
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="hidden sm:flex flex-col items-end text-xs text-muted-foreground">
+                    <span>
+                      {completedAulasCount}/{aulas.length} concluídas
+                    </span>
+                    {avaliacoes.length > 0 && (
+                      <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+                        {avaliacoes.length} {avaliacoes.length === 1 ? "prova" : "provas"}
+                      </span>
+                    )}
+                  </div>
+                  <Badge variant="outline" className="text-xs font-normal border-border bg-background">
+                    {aulas.length} {aulas.length === 1 ? "aula" : "aulas"}
+                  </Badge>
+                </div>
+              </button>
+
+              {/* Conteúdo do Módulo (Exibido apenas quando aberto) */}
+              {isModOpen && (
+                <div className="p-4 sm:p-6 border-t border-border/60 bg-muted/10 space-y-5 animate-in fade-in-50 duration-200">
+                  {m.descricao && (
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      {m.descricao}
+                    </p>
+                  )}
+
+                  {/* Lista de Aulas do Módulo (Acordeão: fechadas por padrão) */}
+                  <div className="space-y-2.5">
+                    {aulas.map((a, idx) => {
+                      const done = !!doneMap.get(a.id);
+                      const embed = getEmbedUrl(a.video_url);
+                      const isAulaOpen = !!openAulas[a.id];
+
+                      return (
+                        <Card
+                          key={a.id}
+                          className={`border transition-all overflow-hidden bg-card ${
+                            isAulaOpen
+                              ? "border-[#ff3403]/50 shadow-md ring-1 ring-[#ff3403]/10"
+                              : "border-border/70 hover:border-border hover:shadow-xs"
+                          }`}
                         >
-                          {done ? <CheckCircle2 className="mr-2 h-4 w-4" /> : <Circle className="mr-2 h-4 w-4" />}
-                          {done ? "Concluída" : "Marcar concluída"}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-
-            {/* Avaliações */}
-            {avaliacoes.length > 0 && (
-              <div className="mt-4 pt-2 border-t border-dashed border-border space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                  <HelpCircle className="h-4 w-4 text-gold" /> Avaliações do Módulo
-                </h3>
-                <div className="grid gap-3">
-                  {avaliacoes.map((e: any) => {
-                    const tentativa = tentativasMap.get(e.id);
-                    const aprovado = tentativa?.aprovado;
-                    const nota = tentativa?.nota;
-
-                    return (
-                      <Card key={e.id} className="border-gold/30 bg-gold/5">
-                        <CardContent className="p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex items-start gap-3">
-                            <div className="h-10 w-10 rounded-full bg-gold/10 flex items-center justify-center">
-                              <HelpCircle className="h-5 w-5 text-gold" />
-                            </div>
-                            <div>
-                              <h4 className="font-serif text-lg font-bold text-slate-100">{e.titulo}</h4>
-                              <p className="text-xs text-muted-foreground">{e.descricao || "Orientação geral da prova."}</p>
-                              <div className="flex gap-2 mt-2">
-                                <Badge variant="outline" className="text-[10px] py-0 text-gold-foreground border-gold/20 bg-transparent">
-                                  Mínimo: {Number(e.nota_minima).toFixed(1)}
-                                </Badge>
-                                {tentativa && (
-                                  <Badge className={aprovado ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] py-0" : "bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] py-0"}>
-                                    {aprovado ? `Aprovado - Nota ${nota}` : `Reprovado - Nota ${nota}`}
-                                  </Badge>
+                          {/* Cabeçalho da Aula (Clicável para expandir/recolher) */}
+                          <div
+                            onClick={() => toggleAula(a.id)}
+                            className="p-3.5 sm:p-4 flex items-center justify-between gap-3 cursor-pointer hover:bg-muted/30 transition-colors select-none"
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                toggleAula(a.id);
+                              }
+                            }}
+                          >
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              {/* Botão / Indicador de Conclusão */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  marcarConcluida.mutate({ aulaId: a.id, concluida: !done });
+                                }}
+                                title={done ? "Marcar como não concluída" : "Marcar como concluída"}
+                                className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 transition-transform active:scale-95 ${
+                                  done
+                                    ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40"
+                                    : "text-muted-foreground hover:text-foreground bg-muted/60"
+                                }`}
+                              >
+                                {done ? (
+                                  <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                                ) : (
+                                  <Circle className="h-5 w-5" />
                                 )}
+                              </button>
+
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-mono text-[11px] font-bold text-muted-foreground">
+                                    Aula {a.ordem || idx + 1}
+                                  </span>
+                                  {a.video_url && (
+                                    <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-normal text-blue-600 border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/30">
+                                      <Video className="h-2.5 w-2.5 mr-1" /> Vídeo
+                                    </Badge>
+                                  )}
+                                  {a.material_url && (
+                                    <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-normal text-amber-600 border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/30">
+                                      <FileText className="h-2.5 w-2.5 mr-1" /> PDF
+                                    </Badge>
+                                  )}
+                                  {a.conteudo && (
+                                    <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-normal text-purple-600 border-purple-200 dark:border-purple-900 bg-purple-50/50 dark:bg-purple-950/30">
+                                      <BookOpen className="h-2.5 w-2.5 mr-1" /> Texto
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="font-medium text-sm sm:text-base text-foreground truncate mt-0.5">
+                                  {a.titulo}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-xs text-muted-foreground hidden sm:inline">
+                                {isAulaOpen ? "Recolher" : "Ver Aula"}
+                              </span>
+                              <div
+                                className={`h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground transition-transform duration-200 ${
+                                  isAulaOpen ? "rotate-180 text-foreground bg-muted" : ""
+                                }`}
+                              >
+                                <ChevronDown className="h-4 w-4" />
                               </div>
                             </div>
                           </div>
 
-                          <Button
-                            onClick={() => iniciarAvaliacao(e)}
-                            variant={aprovado ? "outline" : "default"}
-                            className={aprovado ? "border-gold/30 text-gold" : "bg-gold text-gold-foreground hover:bg-gold/90"}
-                          >
-                            {aprovado ? "Ver Nota / Refazer" : tentativa ? "Refazer Prova" : "Iniciar Prova"}
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                          {/* Corpo da Aula (Aberto apenas quando clicado) */}
+                          {isAulaOpen && (
+                            <CardContent className="p-4 sm:p-6 border-t border-border/60 space-y-5 bg-card animate-in fade-in-50 duration-200">
+                              {/* Vídeo */}
+                              {embed && (
+                                <div className="aspect-video overflow-hidden rounded-xl bg-black border border-border/80 shadow-inner">
+                                  <iframe
+                                    src={embed}
+                                    className="h-full w-full"
+                                    allowFullScreen
+                                    title={a.titulo}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  />
+                                </div>
+                              )}
+
+                              {/* Imagem Ilustrativa da Aula */}
+                              {a.imagem_url && (
+                                <div className="overflow-hidden rounded-xl border border-border bg-slate-950/10 p-2">
+                                  <img
+                                    src={a.imagem_url}
+                                    alt={a.titulo}
+                                    className="w-full max-h-[460px] object-contain rounded-lg mx-auto"
+                                  />
+                                </div>
+                              )}
+
+                              {/* Conteúdo Didático Completo Formatado em Rich Text */}
+                              {a.conteudo && (
+                                <div className="pt-3 border-t border-border/40 text-foreground/90">
+                                  {/<[a-z][\s\S]*>/i.test(a.conteudo) ? (
+                                    <div
+                                      className="prose prose-slate dark:prose-invert max-w-none text-sm leading-relaxed
+                                        [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:font-serif [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:text-foreground
+                                        [&_h2]:text-xl [&_h2]:font-bold [&_h2]:font-serif [&_h2]:mt-5 [&_h2]:mb-2.5 [&_h2]:text-foreground
+                                        [&_h3]:text-base [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-foreground
+                                        [&_p]:mb-3 [&_p]:leading-relaxed
+                                        [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-3 [&_ul]:space-y-1
+                                        [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-3 [&_ol]:space-y-1
+                                        [&_blockquote]:border-l-4 [&_blockquote]:border-[#ff3403] [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:my-3
+                                        [&_a]:text-[#ff3403] [&_a]:underline [&_a]:font-medium hover:[&_a]:text-[#d92c02]
+                                        [&_img]:max-w-full [&_img]:rounded-xl [&_img]:my-4 [&_img]:border [&_img]:border-border [&_img]:shadow-sm"
+                                      dangerouslySetInnerHTML={{ __html: a.conteudo }}
+                                    />
+                                  ) : (
+                                    <p className="whitespace-pre-line text-sm text-muted-foreground leading-relaxed">
+                                      {a.conteudo}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Material Complementar */}
+                              {a.material_url && (
+                                <div className="pt-2">
+                                  <a
+                                    href={a.material_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-2 text-sm font-medium text-[#ff3403] hover:underline bg-[#ff3403]/10 px-3.5 py-2 rounded-lg transition-colors"
+                                  >
+                                    <FileText className="h-4 w-4" /> Acessar Material de Apoio (PDF / Link)
+                                  </a>
+                                </div>
+                              )}
+
+                              {/* Barra Inferior da Aula: Botão de Conclusão e Fechar */}
+                              <div className="pt-4 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                <Button
+                                  type="button"
+                                  variant={done ? "secondary" : "default"}
+                                  size="sm"
+                                  onClick={() => marcarConcluida.mutate({ aulaId: a.id, concluida: !done })}
+                                  className={done ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30" : "bg-[#ff3403] hover:bg-[#d92c02] text-white"}
+                                >
+                                  {done ? <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> : <Circle className="mr-2 h-4 w-4" />}
+                                  {done ? "Aula Concluída (Clique para desmarcar)" : "Marcar como Concluída"}
+                                </Button>
+
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleAula(a.id)}
+                                  className="text-xs text-muted-foreground hover:text-foreground"
+                                >
+                                  Recolher esta aula ↑
+                                </Button>
+                              </div>
+                            </CardContent>
+                          )}
+                        </Card>
+                      );
+                    })}
+
+                    {aulas.length === 0 && (
+                      <p className="text-xs text-muted-foreground text-center py-4 italic">
+                        Nenhuma aula disponível neste módulo no momento.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Avaliações do Módulo */}
+                  {avaliacoes.length > 0 && (
+                    <div className="mt-5 pt-4 border-t border-dashed border-border space-y-3">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                        <HelpCircle className="h-4 w-4 text-amber-500" /> Avaliações do Módulo
+                      </h3>
+                      <div className="grid gap-3">
+                        {avaliacoes.map((e: any) => {
+                          const tentativa = tentativasMap.get(e.id);
+                          const aprovado = tentativa?.aprovado;
+                          const nota = tentativa?.nota;
+
+                          return (
+                            <Card key={e.id} className="border-amber-500/30 bg-amber-500/5">
+                              <CardContent className="p-4 sm:p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex items-start gap-3">
+                                  <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
+                                    <HelpCircle className="h-5 w-5 text-amber-500" />
+                                  </div>
+                                  <div>
+                                    <h4 className="font-serif text-base sm:text-lg font-bold text-foreground">{e.titulo}</h4>
+                                    <p className="text-xs text-muted-foreground mt-0.5">{e.descricao || "Orientação geral da prova."}</p>
+                                    <div className="flex gap-2 mt-2">
+                                      <Badge variant="outline" className="text-[10px] py-0 border-amber-500/30 text-amber-700 dark:text-amber-400 bg-transparent">
+                                        Mínimo: {Number(e.nota_minima).toFixed(1)}
+                                      </Badge>
+                                      {tentativa && (
+                                        <Badge className={aprovado ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] py-0" : "bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] py-0"}>
+                                          {aprovado ? `Aprovado - Nota ${nota}` : `Reprovado - Nota ${nota}`}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <Button
+                                  onClick={() => iniciarAvaliacao(e)}
+                                  variant={aprovado ? "outline" : "default"}
+                                  size="sm"
+                                  className={aprovado ? "border-amber-500/40 text-amber-700 dark:text-amber-400 shrink-0" : "bg-[#ff3403] hover:bg-[#d92c02] text-white shrink-0"}
+                                >
+                                  {aprovado ? "Ver Nota / Refazer" : tentativa ? "Refazer Prova" : "Iniciar Prova"}
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       {/* EXAM PLAYER DIALOG */}
       <Dialog

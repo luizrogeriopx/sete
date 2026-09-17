@@ -28,6 +28,7 @@ import {
   Image as ImageIcon,
   Upload,
   ExternalLink,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
@@ -56,6 +57,28 @@ function CursoConteudoAdmin() {
 
   // View Mode: modules view or full-page lesson editor
   const [viewMode, setViewMode] = useState<"modules" | "lesson-editor">("modules");
+
+  // Estados de acordeão dos módulos no painel admin (fechados por padrão)
+  const [openAdminModules, setOpenAdminModules] = useState<Record<string, boolean>>({});
+
+  const toggleAdminModulo = (moduloId: string) => {
+    setOpenAdminModules((prev) => ({
+      ...prev,
+      [moduloId]: !prev[moduloId],
+    }));
+  };
+
+  const expandAllAdminModules = () => {
+    const all: Record<string, boolean> = {};
+    (modulos ?? []).forEach((m: any) => {
+      all[m.id] = true;
+    });
+    setOpenAdminModules(all);
+  };
+
+  const collapseAllAdminModules = () => {
+    setOpenAdminModules({});
+  };
 
   // Modals Open State
   const [isModOpen, setIsModOpen] = useState(false);
@@ -971,6 +994,22 @@ function CursoConteudoAdmin() {
 
           <div className="flex flex-wrap items-center gap-2">
             <Button
+              variant="ghost"
+              size="sm"
+              onClick={expandAllAdminModules}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Expandir Todos
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={collapseAllAdminModules}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Recolher Todos
+            </Button>
+            <Button
               variant="outline"
               onClick={openCopyModal}
               className="border-gold/40 text-gold hover:bg-gold/10 hover:text-gold flex items-center gap-2"
@@ -988,180 +1027,235 @@ function CursoConteudoAdmin() {
       </div>
 
       {/* Accordion List of Modules */}
-      <div className="space-y-6">
-        {(modulos ?? []).map((m, i) => (
-          <Card key={m.id} className="border-l-4 border-l-gold">
-            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-3 bg-slate-900/10">
-              <div>
-                <CardTitle className="font-serif text-xl flex items-center gap-2">
-                  <Layers className="h-5 w-5 text-gold" /> Módulo {i + 1}: {m.titulo}
-                </CardTitle>
-                {m.descricao && <CardDescription className="mt-1">{m.descricao}</CardDescription>}
-              </div>
+      <div className="space-y-4">
+        {(modulos ?? []).map((m, i) => {
+          const isOpen = !!openAdminModules[m.id];
+          return (
+            <Card
+              key={m.id}
+              className={`border-l-4 transition-all duration-200 overflow-hidden ${
+                isOpen ? "border-l-[#ff3403] shadow-sm" : "border-l-[#ff3403]/60 hover:border-border"
+              }`}
+            >
+              <CardHeader
+                onClick={() => toggleAdminModulo(m.id)}
+                className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between p-4 sm:p-5 bg-muted/20 hover:bg-muted/40 cursor-pointer select-none transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-transform duration-200 ${
+                      isOpen ? "bg-[#ff3403] text-white rotate-180" : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <CardTitle className="font-serif text-lg sm:text-xl flex items-center gap-2 text-foreground truncate">
+                      <Layers className="h-5 w-5 text-[#ff3403] shrink-0" />
+                      Módulo {i + 1}: {m.titulo}
+                    </CardTitle>
+                    {m.descricao && isOpen && (
+                      <CardDescription className="mt-1 text-xs">{m.descricao}</CardDescription>
+                    )}
+                  </div>
+                </div>
 
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => openEditMod(m)}>
-                  Editar Módulo
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    if (confirm("Deseja mesmo excluir o módulo e todo o seu conteúdo?")) {
-                      excluirModulo.mutate(m.id);
-                    }
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 text-rose-600" />
-                </Button>
-              </div>
-            </CardHeader>
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                  <div className="flex items-center gap-1.5 mr-2 text-xs text-muted-foreground">
+                    <Badge variant="outline" className="text-[11px] font-normal">
+                      {m.aulas.length} {m.aulas.length === 1 ? "aula" : "aulas"}
+                    </Badge>
+                    {m.avaliacoes.length > 0 && (
+                      <Badge variant="outline" className="text-[11px] font-normal text-amber-600 border-amber-300 dark:border-amber-800">
+                        {m.avaliacoes.length} {m.avaliacoes.length === 1 ? "prova" : "provas"}
+                      </Badge>
+                    )}
+                  </div>
 
-            <CardContent className="pt-6 space-y-6">
-              {/* SECTION 1: CLASSES / VIDEO AULAS */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center pb-2 border-b">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                    <Video className="h-4 w-4 text-gold" /> Aulas ({m.aulas.length})
-                  </h3>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => openNewClass(m.id)}
-                    className="text-xs h-7 px-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditMod(m);
+                    }}
+                    className="h-8 text-xs"
                   >
-                    <Plus className="h-3 w-3 mr-1" /> Adicionar Aula
+                    Editar Módulo
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm("Deseja mesmo excluir o módulo e todo o seu conteúdo?")) {
+                        excluirModulo.mutate(m.id);
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 text-rose-600" />
                   </Button>
                 </div>
+              </CardHeader>
 
-                <div className="space-y-2">
-                  {m.aulas.map((aula: any) => (
-                    <div
-                      key={aula.id}
-                      className="flex justify-between items-center p-3 rounded-lg border bg-slate-950/20 hover:bg-slate-950/40 transition"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-slate-900 flex items-center justify-center font-mono text-xs font-bold text-slate-400">
-                          {aula.ordem}
-                        </div>
-                        <div>
-                          <div className="font-medium text-sm text-slate-100">{aula.titulo}</div>
-                          <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
-                            {aula.video_url && (
-                              <span className="flex items-center gap-1">
-                                <Video className="h-3 w-3" /> Possui Vídeo
-                              </span>
-                            )}
-                            {aula.material_url && (
-                              <span className="flex items-center gap-1">
-                                <FileText className="h-3 w-3" /> Possui Material
-                              </span>
-                            )}
-                            {aula.imagem_url && (
-                              <span className="flex items-center gap-1 text-emerald-400">
-                                <ImageIcon className="h-3 w-3" /> Possui Imagem
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEditClass(aula, m.id)}>
-                          <Edit3 className="h-3.5 w-3.5 text-primary" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (confirm("Deseja mesmo excluir esta aula?")) {
-                              excluirAula.mutate(aula.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 text-rose-600" />
-                        </Button>
-                      </div>
+              {isOpen && (
+                <CardContent className="pt-6 pb-6 space-y-6 border-t border-border/50 animate-in fade-in-50 duration-200">
+                  {/* SECTION 1: CLASSES / VIDEO AULAS */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center pb-2 border-b">
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                        <Video className="h-4 w-4 text-[#ff3403]" /> Aulas ({m.aulas.length})
+                      </h3>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openNewClass(m.id)}
+                        className="text-xs h-7 px-2"
+                      >
+                        <Plus className="h-3 w-3 mr-1" /> Adicionar Aula
+                      </Button>
                     </div>
-                  ))}
-                  {m.aulas.length === 0 && (
-                    <p className="text-xs text-muted-foreground text-center py-4">
-                      Nenhuma aula cadastrada neste módulo.
-                    </p>
-                  )}
-                </div>
-              </div>
 
-              {/* SECTION 2: EVALUATIONS / EXAMS */}
-              <div className="space-y-3 pt-2">
-                <div className="flex justify-between items-center pb-2 border-b">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                    <FileQuestion className="h-4 w-4 text-gold" /> Provas e Avaliações ({m.avaliacoes.length})
-                  </h3>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openNewEval(m.id)}
-                    className="text-xs h-7 px-2 border-dashed"
-                  >
-                    <Plus className="h-3 w-3 mr-1" /> Adicionar Avaliação
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  {m.avaliacoes.map((e: any) => (
-                    <div
-                      key={e.id}
-                      className="flex justify-between items-center p-3 rounded-lg border border-dashed border-gold/30 bg-gold/5 hover:bg-gold/10 transition"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-gold/10 flex items-center justify-center">
-                          <HelpCircle className="h-4 w-4 text-gold" />
-                        </div>
-                        <div>
-                          <div className="font-semibold text-sm text-gold">{e.titulo}</div>
-                          <div className="flex flex-wrap gap-2 mt-1.5">
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] py-0 border-gold/20 text-gold-foreground"
+                    <div className="space-y-2">
+                      {m.aulas.map((aula: any) => (
+                        <div
+                          key={aula.id}
+                          className="flex justify-between items-center p-3 rounded-lg border bg-slate-950/20 hover:bg-slate-950/40 transition cursor-pointer"
+                          onClick={() => openEditClass(aula, m.id)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-slate-900 flex items-center justify-center font-mono text-xs font-bold text-slate-400">
+                              {aula.ordem}
+                            </div>
+                            <div>
+                              <div className="font-medium text-sm text-slate-100">{aula.titulo}</div>
+                              <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
+                                {aula.video_url && (
+                                  <span className="flex items-center gap-1">
+                                    <Video className="h-3 w-3 text-blue-400" /> Possui Vídeo
+                                  </span>
+                                )}
+                                {aula.material_url && (
+                                  <span className="flex items-center gap-1">
+                                    <FileText className="h-3 w-3 text-amber-400" /> Possui Material
+                                  </span>
+                                )}
+                                {aula.imagem_url && (
+                                  <span className="flex items-center gap-1 text-emerald-400">
+                                    <ImageIcon className="h-3 w-3" /> Possui Imagem
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditClass(aula, m.id);
+                              }}
                             >
-                              Mínimo: {Number(e.nota_minima).toFixed(1)}
-                            </Badge>
-                            {e.questionarios && (
-                              <Badge className="text-[10px] py-0 bg-slate-900 border border-gold/20 text-slate-100 font-mono">
-                                Banco: {e.questionarios.titulo} ({e.quantidade_questoes} questões)
-                              </Badge>
-                            )}
+                              <Edit3 className="h-3.5 w-3.5 text-primary" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm("Deseja mesmo excluir esta aula?")) {
+                                  excluirAula.mutate(aula.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-rose-600" />
+                            </Button>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEditEval(e, m.id)}>
-                          <Edit3 className="h-3.5 w-3.5 text-gold" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (confirm("Deseja mesmo excluir esta avaliação?")) {
-                              excluirAvaliacao.mutate(e.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 text-rose-600" />
-                        </Button>
-                      </div>
+                      ))}
+                      {m.aulas.length === 0 && (
+                        <p className="text-xs text-muted-foreground text-center py-4">
+                          Nenhuma aula cadastrada neste módulo.
+                        </p>
+                      )}
                     </div>
-                  ))}
-                  {m.avaliacoes.length === 0 && (
-                    <p className="text-xs text-muted-foreground text-center py-4">
-                      Nenhuma avaliação cadastrada para este módulo.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                  </div>
+
+                  {/* SECTION 2: EVALUATIONS / EXAMS */}
+                  <div className="space-y-3 pt-2">
+                    <div className="flex justify-between items-center pb-2 border-b">
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                        <FileQuestion className="h-4 w-4 text-gold" /> Provas e Avaliações ({m.avaliacoes.length})
+                      </h3>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openNewEval(m.id)}
+                        className="text-xs h-7 px-2 border-dashed"
+                      >
+                        <Plus className="h-3 w-3 mr-1" /> Adicionar Avaliação
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                      {m.avaliacoes.map((e: any) => (
+                        <div
+                          key={e.id}
+                          className="flex justify-between items-center p-3 rounded-lg border border-dashed border-gold/30 bg-gold/5 hover:bg-gold/10 transition"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-gold/10 flex items-center justify-center">
+                              <HelpCircle className="h-4 w-4 text-gold" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm text-gold">{e.titulo}</div>
+                              <div className="flex flex-wrap gap-2 mt-1.5">
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] py-0 border-gold/20 text-gold-foreground"
+                                >
+                                  Mínimo: {Number(e.nota_minima).toFixed(1)}
+                                </Badge>
+                                {e.questionarios && (
+                                  <Badge className="text-[10px] py-0 bg-slate-900 border border-gold/20 text-slate-100 font-mono">
+                                    Banco: {e.questionarios.titulo} ({e.quantidade_questoes} questões)
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => openEditEval(e, m.id)}>
+                              <Edit3 className="h-3.5 w-3.5 text-gold" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                if (confirm("Deseja mesmo excluir esta avaliação?")) {
+                                  excluirAvaliacao.mutate(e.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-rose-600" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {m.avaliacoes.length === 0 && (
+                        <p className="text-xs text-muted-foreground text-center py-4">
+                          Nenhuma avaliação cadastrada para este módulo.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          );
+        })}
 
         {modulos && modulos.length === 0 && (
           <div className="rounded-lg border border-dashed p-12 text-center">
