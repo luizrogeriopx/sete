@@ -349,7 +349,25 @@ function CursoAluno() {
                             </div>
                           )}
                           {a.conteudo && (
-                            <p className="mt-3 whitespace-pre-line text-sm text-muted-foreground">{a.conteudo}</p>
+                            <div className="mt-4 pt-3 border-t border-border/40 text-foreground/90">
+                              {/<[a-z][\s\S]*>/i.test(a.conteudo) ? (
+                                <div
+                                  className="prose prose-slate dark:prose-invert max-w-none text-sm leading-relaxed
+                                    [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:font-serif [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:text-foreground
+                                    [&_h2]:text-xl [&_h2]:font-bold [&_h2]:font-serif [&_h2]:mt-5 [&_h2]:mb-2.5 [&_h2]:text-foreground
+                                    [&_h3]:text-base [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-foreground
+                                    [&_p]:mb-3 [&_p]:leading-relaxed
+                                    [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-3 [&_ul]:space-y-1
+                                    [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-3 [&_ol]:space-y-1
+                                    [&_blockquote]:border-l-4 [&_blockquote]:border-[#ff3403] [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:my-3
+                                    [&_a]:text-[#ff3403] [&_a]:underline [&_a]:font-medium hover:[&_a]:text-[#d92c02]
+                                    [&_img]:max-w-full [&_img]:rounded-xl [&_img]:my-4 [&_img]:border [&_img]:border-border [&_img]:shadow-sm"
+                                  dangerouslySetInnerHTML={{ __html: a.conteudo }}
+                                />
+                              ) : (
+                                <p className="whitespace-pre-line text-sm text-muted-foreground">{a.conteudo}</p>
+                              )}
+                            </div>
                           )}
                           {a.material_url && (
                             <a href={a.material_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-sm text-primary underline">

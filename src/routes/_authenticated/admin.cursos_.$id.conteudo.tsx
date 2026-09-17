@@ -27,8 +27,24 @@ import {
   Sparkles,
   Image as ImageIcon,
   Upload,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+
+function getEmbedUrl(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes("youtube.com")) {
+      const id = u.searchParams.get("v");
+      return id ? `https://www.youtube.com/embed/${id}` : url;
+    }
+    if (u.hostname === "youtu.be") return `https://www.youtube.com/embed${u.pathname}`;
+    if (u.hostname.includes("vimeo.com")) return `https://player.vimeo.com/video${u.pathname}`;
+  } catch { /* noop */ }
+  return url;
+}
 
 export const Route = createFileRoute("/_authenticated/admin/cursos_/$id/conteudo")({
   component: CursoConteudoAdmin,
@@ -37,6 +53,9 @@ export const Route = createFileRoute("/_authenticated/admin/cursos_/$id/conteudo
 function CursoConteudoAdmin() {
   const { id: cursoId } = useParams({ from: "/_authenticated/admin/cursos_/$id/conteudo" });
   const qc = useQueryClient();
+
+  // View Mode: modules view or full-page lesson editor
+  const [viewMode, setViewMode] = useState<"modules" | "lesson-editor">("modules");
 
   // Modals Open State
   const [isModOpen, setIsModOpen] = useState(false);
@@ -404,8 +423,9 @@ function CursoConteudoAdmin() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-curso-modulos", cursoId] });
-      toast.success(selectedAula ? "Aula atualizada!" : "Aula criada!");
+      toast.success(selectedAula ? "Aula atualizada com sucesso!" : "Aula criada com sucesso!");
       setIsClassOpen(false);
+      setViewMode("modules");
       setSelectedAula(null);
       resetAulaForm();
     },
@@ -545,7 +565,9 @@ function CursoConteudoAdmin() {
     setActiveModuloId(modId);
     setSelectedAula(null);
     resetAulaForm();
-    setIsClassOpen(true);
+    setIsClassOpen(false);
+    setViewMode("lesson-editor");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function openEditClass(aula: any, modId: string) {
@@ -558,7 +580,9 @@ function CursoConteudoAdmin() {
     setClassConteudo(aula.conteudo || "");
     setClassOrdem((aula.ordem || 0).toString());
     setClassImagemUrl(aula.imagem_url || "");
-    setIsClassOpen(true);
+    setIsClassOpen(false);
+    setViewMode("lesson-editor");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function openNewEval(modId: string) {
@@ -586,6 +610,343 @@ function CursoConteudoAdmin() {
     return (
       <div className="flex justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-gold" />
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // Full-Page Lesson Editor View
+  // -------------------------------------------------------------
+  if (viewMode === "lesson-editor") {
+    const activeModulo = modulos?.find((m: any) => m.id === activeModuloId);
+    const embedVideoUrl = getEmbedUrl(classVideoUrl);
+
+    return (
+      <div className="space-y-6 animate-in fade-in duration-200">
+        {/* Sticky Top Bar / Action Header */}
+        <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border/80 py-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-sm">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode("modules");
+                  setSelectedAula(null);
+                  resetAulaForm();
+                }}
+                className="hover:text-foreground inline-flex items-center gap-1 font-semibold text-[#ff3403] transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao Conteúdo
+              </button>
+              <span>•</span>
+              <span className="font-medium text-foreground truncate max-w-[200px] sm:max-w-xs">{curso?.titulo}</span>
+              {activeModulo && (
+                <>
+                  <span>•</span>
+                  <Badge variant="outline" className="font-medium text-[11px] bg-muted/40 py-0.5 border-[#e2ddd3]">
+                    {activeModulo.titulo}
+                  </Badge>
+                </>
+              )}
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold font-serif tracking-tight text-foreground flex items-center gap-2.5 truncate">
+              <BookOpen className="h-6 w-6 text-[#ff3403] shrink-0" />
+              <span className="truncate">
+                {selectedAula ? `Editar Aula: ${classTitulo || selectedAula.titulo}` : "Nova Aula"}
+              </span>
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setViewMode("modules");
+                setSelectedAula(null);
+                resetAulaForm();
+              }}
+              disabled={salvarAula.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              className="bg-[#ff3403] hover:bg-[#d92c02] text-white font-medium flex items-center gap-2 px-5 shadow-sm"
+              onClick={() => salvarAula.mutate()}
+              disabled={salvarAula.isPending}
+            >
+              {salvarAula.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Salvando Aula...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4" /> Salvar Aula
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* 2-Column Responsive Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Main Column (8 cols): Title, Description & Modern Rich Text Editor */}
+          <div className="lg:col-span-8 space-y-6">
+            <Card className="border border-border/80 shadow-sm bg-card">
+              <CardHeader className="pb-4 border-b border-border/50">
+                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-[#ff3403]" />
+                  Conteúdo da Aula
+                </CardTitle>
+                <CardDescription>
+                  Defina o título, introdução e elabore o texto completo com formatações ricas, imagens inline e links externos.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="page-class-titulo" className="text-sm font-semibold text-foreground">
+                    Título da Aula <span className="text-[#ff3403]">*</span>
+                  </Label>
+                  <Input
+                    id="page-class-titulo"
+                    required
+                    value={classTitulo}
+                    onChange={(e) => setClassTitulo(e.target.value)}
+                    placeholder="Ex: Introdução à Hermenêutica Bíblica e Métodos de Interpretação"
+                    className="text-base font-medium h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="page-class-desc" className="text-sm font-semibold text-foreground">
+                    Resumo / Sinopse Breve
+                  </Label>
+                  <Input
+                    id="page-class-desc"
+                    value={classDescricao}
+                    onChange={(e) => setClassDescricao(e.target.value)}
+                    placeholder="Breve resumo com os objetivos desta aula..."
+                    className="h-10"
+                  />
+                </div>
+
+                {/* Modern Rich Text Editor with font formatting, images, and links */}
+                <div className="space-y-2 pt-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="page-class-editor" className="text-sm font-semibold text-foreground">
+                      Texto Didático Completo (Editor Avançado)
+                    </Label>
+                    <span className="text-xs text-muted-foreground hidden sm:inline">
+                      Selecione palavras para inserir links ou use o botão de imagem para inserir fotos
+                    </span>
+                  </div>
+                  <RichTextEditor
+                    value={classConteudo}
+                    onChange={(html) => setClassConteudo(html)}
+                    placeholder="Digite aqui o texto e a explanação completa da aula. Você pode inserir imagens entre os parágrafos, formatar tópicos com títulos e criar links..."
+                    minHeight="540px"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar Column (4 cols): Media, Resources, Order & Help */}
+          <div className="lg:col-span-4 space-y-6">
+            <Card className="border border-border/80 shadow-sm bg-card">
+              <CardHeader className="pb-3 border-b border-border/50">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <Video className="h-4 w-4 text-[#ff3403]" />
+                  Mídias & Configurações
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Recursos audiovisuais, arquivos complementares e ordem.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-5 space-y-5">
+                {/* Ordem de exibição */}
+                <div className="space-y-2">
+                  <Label htmlFor="page-class-ordem" className="text-xs font-semibold">
+                    Ordem de Exibição no Módulo
+                  </Label>
+                  <Input
+                    id="page-class-ordem"
+                    type="number"
+                    value={classOrdem}
+                    onChange={(e) => setClassOrdem(e.target.value)}
+                    className="h-9 text-sm"
+                  />
+                  <p className="text-[11px] text-muted-foreground">Posição numérica da aula nesta lista (ex: 1, 2, 3...)</p>
+                </div>
+
+                {/* Videoaula URL */}
+                <div className="space-y-2">
+                  <Label htmlFor="page-class-video" className="text-xs font-semibold flex items-center gap-1.5">
+                    <Video className="h-3.5 w-3.5 text-blue-500" />
+                    URL do Vídeo (YouTube ou Vimeo)
+                  </Label>
+                  <Input
+                    id="page-class-video"
+                    value={classVideoUrl}
+                    onChange={(e) => setClassVideoUrl(e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className="h-9 text-sm"
+                  />
+                  {embedVideoUrl && (
+                    <div className="mt-2 rounded-lg overflow-hidden border border-border bg-black aspect-video shadow-inner">
+                      <iframe
+                        src={embedVideoUrl}
+                        title="Prévia do vídeo"
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* PDF / Material URL */}
+                <div className="space-y-2">
+                  <Label htmlFor="page-class-material" className="text-xs font-semibold flex items-center gap-1.5">
+                    <FileText className="h-3.5 w-3.5 text-amber-500" />
+                    Material Complementar (PDF / Link)
+                  </Label>
+                  <Input
+                    id="page-class-material"
+                    value={classMaterialUrl}
+                    onChange={(e) => setClassMaterialUrl(e.target.value)}
+                    placeholder="https://drive.google.com/... ou link direto"
+                    className="h-9 text-sm"
+                  />
+                  {classMaterialUrl && (
+                    <a
+                      href={classMaterialUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs text-[#ff3403] hover:underline pt-0.5"
+                    >
+                      <ExternalLink className="h-3 w-3" /> Abrir material para testar
+                    </a>
+                  )}
+                </div>
+
+                {/* Imagem de Capa / Destaque */}
+                <div className="space-y-2 pt-2 border-t border-border/50">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold flex items-center gap-1.5">
+                      <ImageIcon className="h-3.5 w-3.5 text-emerald-500" />
+                      Imagem de Capa da Aula
+                    </Label>
+                    <span className="text-[10px] text-muted-foreground">Opcional</span>
+                  </div>
+
+                  {classImagemUrl ? (
+                    <div className="rounded-xl overflow-hidden border border-border bg-muted/20 p-2 space-y-2">
+                      <img
+                        src={classImagemUrl}
+                        alt="Capa da Aula"
+                        className="w-full max-h-48 object-cover rounded-lg"
+                      />
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] text-muted-foreground truncate max-w-[200px]">
+                          {classImagemUrl}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setClassImagemUrl("")}
+                          className="h-7 px-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50 text-xs"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 mr-1" /> Remover
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="class-page-image-file"
+                        className={`flex flex-col items-center justify-center border-2 border-dashed border-border hover:border-[#ff3403]/60 rounded-xl p-4 cursor-pointer transition-colors bg-muted/10 ${
+                          isUploadingImage ? "opacity-60 pointer-events-none" : ""
+                        }`}
+                      >
+                        {isUploadingImage ? (
+                          <div className="flex flex-col items-center gap-2 py-2">
+                            <Loader2 className="h-6 w-6 animate-spin text-[#ff3403]" />
+                            <span className="text-xs text-muted-foreground">Fazendo upload da imagem...</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-1.5 text-center py-2">
+                            <div className="p-2.5 rounded-full bg-[#ff3403]/10 text-[#ff3403]">
+                              <Upload className="h-4 w-4" />
+                            </div>
+                            <span className="text-xs font-semibold text-foreground">Upload de Capa</span>
+                            <span className="text-[10px] text-muted-foreground">PNG, JPG, WebP (máx. 10MB)</span>
+                          </div>
+                        )}
+                        <input
+                          id="class-page-image-file"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleUploadClassImage}
+                          disabled={isUploadingImage}
+                        />
+                      </label>
+                      <Input
+                        value={classImagemUrl}
+                        onChange={(e) => setClassImagemUrl(e.target.value)}
+                        placeholder="Ou cole a URL direta da imagem..."
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Dicas do Editor */}
+            <Card className="border border-[#e2ddd3] bg-[#fdfbf7] shadow-none">
+              <CardContent className="p-4 space-y-2.5 text-xs text-[#5c5549]">
+                <div className="flex items-center gap-1.5 font-bold text-[#14233c]">
+                  <Sparkles className="h-4 w-4 text-[#ff3403]" />
+                  Recursos do Novo Editor
+                </div>
+                <ul className="space-y-1.5 list-disc pl-4 text-[11px] leading-relaxed">
+                  <li><strong>Links:</strong> Selecione qualquer palavra ou frase e clique no ícone de corrente para anexar um link externo ou referência.</li>
+                  <li><strong>Imagens entre parágrafos:</strong> Clique no botão de imagem na barra do editor para fazer upload ou colar a URL de ilustrações, mapas e gráficos.</li>
+                  <li><strong>Títulos e Subtítulos:</strong> Use H1, H2 e H3 para criar seções bem estruturadas na leitura do aluno.</li>
+                  <li><strong>Visualizar:</strong> Use a aba &ldquo;Pré-visualizar&rdquo; no topo do editor para conferir como o aluno verá a aula.</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Bottom buttons on sidebar */}
+            <div className="flex items-center gap-3 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-1/2"
+                onClick={() => {
+                  setViewMode("modules");
+                  setSelectedAula(null);
+                  resetAulaForm();
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                className="w-1/2 bg-[#ff3403] hover:bg-[#d92c02] text-white"
+                onClick={() => salvarAula.mutate()}
+                disabled={salvarAula.isPending}
+              >
+                {salvarAula.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar Aula"}
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -1197,173 +1558,6 @@ function CursoConteudoAdmin() {
                   <Copy className="h-4 w-4" /> Confirmar Cópia do Módulo
                 </>
               )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* 3. Aula / Class Dialog */}
-      <Dialog
-        open={isClassOpen}
-        onOpenChange={(open) => {
-          setIsClassOpen(open);
-          if (!open) {
-            setSelectedAula(null);
-            resetAulaForm();
-          }
-        }}
-      >
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{selectedAula ? "Editar Aula" : "Nova Aula"}</DialogTitle>
-            <DialogDescription>
-              Adicione as videoaulas do YouTube ou Vimeo e materiais didáticos de apoio.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="class-titulo">Título da Aula *</Label>
-              <Input
-                id="class-titulo"
-                required
-                value={classTitulo}
-                onChange={(e) => setClassTitulo(e.target.value)}
-                placeholder="Ex: Introdução à Hermenêutica"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="class-desc">Resumo / Descrição Rápida</Label>
-              <Input
-                id="class-desc"
-                value={classDescricao}
-                onChange={(e) => setClassDescricao(e.target.value)}
-                placeholder="Resumo simples..."
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="class-ordem">Ordem / Sequência</Label>
-                <Input
-                  id="class-ordem"
-                  type="number"
-                  value={classOrdem}
-                  onChange={(e) => setClassOrdem(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="class-video">Vídeo URL (YouTube/Vimeo)</Label>
-                <Input
-                  id="class-video"
-                  value={classVideoUrl}
-                  onChange={(e) => setClassVideoUrl(e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="class-material">Material PDF URL (Google Drive/Dropbox)</Label>
-              <Input
-                id="class-material"
-                value={classMaterialUrl}
-                onChange={(e) => setClassMaterialUrl(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-
-            {/* Upload de Imagem Ilustrativa da Aula */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="class-image-file">Imagem da Aula (Upload ou URL)</Label>
-                <span className="text-[11px] text-muted-foreground">Opcional</span>
-              </div>
-
-              {classImagemUrl ? (
-                <div className="relative rounded-lg overflow-hidden border border-border bg-slate-950 p-2 flex flex-col items-center gap-2">
-                  <img
-                    src={classImagemUrl}
-                    alt="Prévia da imagem da aula"
-                    className="max-h-48 w-full object-contain rounded-md bg-black/40"
-                  />
-                  <div className="flex items-center justify-between w-full px-1 gap-2">
-                    <span className="text-[11px] text-muted-foreground truncate flex-1">
-                      {classImagemUrl}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setClassImagemUrl("")}
-                      className="text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 text-xs h-7 px-2 shrink-0"
-                    >
-                      <Trash2 className="h-3.5 w-3.5 mr-1" /> Remover
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <label
-                    htmlFor="class-image-file"
-                    className={`flex flex-col items-center justify-center border-2 border-dashed border-border hover:border-gold/60 rounded-lg p-4 cursor-pointer transition-colors bg-muted/10 ${
-                      isUploadingImage ? "opacity-60 pointer-events-none" : ""
-                    }`}
-                  >
-                    {isUploadingImage ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="h-6 w-6 animate-spin text-gold" />
-                        <span className="text-xs text-muted-foreground">Fazendo upload da imagem...</span>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-1 text-center">
-                        <div className="p-2 rounded-full bg-gold/10 text-gold mb-1">
-                          <Upload className="h-4 w-4" />
-                        </div>
-                        <span className="text-xs font-semibold">Clique para fazer upload de imagem</span>
-                        <span className="text-[10px] text-muted-foreground">PNG, JPG, WebP ou GIF (máx. 10MB)</span>
-                      </div>
-                    )}
-                    <input
-                      id="class-image-file"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleUploadClassImage}
-                      disabled={isUploadingImage}
-                    />
-                  </label>
-
-                  <Input
-                    id="class-image-url-manual"
-                    value={classImagemUrl}
-                    onChange={(e) => setClassImagemUrl(e.target.value)}
-                    placeholder="Ou cole a URL direta da imagem (https://...)"
-                    className="text-xs"
-                  />
-                </div>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="class-content">Conteúdo Completo (Texto de Estudo)</Label>
-              <textarea
-                id="class-content"
-                value={classConteudo}
-                onChange={(e) => setClassConteudo(e.target.value)}
-                className="w-full min-h-[120px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                placeholder="Insira notas de estudo, artigos ou textos completos da aula..."
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button variant="outline" className="w-full" onClick={() => setIsClassOpen(false)}>
-              Cancelar
-            </Button>
-            <Button
-              className="w-full bg-gold text-gold-foreground hover:bg-gold/90"
-              onClick={() => salvarAula.mutate()}
-              disabled={salvarAula.isPending}
-            >
-              {salvarAula.isPending ? "Salvando..." : "Confirmar"}
             </Button>
           </div>
         </DialogContent>
