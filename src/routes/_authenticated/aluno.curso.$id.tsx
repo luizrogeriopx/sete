@@ -16,6 +16,7 @@ import {
   Video,
   BookOpen,
   Image as ImageIcon,
+  Lock,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -55,38 +56,6 @@ function CursoAluno() {
   // Estados de acordeão: módulos e aulas fechados por padrão
   const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
   const [openAulas, setOpenAulas] = useState<Record<string, boolean>>({});
-
-  const toggleModulo = (moduloId: string) => {
-    setOpenModules((prev) => ({
-      ...prev,
-      [moduloId]: !prev[moduloId],
-    }));
-  };
-
-  const toggleAula = (aulaId: string) => {
-    setOpenAulas((prev) => ({
-      ...prev,
-      [aulaId]: !prev[aulaId],
-    }));
-  };
-
-  const expandAll = (modulosList: any[]) => {
-    const allMods: Record<string, boolean> = {};
-    const allAulas: Record<string, boolean> = {};
-    (modulosList ?? []).forEach((m: any) => {
-      allMods[m.id] = true;
-      (m.aulas ?? []).forEach((a: any) => {
-        allAulas[a.id] = true;
-      });
-    });
-    setOpenModules(allMods);
-    setOpenAulas(allAulas);
-  };
-
-  const collapseAll = () => {
-    setOpenModules({});
-    setOpenAulas({});
-  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["curso-aluno", id, user?.id, isAdminOrSuper],
@@ -156,9 +125,13 @@ function CursoAluno() {
       }, { onConflict: "matricula_id,aula_id" });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ["curso-aluno", id] });
-      toast.success("Progresso atualizado");
+      if (variables.concluida) {
+        toast.success("Aula concluída com sucesso! Próxima aula liberada.");
+      } else {
+        toast.info("Status da aula desmarcado.");
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -331,6 +304,101 @@ function CursoAluno() {
     }
   });
 
+  // Se o aluno já concluiu a formação completa ou é Admin/Super, tudo fica 100% liberado para consulta
+  const isExemptFromLock = isAdminOrSuper || status === "concluida";
+
+  // Verifica se um determinado módulo está 100% concluído (todas as aulas marcadas e provas aprovadas)
+  const isModuleCompleted = (m: any) => {
+    const aList = m.aulas ?? [];
+    const evList = m.avaliacoes ?? [];
+    const aulasDone = aList.length === 0 || aList.every((a: any) => !!doneMap.get(a.id));
+    const evalsDone = evList.length === 0 || evList.every((ev: any) => tentativasMap.get(ev.id)?.aprovado);
+    return aulasDone && evalsDone;
+  };
+
+  // Verifica se o módulo está liberado (o 1º módulo sempre é liberado; os seguintes exigem a conclusão dos anteriores)
+  const isModuleUnlocked = (modIndex: number) => {
+    if (isExemptFromLock) return true;
+    if (modIndex === 0) return true;
+    for (let k = 0; k < modIndex; k++) {
+      if (!isModuleCompleted(modulos[k])) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Verifica se uma aula específica está liberada para o aluno
+  const isAulaUnlocked = (
+    modIndex: number,
+    aulaIndex: number,
+    aula: any,
+    moduleAulas: any[]
+  ) => {
+    if (isExemptFromLock) return true;
+    if (!isModuleUnlocked(modIndex)) return false;
+    if (doneMap.get(aula.id)) return true; // Já concluída anteriormente, permanece acessível para consulta
+    if (aulaIndex === 0) return true; // 1ª aula do módulo desbloqueado
+    // Liberada apenas se a aula anterior neste módulo foi concluída
+    const prevAula = moduleAulas[aulaIndex - 1];
+    return !!doneMap.get(prevAula?.id);
+  };
+
+  // Verifica se as avaliações do módulo estão liberadas (apenas após concluir todas as aulas daquele módulo)
+  const areModuleEvaluationsUnlocked = (
+    modIndex: number,
+    moduleAulas: any[]
+  ) => {
+    if (isExemptFromLock) return true;
+    if (!isModuleUnlocked(modIndex)) return false;
+    return moduleAulas.length === 0 || moduleAulas.every((a: any) => !!doneMap.get(a.id));
+  };
+
+  const handleToggleModulo = (moduloId: string, unlocked: boolean, modIndex: number) => {
+    if (!unlocked) {
+      toast.info(`O Módulo ${modIndex + 1} está bloqueado. Conclua todas as aulas e avaliações do módulo anterior para desbloqueá-lo.`);
+      return;
+    }
+    setOpenModules((prev) => ({
+      ...prev,
+      [moduloId]: !prev[moduloId],
+    }));
+  };
+
+  const handleToggleAula = (aulaId: string, unlocked: boolean) => {
+    if (!unlocked) {
+      toast.info("Esta aula está bloqueada. Conclua a aula anterior para ter acesso.");
+      return;
+    }
+    setOpenAulas((prev) => ({
+      ...prev,
+      [aulaId]: !prev[aulaId],
+    }));
+  };
+
+  const handleExpandAll = () => {
+    const allMods: Record<string, boolean> = {};
+    const allAulas: Record<string, boolean> = {};
+    modulos.forEach((m, mIdx) => {
+      if (isModuleUnlocked(mIdx)) {
+        allMods[m.id] = true;
+        const mAulas = [...(m.aulas ?? [])].sort((a, b) => a.ordem - b.ordem);
+        mAulas.forEach((a, aIdx) => {
+          if (isAulaUnlocked(mIdx, aIdx, a, mAulas)) {
+            allAulas[a.id] = true;
+          }
+        });
+      }
+    });
+    setOpenModules(allMods);
+    setOpenAulas(allAulas);
+  };
+
+  const handleCollapseAll = () => {
+    setOpenModules({});
+    setOpenAulas({});
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -375,17 +443,17 @@ function CursoAluno() {
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => expandAll(modulos)}
+            onClick={handleExpandAll}
             className="text-xs h-8 text-muted-foreground hover:text-foreground"
           >
-            Expandir Todos
+            Expandir Liberados
           </Button>
           <span className="text-muted-foreground/30">•</span>
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            onClick={collapseAll}
+            onClick={handleCollapseAll}
             className="text-xs h-8 text-muted-foreground hover:text-foreground"
           >
             Recolher Todos
@@ -393,14 +461,61 @@ function CursoAluno() {
         </div>
       </div>
 
-      {/* Lista de Módulos (Acordeão: fechados por padrão) */}
+      {/* Lista de Módulos (Acordeão: fechados por padrão e com bloqueio sequencial) */}
       <div className="space-y-4">
         {modulos.map((m, i) => {
           const aulas = [...(m.aulas ?? [])].sort((a, b) => a.ordem - b.ordem);
           const avaliacoes = m.avaliacoes ?? [];
           const isModOpen = !!openModules[m.id];
           const completedAulasCount = aulas.filter((a) => !!doneMap.get(a.id)).length;
-          const isModDone = aulas.length > 0 && completedAulasCount === aulas.length;
+          const isModDone = isModuleCompleted(m);
+          const modUnlocked = isModuleUnlocked(i);
+
+          if (!modUnlocked) {
+            return (
+              <div
+                key={m.id}
+                className="rounded-2xl border border-dashed border-border/80 bg-muted/20 opacity-75 transition-all overflow-hidden"
+              >
+                {/* Header do Módulo Bloqueado */}
+                <div
+                  onClick={() => handleToggleModulo(m.id, false, i)}
+                  className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-4 cursor-not-allowed select-none hover:bg-muted/30 transition-colors"
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 bg-muted text-muted-foreground">
+                      <Lock className="h-4 w-4" />
+                    </div>
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+                          Módulo {i + 1}
+                        </span>
+                        <Badge variant="outline" className="text-[10px] py-0 px-2 font-normal border-dashed text-muted-foreground bg-background/60">
+                          <Lock className="h-2.5 w-2.5 mr-1" /> Bloqueado
+                        </Badge>
+                      </div>
+                      <h2 className="font-serif text-lg sm:text-xl font-bold text-muted-foreground truncate mt-0.5">
+                        {m.titulo}
+                      </h2>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-xs text-muted-foreground/80 hidden sm:inline italic">
+                      Conclua o Módulo {i} para liberar
+                    </span>
+                    <Badge variant="outline" className="text-xs font-normal border-border/60 text-muted-foreground bg-background/50">
+                      {aulas.length} {aulas.length === 1 ? "aula" : "aulas"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            );
+          }
 
           return (
             <div
@@ -411,10 +526,10 @@ function CursoAluno() {
                   : "border-border/80 hover:border-border"
               }`}
             >
-              {/* Header do Módulo (Clicável para abrir/fechar) */}
+              {/* Header do Módulo Liberado (Clicável para abrir/fechar) */}
               <button
                 type="button"
-                onClick={() => toggleModulo(m.id)}
+                onClick={() => handleToggleModulo(m.id, true, i)}
                 className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-4 transition-colors hover:bg-muted/40 cursor-pointer"
                 aria-expanded={isModOpen}
               >
@@ -472,12 +587,49 @@ function CursoAluno() {
                     </p>
                   )}
 
-                  {/* Lista de Aulas do Módulo (Acordeão: fechadas por padrão) */}
+                  {/* Lista de Aulas do Módulo (Com bloqueio sequencial) */}
                   <div className="space-y-2.5">
                     {aulas.map((a, idx) => {
                       const done = !!doneMap.get(a.id);
                       const embed = getEmbedUrl(a.video_url);
                       const isAulaOpen = !!openAulas[a.id];
+                      const aulaUnlocked = isAulaUnlocked(i, idx, a, aulas);
+
+                      if (!aulaUnlocked) {
+                        return (
+                          <Card
+                            key={a.id}
+                            onClick={() => handleToggleAula(a.id, false)}
+                            className="border border-dashed border-border/70 bg-muted/15 opacity-70 cursor-not-allowed select-none transition-all hover:bg-muted/25"
+                          >
+                            <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div className="h-7 w-7 rounded-full flex items-center justify-center shrink-0 bg-muted text-muted-foreground">
+                                  <Lock className="h-3.5 w-3.5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-mono text-[11px] font-bold text-muted-foreground">
+                                      Aula {a.ordem || idx + 1}
+                                    </span>
+                                    <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-normal text-muted-foreground border-dashed bg-background/40">
+                                      <Lock className="h-2.5 w-2.5 mr-1" /> Bloqueada
+                                    </Badge>
+                                  </div>
+                                  <div className="font-medium text-sm sm:text-base text-muted-foreground truncate mt-0.5">
+                                    {a.titulo}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-xs text-muted-foreground hidden sm:inline italic">
+                                  Conclua a aula anterior
+                                </span>
+                              </div>
+                            </div>
+                          </Card>
+                        );
+                      }
 
                       return (
                         <Card
@@ -488,16 +640,16 @@ function CursoAluno() {
                               : "border-border/70 hover:border-border hover:shadow-xs"
                           }`}
                         >
-                          {/* Cabeçalho da Aula (Clicável para expandir/recolher) */}
+                          {/* Cabeçalho da Aula Liberada (Clicável para expandir/recolher) */}
                           <div
-                            onClick={() => toggleAula(a.id)}
+                            onClick={() => handleToggleAula(a.id, true)}
                             className="p-3.5 sm:p-4 flex items-center justify-between gap-3 cursor-pointer hover:bg-muted/30 transition-colors select-none"
                             role="button"
                             tabIndex={0}
                             onKeyDown={(e) => {
                               if (e.key === "Enter" || e.key === " ") {
                                 e.preventDefault();
-                                toggleAula(a.id);
+                                handleToggleAula(a.id, true);
                               }
                             }}
                           >
@@ -647,7 +799,7 @@ function CursoAluno() {
                                   type="button"
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => toggleAula(a.id)}
+                                  onClick={() => handleToggleAula(a.id, true)}
                                   className="text-xs text-muted-foreground hover:text-foreground"
                                 >
                                   Recolher esta aula ↑
@@ -677,6 +829,40 @@ function CursoAluno() {
                           const tentativa = tentativasMap.get(e.id);
                           const aprovado = tentativa?.aprovado;
                           const nota = tentativa?.nota;
+                          const evalsUnlocked = areModuleEvaluationsUnlocked(i, aulas);
+
+                          if (!evalsUnlocked) {
+                            return (
+                              <Card key={e.id} className="border border-dashed border-border/70 bg-muted/20 opacity-70">
+                                <CardContent className="p-4 sm:p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                  <div className="flex items-start gap-3">
+                                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0 text-muted-foreground">
+                                      <Lock className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center gap-2">
+                                        <h4 className="font-serif text-base sm:text-lg font-bold text-muted-foreground">{e.titulo}</h4>
+                                        <Badge variant="outline" className="text-[10px] py-0 border-dashed text-muted-foreground">
+                                          <Lock className="h-2.5 w-2.5 mr-1" /> Prova Bloqueada
+                                        </Badge>
+                                      </div>
+                                      <p className="text-xs text-muted-foreground mt-0.5">
+                                        Conclua todas as aulas deste módulo para liberar esta avaliação.
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    disabled
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-dashed opacity-60 text-xs shrink-0"
+                                  >
+                                    <Lock className="h-3 w-3 mr-1" /> Bloqueada
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            );
+                          }
 
                           return (
                             <Card key={e.id} className="border-amber-500/30 bg-amber-500/5">
