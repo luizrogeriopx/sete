@@ -9,20 +9,46 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function SiteHeader() {
+export function SiteHeader({ variant = "default" }: { variant?: "default" | "orange" } = {}) {
   const { user, roles } = useAuth();
+  const isOrange = variant === "orange";
+
   return (
-    <header className="sticky top-0 z-40 border-b border-[#e2ddd3] bg-[#f3f0e9]/95 backdrop-blur-md transition-all">
+    <header
+      className={
+        isOrange
+          ? "sticky top-0 z-40 border-b border-white/15 bg-[#ea4310] text-white shadow-sm transition-all"
+          : "sticky top-0 z-40 border-b border-[#e2ddd3] bg-[#f3f0e9]/95 backdrop-blur-md transition-all text-[#1c1917]"
+      }
+    >
       <div className="mx-auto flex h-18 max-w-6xl items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#ff3403] text-white shadow-sm group-hover:scale-105 transition-transform">
+          <div
+            className={
+              isOrange
+                ? "flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#ea4310] shadow-sm group-hover:scale-105 transition-transform"
+                : "flex h-10 w-10 items-center justify-center rounded-full bg-[#ff3403] text-white shadow-sm group-hover:scale-105 transition-transform"
+            }
+          >
             <BookOpen className="h-5 w-5" />
           </div>
           <div className="leading-tight">
-            <div className="font-serif text-xl font-extrabold text-[#1c1917] tracking-tight group-hover:text-[#ff3403] transition-colors">
+            <div
+              className={
+                isOrange
+                  ? "font-serif text-xl font-extrabold text-white tracking-tight"
+                  : "font-serif text-xl font-extrabold text-[#1c1917] tracking-tight group-hover:text-[#ff3403] transition-colors"
+              }
+            >
               SETE
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#66594e]">
+            <div
+              className={
+                isOrange
+                  ? "text-[10px] font-bold uppercase tracking-[0.2em] text-white/80"
+                  : "text-[10px] font-bold uppercase tracking-[0.2em] text-[#66594e]"
+              }
+            >
               Seminário Teológico Esperança
             </div>
           </div>
@@ -32,13 +58,23 @@ export function SiteHeader() {
           <Link
             to="/"
             activeOptions={{ exact: true }}
-            activeProps={{ className: "text-[#ff3403]" }}
-            className="text-[#1c1917]/80 hover:text-[#ff3403] transition-colors uppercase text-xs tracking-wider font-bold"
+            activeProps={{ className: isOrange ? "text-amber-200 underline underline-offset-4" : "text-[#ff3403]" }}
+            className={
+              isOrange
+                ? "text-white/90 hover:text-white transition-colors uppercase text-xs tracking-wider font-bold"
+                : "text-[#1c1917]/80 hover:text-[#ff3403] transition-colors uppercase text-xs tracking-wider font-bold"
+            }
           >
             Início
           </Link>
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 text-[#1c1917]/80 hover:text-[#ff3403] focus:outline-none transition-colors uppercase text-xs tracking-wider font-bold cursor-pointer">
+            <DropdownMenuTrigger
+              className={
+                isOrange
+                  ? "flex items-center gap-1 text-white/90 hover:text-white focus:outline-none transition-colors uppercase text-xs tracking-wider font-bold cursor-pointer"
+                  : "flex items-center gap-1 text-[#1c1917]/80 hover:text-[#ff3403] focus:outline-none transition-colors uppercase text-xs tracking-wider font-bold cursor-pointer"
+              }
+            >
               Cursos <ChevronDown className="h-3.5 w-3.5" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-60 bg-white border-[#e2ddd3] shadow-lg rounded-xl p-1.5">
@@ -82,15 +118,23 @@ export function SiteHeader() {
           </DropdownMenu>
           <Link
             to="/sobre"
-            activeProps={{ className: "text-[#ff3403]" }}
-            className="text-[#1c1917]/80 hover:text-[#ff3403] transition-colors uppercase text-xs tracking-wider font-bold"
+            activeProps={{ className: isOrange ? "text-amber-200 underline underline-offset-4" : "text-[#ff3403]" }}
+            className={
+              isOrange
+                ? "text-white/90 hover:text-white transition-colors uppercase text-xs tracking-wider font-bold"
+                : "text-[#1c1917]/80 hover:text-[#ff3403] transition-colors uppercase text-xs tracking-wider font-bold"
+            }
           >
             Sobre
           </Link>
           <Link
             to="/contato"
-            activeProps={{ className: "text-[#ff3403]" }}
-            className="text-[#1c1917]/80 hover:text-[#ff3403] transition-colors uppercase text-xs tracking-wider font-bold"
+            activeProps={{ className: isOrange ? "text-amber-200 underline underline-offset-4" : "text-[#ff3403]" }}
+            className={
+              isOrange
+                ? "text-white/90 hover:text-white transition-colors uppercase text-xs tracking-wider font-bold"
+                : "text-[#1c1917]/80 hover:text-[#ff3403] transition-colors uppercase text-xs tracking-wider font-bold"
+            }
           >
             Contato
           </Link>
@@ -98,15 +142,40 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-3">
           {user ? (
-            <Button asChild size="sm" className="rounded-full bg-[#161922] text-white hover:bg-black font-bold text-xs uppercase tracking-wider px-5">
+            <Button
+              asChild
+              size="sm"
+              className={
+                isOrange
+                  ? "rounded-full bg-white text-[#ea4310] hover:bg-white/90 font-bold text-xs uppercase tracking-wider px-5 shadow-sm"
+                  : "rounded-full bg-[#161922] text-white hover:bg-black font-bold text-xs uppercase tracking-wider px-5"
+              }
+            >
               <Link to={primaryPanelPath(roles)}>Meu painel</Link>
             </Button>
           ) : (
             <>
-              <Button asChild variant="ghost" size="sm" className="rounded-full font-bold text-xs uppercase tracking-wider text-[#1c1917] hover:bg-[#e9e5dc] px-4">
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className={
+                  isOrange
+                    ? "rounded-full font-bold text-xs uppercase tracking-wider text-white hover:bg-white/15 hover:text-white px-4"
+                    : "rounded-full font-bold text-xs uppercase tracking-wider text-[#1c1917] hover:bg-[#e9e5dc] px-4"
+                }
+              >
                 <Link to="/auth">Entrar</Link>
               </Button>
-              <Button asChild size="sm" className="rounded-full bg-[#ff3403] text-white hover:bg-[#e02e00] font-bold text-xs uppercase tracking-wider px-5 shadow-sm hover:shadow transition-all">
+              <Button
+                asChild
+                size="sm"
+                className={
+                  isOrange
+                    ? "rounded-full bg-white text-[#ea4310] hover:bg-white/95 font-bold text-xs uppercase tracking-wider px-5 shadow-sm hover:shadow transition-all"
+                    : "rounded-full bg-[#ff3403] text-white hover:bg-[#e02e00] font-bold text-xs uppercase tracking-wider px-5 shadow-sm hover:shadow transition-all"
+                }
+              >
                 <Link to="/auth" search={{ modo: "cadastro" }}>
                   Matricule-se
                 </Link>
