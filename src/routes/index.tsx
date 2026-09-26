@@ -50,23 +50,33 @@ interface InstitucionalConfig {
   card4_descricao: string;
 }
 
-function getVideoEmbedUrl(url: string) {
+interface SomosSeteConfig {
+  titulo: string;
+  subtitulo: string;
+  texto: string;
+  video_url: string;
+}
+
+function getVideoEmbedUrl(url: string, autoplay: boolean = true) {
   if (!url) return "";
   try {
+    const autoParam = autoplay ? "?autoplay=1" : "";
     if (url.includes("youtube.com/watch")) {
       const v = new URL(url).searchParams.get("v");
-      if (v) return `https://www.youtube.com/embed/${v}?autoplay=1`;
+      if (v) return `https://www.youtube.com/embed/${v}${autoParam}`;
     }
     if (url.includes("youtu.be/")) {
       const id = url.split("youtu.be/")[1]?.split("?")[0];
-      if (id) return `https://www.youtube.com/embed/${id}?autoplay=1`;
+      if (id) return `https://www.youtube.com/embed/${id}${autoParam}`;
     }
     if (url.includes("youtube.com/embed/")) {
-      return url;
+      return autoplay && !url.includes("autoplay=1")
+        ? `${url}${url.includes("?") ? "&" : "?"}autoplay=1`
+        : url;
     }
     if (url.includes("vimeo.com/")) {
       const id = url.split("vimeo.com/")[1]?.split("?")[0];
-      if (id) return `https://player.vimeo.com/video/${id}?autoplay=1`;
+      if (id) return `https://player.vimeo.com/video/${id}${autoParam}`;
     }
   } catch {
     return url;
@@ -238,6 +248,33 @@ function Home() {
   const instCard4Descricao =
     institucionalDB?.card4_descricao ||
     "O SETE é reconhecido pela comunhão e acolhimento, promovendo intercâmbio e edificação entre estudantes, igrejas e ministérios.";
+
+  // Query Somos o SETE (Seção Institucional Texto + Vídeo) from app_settings
+  const { data: somosDB } = useQuery({
+    queryKey: ["landing-somos-sete-home"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("valor")
+        .eq("chave", "landing_somos_sete")
+        .maybeSingle();
+
+      if (error) {
+        console.warn("Erro ao buscar configurações do Somos o SETE:", error);
+        return null;
+      }
+      return (data?.valor as SomosSeteConfig) ?? null;
+    },
+  });
+
+  const somosTitulo = somosDB?.titulo || "Somos o SETE";
+  const somosSubtitulo =
+    somosDB?.subtitulo || "e celebramos sua presença conosco nesta jornada de fé e conhecimento";
+  const somosTexto =
+    somosDB?.texto ||
+    "O Seminário Teológico Esperança (SETE) é uma comunidade acadêmica e de fé comprometida com a formação bíblica sólida, a excelência teológica e a preparação prática de homens e mulheres chamados para o ministério cristão.\n\nAcreditamos no ensino que transforma a mente, edifica o coração e capacita o obreiro para cumprir com excelência o propósito de Deus na igreja local, nos campos missionários e na sociedade contemporânea.";
+  const somosVideoUrl =
+    somosDB?.video_url || "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
   const getCurso = (slug: string) => {
     return cursosDB?.find((c) => c.slug === slug);
@@ -790,20 +827,50 @@ function Home() {
           </div>
         </section>
 
-        {/* SEÇÃO INSPIRADA NA FTSA: COMUNIDADE & FORMAÇÃO MINISTERIAL — SEÇÃO CLARA (CREME SUAVE) */}
+        {/* SEÇÃO INSTITUCIONAL SOMOS O SETE — ESTILO FTSA COM TEXTO E VÍDEO DO YOUTUBE */}
         <section className="bg-[#fbf9f4] text-[#1c1917] py-20 border-t border-b border-[#e8e2d5]">
           <div className="mx-auto max-w-6xl px-4">
-            <div className="text-center max-w-3xl mx-auto mb-12">
-              <span className="inline-block text-xs font-black uppercase tracking-[0.25em] text-[#ea4310] bg-[#ea4310]/10 border border-[#ea4310]/20 px-4 py-1.5 rounded-full mb-3">
+            {/* Cabeçalho no estilo FTSA */}
+            <div className="text-center max-w-3xl mx-auto mb-10">
+              <span className="inline-block text-xs font-black uppercase tracking-[0.25em] text-[#ea4310] bg-[#ea4310]/10 border border-[#ea4310]/20 px-4 py-1.5 rounded-full mb-4">
                 VIDA E MINISTÉRIO NO SETE
               </span>
-              <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-black text-[#1c1917]">
-                <span className="text-[#ea4310]">Somos o SETE</span> — Preparando Vidas Para o Reino
+              <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-black text-[#ea4310] tracking-tight">
+                {somosTitulo}
               </h2>
-              <p className="mt-3 text-sm sm:text-base text-[#66594e] leading-relaxed font-normal">
-                Nossa proposta integra formação teológica bíblica rigorosa, cuidado pastoral, discipulado e exercício responsável da liderança cristã.
-              </p>
+              {somosSubtitulo && (
+                <p className="mt-3 font-serif text-lg sm:text-xl font-bold text-[#ea4310]/90 max-w-2xl mx-auto">
+                  {somosSubtitulo}
+                </p>
+              )}
             </div>
+
+            {/* Texto Institucional em Parágrafos */}
+            <div className="max-w-3xl mx-auto text-center space-y-4 mb-12">
+              {somosTexto.split("\n\n").map((paragrafo, idx) => (
+                <p
+                  key={idx}
+                  className="text-base sm:text-lg text-[#66594e] leading-relaxed font-normal"
+                >
+                  {paragrafo}
+                </p>
+              ))}
+            </div>
+
+            {/* Vídeo do YouTube Embutido no Estilo FTSA */}
+            {somosVideoUrl && (
+              <div className="max-w-4xl mx-auto mb-16">
+                <div className="relative aspect-video w-full rounded-3xl overflow-hidden shadow-2xl border border-black/10 bg-black">
+                  <iframe
+                    src={getVideoEmbedUrl(somosVideoUrl, false)}
+                    title="Vídeo Institucional — Somos o SETE"
+                    className="absolute inset-0 w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="grid gap-6 md:grid-cols-3">
               <div className="rounded-3xl bg-white border border-[#e2ddd3] p-8 space-y-4 shadow-sm hover:shadow-md transition-shadow">

@@ -75,6 +75,37 @@ interface InstitucionalConfig {
   card4_descricao: string;
 }
 
+interface SomosSeteConfig {
+  titulo: string;
+  subtitulo: string;
+  texto: string;
+  video_url: string;
+}
+
+function getVideoEmbedUrl(url: string) {
+  if (!url) return "";
+  try {
+    if (url.includes("youtube.com/watch")) {
+      const v = new URL(url).searchParams.get("v");
+      if (v) return `https://www.youtube.com/embed/${v}`;
+    }
+    if (url.includes("youtu.be/")) {
+      const id = url.split("youtu.be/")[1]?.split("?")[0];
+      if (id) return `https://www.youtube.com/embed/${id}`;
+    }
+    if (url.includes("youtube.com/embed/")) {
+      return url;
+    }
+    if (url.includes("vimeo.com/")) {
+      const id = url.split("vimeo.com/")[1]?.split("?")[0];
+      if (id) return `https://player.vimeo.com/video/${id}`;
+    }
+  } catch {
+    return url;
+  }
+  return url;
+}
+
 function ConfigSite() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -118,6 +149,12 @@ function ConfigSite() {
   const [instCard4Descricao, setInstCard4Descricao] = useState("");
   const [isUploadingInstImage, setIsUploadingInstImage] = useState(false);
 
+  // Tab: Somos o SETE (Seção Institucional Texto + Vídeo)
+  const [somosTitulo, setSomosTitulo] = useState("");
+  const [somosSubtitulo, setSomosSubtitulo] = useState("");
+  const [somosTexto, setSomosTexto] = useState("");
+  const [somosVideoUrl, setSomosVideoUrl] = useState("");
+
   // Queries
   const { data: allSettings, isLoading } = useQuery({
     queryKey: ["site-settings-all"],
@@ -125,7 +162,7 @@ function ConfigSite() {
       const { data, error } = await supabase
         .from("app_settings")
         .select("chave, valor")
-        .in("chave", ["landing_hero", "site_sobre", "site_contato", "landing_institucional"]);
+        .in("chave", ["landing_hero", "site_sobre", "site_contato", "landing_institucional", "landing_somos_sete"]);
 
       if (error) throw error;
       return data ?? [];
@@ -178,6 +215,16 @@ function ConfigSite() {
       setInstCard3Descricao(inst?.card3_descricao ?? "Conteúdo didático completo, apostilas exclusivas em PDF e acervo digital para enriquecer o estudo de cada disciplina.");
       setInstCard4Titulo(inst?.card4_titulo ?? "Comunidade");
       setInstCard4Descricao(inst?.card4_descricao ?? "O SETE é reconhecido pela comunhão e acolhimento, promovendo intercâmbio e edificação entre estudantes, igrejas e ministérios.");
+
+      // Somos o SETE (Seção Institucional com Vídeo do YouTube)
+      const somos = allSettings.find((s) => s.chave === "landing_somos_sete")?.valor as SomosSeteConfig | undefined;
+      setSomosTitulo(somos?.titulo ?? "Somos o SETE");
+      setSomosSubtitulo(somos?.subtitulo ?? "e celebramos sua presença conosco nesta jornada de fé e conhecimento");
+      setSomosTexto(
+        somos?.texto ??
+          "O Seminário Teológico Esperança (SETE) é uma comunidade acadêmica e de fé comprometida com a formação bíblica sólida, a excelência teológica e a preparação prática de homens e mulheres chamados para o ministério cristão.\n\nAcreditamos no ensino que transforma a mente, edifica o coração e capacita o obreiro para cumprir com excelência o propósito de Deus na igreja local, nos campos missionários e na sociedade contemporânea."
+      );
+      setSomosVideoUrl(somos?.video_url ?? "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
     }
   }, [allSettings]);
 
@@ -297,6 +344,31 @@ function ConfigSite() {
     },
   });
 
+  const salvarSomosSete = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        chave: "landing_somos_sete",
+        valor: {
+          titulo: somosTitulo,
+          subtitulo: somosSubtitulo,
+          texto: somosTexto,
+          video_url: somosVideoUrl,
+        },
+        updated_by: user!.id,
+      };
+      const { error } = await supabase.from("app_settings").upsert(payload, { onConflict: "chave" });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["site-settings-all"] });
+      qc.invalidateQueries({ queryKey: ["landing-somos-sete-home"] });
+      toast.success("Seção 'Somos o SETE' salva com sucesso!");
+    },
+    onError: (err: Error) => {
+      toast.error(`Erro ao salvar seção Somos o SETE: ${err.message}`);
+    },
+  });
+
   async function handleUploadImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -346,9 +418,10 @@ function ConfigSite() {
       </div>
 
       <Tabs defaultValue="hero" className="space-y-6">
-        <TabsList className="grid w-full max-w-2xl grid-cols-4 bg-muted/50 border">
+        <TabsList className="grid w-full max-w-3xl grid-cols-2 sm:grid-cols-5 bg-muted/50 border h-auto p-1.5 gap-1">
           <TabsTrigger value="hero">Hero (Início)</TabsTrigger>
-          <TabsTrigger value="institucional">Banner Institucional</TabsTrigger>
+          <TabsTrigger value="somos">Somos o SETE</TabsTrigger>
+          <TabsTrigger value="institucional">Banner Campus</TabsTrigger>
           <TabsTrigger value="sobre">Página Sobre</TabsTrigger>
           <TabsTrigger value="contato">Página Contato</TabsTrigger>
         </TabsList>
@@ -422,6 +495,132 @@ function ConfigSite() {
                   <div className="h-9 w-24 bg-gold/90 rounded-md" />
                   <div className="h-9 w-28 bg-transparent border border-slate-700 rounded-md" />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB SOMOS O SETE (SEÇÃO INSTITUCIONAL TEXTO + VÍDEO YOUTUBE) */}
+        <TabsContent value="somos" className="grid gap-8 lg:grid-cols-2">
+          <Card className="border-border/50 bg-card/65 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="font-serif text-xl flex items-center gap-2">
+                <Video className="h-5 w-5 text-gold" /> Seção Somos o SETE (Texto + Vídeo)
+              </CardTitle>
+              <CardDescription>
+                Configure o título, subtítulo, texto institucional e o link do vídeo do YouTube da seção &quot;Vida e Ministério no SETE&quot;.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Título Principal</label>
+                <Input
+                  type="text"
+                  placeholder="Ex: Somos o SETE"
+                  value={somosTitulo}
+                  onChange={(e) => setSomosTitulo(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Subtítulo / Chamada</label>
+                <Input
+                  type="text"
+                  placeholder="Ex: e celebramos sua presença conosco nesta jornada..."
+                  value={somosSubtitulo}
+                  onChange={(e) => setSomosSubtitulo(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Texto Institucional</label>
+                <Textarea
+                  rows={6}
+                  placeholder="Digite os parágrafos de apresentação. Separe os parágrafos com uma linha em branco."
+                  value={somosTexto}
+                  onChange={(e) => setSomosTexto(e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Separe parágrafos com duas quebras de linha para formatar os blocos de texto no site.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold flex items-center gap-2">
+                  <Video className="h-4 w-4 text-gold" /> URL do Vídeo (YouTube)
+                </label>
+                <Input
+                  type="url"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={somosVideoUrl}
+                  onChange={(e) => setSomosVideoUrl(e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Cole o link regular do YouTube (ex: https://www.youtube.com/watch?v=... ou https://youtu.be/...).
+                </p>
+              </div>
+
+              <Button
+                className="bg-gold text-gold-foreground hover:bg-gold/90 w-full flex items-center justify-center gap-2 h-10 mt-4"
+                onClick={() => salvarSomosSete.mutate()}
+                disabled={salvarSomosSete.isPending}
+              >
+                <Save className="h-4 w-4" />
+                {salvarSomosSete.isPending ? "Salvando..." : "Salvar Seção Somos o SETE"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Preview Somos o SETE */}
+          <Card className="border-border/50 bg-[#fbf9f4] text-[#1c1917] overflow-hidden flex flex-col justify-between shadow-md">
+            <CardHeader className="bg-[#f0ebe1] border-b border-[#e2ddd3]">
+              <CardTitle className="font-serif text-lg flex items-center gap-2 text-[#ea4310]">
+                <Eye className="h-5 w-5" /> Pré-visualização da Seção
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 flex-1 flex flex-col justify-between space-y-6">
+              <div className="space-y-4">
+                <div className="text-center">
+                  <span className="inline-block text-[10px] font-black uppercase tracking-[0.2em] text-[#ea4310] bg-[#ea4310]/10 border border-[#ea4310]/20 px-3 py-1 rounded-full mb-2">
+                    VIDA E MINISTÉRIO NO SETE
+                  </span>
+                  <h3 className="font-serif text-2xl font-black text-[#ea4310] tracking-tight">
+                    {somosTitulo || "Somos o SETE"}
+                  </h3>
+                  {somosSubtitulo && (
+                    <p className="font-serif text-sm font-bold text-[#ea4310]/90 mt-1">
+                      {somosSubtitulo}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2 text-center text-xs text-[#66594e] leading-relaxed">
+                  {(somosTexto || "O Seminário Teológico Esperança é comprometido com o Reino...")
+                    .split("\n\n")
+                    .map((p, i) => (
+                      <p key={i}>{p}</p>
+                    ))}
+                </div>
+
+                {somosVideoUrl ? (
+                  <div className="relative aspect-video w-full rounded-2xl overflow-hidden shadow-lg border border-black/10 bg-black mt-4">
+                    <iframe
+                      src={getVideoEmbedUrl(somosVideoUrl)}
+                      title="Preview do Vídeo"
+                      className="absolute inset-0 w-full h-full border-0"
+                      allowFullScreen
+                    />
+                  </div>
+                ) : (
+                  <div className="aspect-video w-full rounded-2xl border-2 border-dashed border-[#e2ddd3] flex flex-col items-center justify-center text-[#66594e] text-xs gap-2">
+                    <Video className="h-8 w-8 text-[#ea4310]/40" />
+                    <span>Nenhum vídeo configurado</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-center text-[10px] text-muted-foreground pt-4 border-t border-[#e2ddd3]">
+                Esta seção é renderizada com fundo claro (#fbf9f4) e títulos em laranja (#ea4310).
               </div>
             </CardContent>
           </Card>
