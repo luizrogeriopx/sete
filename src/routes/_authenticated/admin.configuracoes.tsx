@@ -7,7 +7,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Save, Layout, Eye, Info, Phone, Mail, MapPin } from "lucide-react";
+import {
+  Settings,
+  Save,
+  Layout,
+  Eye,
+  Info,
+  Phone,
+  Mail,
+  MapPin,
+  Upload,
+  Image as ImageIcon,
+  Video,
+  Award,
+  GraduationCap,
+  BookOpen,
+  Globe,
+  Play,
+  Loader2,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -42,6 +60,21 @@ interface ContatoConfig {
   address: string;
 }
 
+interface InstitucionalConfig {
+  imagem_url: string;
+  titulo: string;
+  botao_texto: string;
+  video_url: string;
+  card1_titulo: string;
+  card1_descricao: string;
+  card2_titulo: string;
+  card2_descricao: string;
+  card3_titulo: string;
+  card3_descricao: string;
+  card4_titulo: string;
+  card4_descricao: string;
+}
+
 function ConfigSite() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -70,6 +103,21 @@ function ConfigSite() {
   const [contatoPhone, setContatoPhone] = useState("");
   const [contatoAddress, setContatoAddress] = useState("");
 
+  // Tab: Institucional (Banner com Imagem & 4 Pilares)
+  const [instImagemUrl, setInstImagemUrl] = useState("");
+  const [instTitulo, setInstTitulo] = useState("");
+  const [instBotaoTexto, setInstBotaoTexto] = useState("");
+  const [instVideoUrl, setInstVideoUrl] = useState("");
+  const [instCard1Titulo, setInstCard1Titulo] = useState("");
+  const [instCard1Descricao, setInstCard1Descricao] = useState("");
+  const [instCard2Titulo, setInstCard2Titulo] = useState("");
+  const [instCard2Descricao, setInstCard2Descricao] = useState("");
+  const [instCard3Titulo, setInstCard3Titulo] = useState("");
+  const [instCard3Descricao, setInstCard3Descricao] = useState("");
+  const [instCard4Titulo, setInstCard4Titulo] = useState("");
+  const [instCard4Descricao, setInstCard4Descricao] = useState("");
+  const [isUploadingInstImage, setIsUploadingInstImage] = useState(false);
+
   // Queries
   const { data: allSettings, isLoading } = useQuery({
     queryKey: ["site-settings-all"],
@@ -77,7 +125,7 @@ function ConfigSite() {
       const { data, error } = await supabase
         .from("app_settings")
         .select("chave, valor")
-        .in("chave", ["landing_hero", "site_sobre", "site_contato"]);
+        .in("chave", ["landing_hero", "site_sobre", "site_contato", "landing_institucional"]);
 
       if (error) throw error;
       return data ?? [];
@@ -115,6 +163,21 @@ function ConfigSite() {
       setContatoEmail(contato?.email ?? "contato@sete.edu.br");
       setContatoPhone(contato?.phone ?? "(00) 0000-0000");
       setContatoAddress(contato?.address ?? "Sede do seminário — a definir");
+
+      // Institucional
+      const inst = allSettings.find((s) => s.chave === "landing_institucional")?.valor as InstitucionalConfig | undefined;
+      setInstImagemUrl(inst?.imagem_url ?? "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80");
+      setInstTitulo(inst?.titulo ?? "Preparando vidas para servir o Reino de Deus");
+      setInstBotaoTexto(inst?.botao_texto ?? "ASSISTA NOSSO VÍDEO INSTITUCIONAL");
+      setInstVideoUrl(inst?.video_url ?? "");
+      setInstCard1Titulo(inst?.card1_titulo ?? "Certificação");
+      setInstCard1Descricao(inst?.card1_descricao ?? "Diploma e certificado reconhecidos pelo SETE, com formação bíblica sólida para capacitar obreiros e líderes no Brasil e no exterior.");
+      setInstCard2Titulo(inst?.card2_titulo ?? "Docentes");
+      setInstCard2Descricao(inst?.card2_descricao ?? "Nosso corpo docente é altamente qualificado, composto por pastores, mestres e líderes com vasta experiência ministerial e teológica.");
+      setInstCard3Titulo(inst?.card3_titulo ?? "Biblioteca");
+      setInstCard3Descricao(inst?.card3_descricao ?? "Conteúdo didático completo, apostilas exclusivas em PDF e acervo digital para enriquecer o estudo de cada disciplina.");
+      setInstCard4Titulo(inst?.card4_titulo ?? "Comunidade");
+      setInstCard4Descricao(inst?.card4_descricao ?? "O SETE é reconhecido pela comunhão e acolhimento, promovendo intercâmbio e edificação entre estudantes, igrejas e ministérios.");
     }
   }, [allSettings]);
 
@@ -201,6 +264,71 @@ function ConfigSite() {
     },
   });
 
+  const salvarInstitucional = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        chave: "landing_institucional",
+        valor: {
+          imagem_url: instImagemUrl,
+          titulo: instTitulo,
+          botao_texto: instBotaoTexto,
+          video_url: instVideoUrl,
+          card1_titulo: instCard1Titulo,
+          card1_descricao: instCard1Descricao,
+          card2_titulo: instCard2Titulo,
+          card2_descricao: instCard2Descricao,
+          card3_titulo: instCard3Titulo,
+          card3_descricao: instCard3Descricao,
+          card4_titulo: instCard4Titulo,
+          card4_descricao: instCard4Descricao,
+        },
+        updated_by: user!.id,
+      };
+      const { error } = await supabase.from("app_settings").upsert(payload, { onConflict: "chave" });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["site-settings-all"] });
+      qc.invalidateQueries({ queryKey: ["landing-institucional-settings"] });
+      toast.success("Banner Institucional salvo com sucesso!");
+    },
+    onError: (err: Error) => {
+      toast.error(`Erro ao salvar Banner Institucional: ${err.message}`);
+    },
+  });
+
+  async function handleUploadImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingInstImage(true);
+      const fileExt = file.name.split(".").pop() || "jpg";
+      const fileName = `institucional/${Date.now()}-${crypto.randomUUID()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("cursos")
+        .upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("cursos").getPublicUrl(fileName);
+      if (!data.publicUrl) throw new Error("Não foi possível gerar a URL pública da imagem.");
+
+      setInstImagemUrl(data.publicUrl);
+      toast.success("Imagem enviada com sucesso! Lembre-se de clicar em Salvar.");
+    } catch (err: any) {
+      console.error("Erro no upload da imagem:", err);
+      toast.error(err.message || "Erro ao fazer upload da imagem.");
+    } finally {
+      setIsUploadingInstImage(false);
+      e.target.value = "";
+    }
+  }
+
   if (isLoading) {
     return <p className="text-muted-foreground p-4">Carregando configurações…</p>;
   }
@@ -218,8 +346,9 @@ function ConfigSite() {
       </div>
 
       <Tabs defaultValue="hero" className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-3 bg-muted/50 border">
+        <TabsList className="grid w-full max-w-2xl grid-cols-4 bg-muted/50 border">
           <TabsTrigger value="hero">Hero (Início)</TabsTrigger>
+          <TabsTrigger value="institucional">Banner Institucional</TabsTrigger>
           <TabsTrigger value="sobre">Página Sobre</TabsTrigger>
           <TabsTrigger value="contato">Página Contato</TabsTrigger>
         </TabsList>
@@ -296,6 +425,286 @@ function ConfigSite() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* TAB BANNER INSTITUCIONAL COM UPLOAD DE IMAGEM */}
+        <TabsContent value="institucional" className="grid gap-8 lg:grid-cols-2">
+          <div className="space-y-6">
+            {/* Card de Imagem e Vídeo */}
+            <Card className="border-border/50 bg-card/65 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="font-serif text-xl flex items-center gap-2">
+                  <ImageIcon className="h-5 w-5 text-gold" /> Imagem de Fundo & Vídeo
+                </CardTitle>
+                <CardDescription>
+                  Faça o upload da foto da instituição/campus para o fundo do banner.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                {/* Upload de Imagem */}
+                <div className="space-y-3">
+                  <label className="text-sm font-semibold flex items-center justify-between">
+                    <span>Upload da Imagem do Banner</span>
+                    {isUploadingInstImage && (
+                      <span className="flex items-center gap-1.5 text-xs text-gold">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando arquivo...
+                      </span>
+                    )}
+                  </label>
+
+                  {/* Preview da imagem atual */}
+                  <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-border bg-muted/30">
+                    {instImagemUrl ? (
+                      <img
+                        src={instImagemUrl}
+                        alt="Pré-visualização do Banner Institucional"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-muted-foreground text-xs">
+                        Nenhuma imagem selecionada
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <label className="relative flex-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isUploadingInstImage}
+                        className="w-full cursor-pointer flex items-center justify-center gap-2 border-dashed border-2"
+                        asChild
+                      >
+                        <span>
+                          <Upload className="h-4 w-4" />
+                          {isUploadingInstImage ? "Enviando arquivo..." : "Escolher Imagem do Computador"}
+                        </span>
+                      </Button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        disabled={isUploadingInstImage}
+                        onChange={handleUploadImage}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Ou informe diretamente a URL da imagem:</label>
+                    <Input
+                      type="url"
+                      placeholder="https://exemplo.com/foto-campus.jpg"
+                      value={instImagemUrl}
+                      onChange={(e) => setInstImagemUrl(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Título do Banner */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Título Principal do Banner</label>
+                  <Input
+                    type="text"
+                    value={instTitulo}
+                    onChange={(e) => setInstTitulo(e.target.value)}
+                    placeholder="Preparando vidas para servir o Reino de Deus"
+                  />
+                </div>
+
+                {/* Botão e Vídeo */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Texto do Botão</label>
+                    <Input
+                      type="text"
+                      value={instBotaoTexto}
+                      onChange={(e) => setInstBotaoTexto(e.target.value)}
+                      placeholder="ASSISTA NOSSO VÍDEO INSTITUCIONAL"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Link do Vídeo (YouTube / Vimeo)</label>
+                    <Input
+                      type="url"
+                      value={instVideoUrl}
+                      onChange={(e) => setInstVideoUrl(e.target.value)}
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Card dos 4 Pilares da Faixa Laranja */}
+            <Card className="border-border/50 bg-card/65 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="font-serif text-xl flex items-center gap-2">
+                  <Layout className="h-5 w-5 text-gold" /> Os 4 Pilares da Faixa Laranja
+                </CardTitle>
+                <CardDescription>
+                  Personalize os títulos e descrições dos 4 itens exibidos na faixa inferior.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Pilar 1: Certificação */}
+                <div className="p-3.5 rounded-xl border border-border/60 bg-muted/20 space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gold uppercase tracking-wider">
+                    <Award className="h-4 w-4" /> Pilar 1: Certificação
+                  </div>
+                  <Input
+                    value={instCard1Titulo}
+                    onChange={(e) => setInstCard1Titulo(e.target.value)}
+                    placeholder="Título do Pilar 1"
+                  />
+                  <Textarea
+                    rows={2}
+                    value={instCard1Descricao}
+                    onChange={(e) => setInstCard1Descricao(e.target.value)}
+                    placeholder="Descrição do Pilar 1"
+                  />
+                </div>
+
+                {/* Pilar 2: Docentes */}
+                <div className="p-3.5 rounded-xl border border-border/60 bg-muted/20 space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gold uppercase tracking-wider">
+                    <GraduationCap className="h-4 w-4" /> Pilar 2: Docentes
+                  </div>
+                  <Input
+                    value={instCard2Titulo}
+                    onChange={(e) => setInstCard2Titulo(e.target.value)}
+                    placeholder="Título do Pilar 2"
+                  />
+                  <Textarea
+                    rows={2}
+                    value={instCard2Descricao}
+                    onChange={(e) => setInstCard2Descricao(e.target.value)}
+                    placeholder="Descrição do Pilar 2"
+                  />
+                </div>
+
+                {/* Pilar 3: Biblioteca */}
+                <div className="p-3.5 rounded-xl border border-border/60 bg-muted/20 space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gold uppercase tracking-wider">
+                    <BookOpen className="h-4 w-4" /> Pilar 3: Biblioteca
+                  </div>
+                  <Input
+                    value={instCard3Titulo}
+                    onChange={(e) => setInstCard3Titulo(e.target.value)}
+                    placeholder="Título do Pilar 3"
+                  />
+                  <Textarea
+                    rows={2}
+                    value={instCard3Descricao}
+                    onChange={(e) => setInstCard3Descricao(e.target.value)}
+                    placeholder="Descrição do Pilar 3"
+                  />
+                </div>
+
+                {/* Pilar 4: Comunidade */}
+                <div className="p-3.5 rounded-xl border border-border/60 bg-muted/20 space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-gold uppercase tracking-wider">
+                    <Globe className="h-4 w-4" /> Pilar 4: Comunidade
+                  </div>
+                  <Input
+                    value={instCard4Titulo}
+                    onChange={(e) => setInstCard4Titulo(e.target.value)}
+                    placeholder="Título do Pilar 4"
+                  />
+                  <Textarea
+                    rows={2}
+                    value={instCard4Descricao}
+                    onChange={(e) => setInstCard4Descricao(e.target.value)}
+                    placeholder="Descrição do Pilar 4"
+                  />
+                </div>
+
+                <Button
+                  className="bg-gold text-gold-foreground hover:bg-gold/90 w-full flex items-center justify-center gap-2 h-11 mt-4 shadow-md font-bold"
+                  onClick={() => salvarInstitucional.mutate()}
+                  disabled={salvarInstitucional.isPending || isUploadingInstImage}
+                >
+                  <Save className="h-4 w-4" />
+                  {salvarInstitucional.isPending ? "Salvando alterações..." : "Salvar Banner Institucional"}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Preview da Seção Completa */}
+          <div className="space-y-6">
+            <Card className="border-border/50 bg-slate-950 text-white overflow-hidden sticky top-6 shadow-2xl">
+              <CardHeader className="bg-slate-900 border-b border-border/10 py-3">
+                <CardTitle className="font-serif text-sm flex items-center gap-2 text-gold">
+                  <Eye className="h-4 w-4" /> Pré-visualização em Tempo Real (Padrão FTSA)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 overflow-hidden">
+                {/* Parte superior simulada */}
+                <div
+                  className="relative h-64 flex items-center bg-cover bg-center p-6 text-white"
+                  style={{
+                    backgroundImage: `url(${instImagemUrl || "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80"})`,
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/30" />
+                  <div className="relative space-y-4 max-w-sm">
+                    <h2 className="font-serif text-xl sm:text-2xl font-black leading-tight text-white drop-shadow">
+                      {instTitulo || "Preparando vidas para servir o Reino de Deus"}
+                    </h2>
+                    <div>
+                      <span className="inline-flex items-center gap-2 rounded-full bg-white text-[#ea4310] text-[10px] font-black uppercase tracking-wider px-3.5 py-1.5 shadow-md">
+                        <span>{instBotaoTexto || "ASSISTA NOSSO VÍDEO INSTITUCIONAL"}</span>
+                        <Play className="h-2.5 w-2.5 fill-current" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Parte inferior simulada (faixa laranja) */}
+                <div className="bg-[#ea4310] text-white p-5">
+                  <div className="grid grid-cols-2 gap-4 text-[11px]">
+                    <div className="space-y-1">
+                      <div className="font-serif font-bold text-white flex items-center gap-1.5 text-xs">
+                        <Award className="h-3.5 w-3.5" /> {instCard1Titulo || "Certificação"}
+                      </div>
+                      <p className="text-[10px] text-white/90 line-clamp-2 leading-relaxed">
+                        {instCard1Descricao}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="font-serif font-bold text-white flex items-center gap-1.5 text-xs">
+                        <GraduationCap className="h-3.5 w-3.5" /> {instCard2Titulo || "Docentes"}
+                      </div>
+                      <p className="text-[10px] text-white/90 line-clamp-2 leading-relaxed">
+                        {instCard2Descricao}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="font-serif font-bold text-white flex items-center gap-1.5 text-xs">
+                        <BookOpen className="h-3.5 w-3.5" /> {instCard3Titulo || "Biblioteca"}
+                      </div>
+                      <p className="text-[10px] text-white/90 line-clamp-2 leading-relaxed">
+                        {instCard3Descricao}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="font-serif font-bold text-white flex items-center gap-1.5 text-xs">
+                        <Globe className="h-3.5 w-3.5" /> {instCard4Titulo || "Comunidade"}
+                      </div>
+                      <p className="text-[10px] text-white/90 line-clamp-2 leading-relaxed">
+                        {instCard4Descricao}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* TAB SOBRE */}

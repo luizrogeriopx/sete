@@ -29,8 +29,50 @@ import {
   Check,
   BookMarked,
   Scroll,
+  Play,
+  Award,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface InstitucionalConfig {
+  imagem_url: string;
+  titulo: string;
+  botao_texto: string;
+  video_url: string;
+  card1_titulo: string;
+  card1_descricao: string;
+  card2_titulo: string;
+  card2_descricao: string;
+  card3_titulo: string;
+  card3_descricao: string;
+  card4_titulo: string;
+  card4_descricao: string;
+}
+
+function getVideoEmbedUrl(url: string) {
+  if (!url) return "";
+  try {
+    if (url.includes("youtube.com/watch")) {
+      const v = new URL(url).searchParams.get("v");
+      if (v) return `https://www.youtube.com/embed/${v}?autoplay=1`;
+    }
+    if (url.includes("youtu.be/")) {
+      const id = url.split("youtu.be/")[1]?.split("?")[0];
+      if (id) return `https://www.youtube.com/embed/${id}?autoplay=1`;
+    }
+    if (url.includes("youtube.com/embed/")) {
+      return url;
+    }
+    if (url.includes("vimeo.com/")) {
+      const id = url.split("vimeo.com/")[1]?.split("?")[0];
+      if (id) return `https://player.vimeo.com/video/${id}?autoplay=1`;
+    }
+  } catch {
+    return url;
+  }
+  return url;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -138,6 +180,8 @@ function Home() {
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [quizSelection, setQuizSelection] = useState<string | null>(null);
 
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
   // Load real courses data from Supabase (prices, images, details)
   const { data: cursosDB } = useQuery({
     queryKey: ["home-cursos-catalogo"],
@@ -153,6 +197,47 @@ function Home() {
       return data ?? [];
     },
   });
+
+  // Query institucional banner from app_settings
+  const { data: institucionalDB } = useQuery({
+    queryKey: ["landing-institucional-home"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("valor")
+        .eq("chave", "landing_institucional")
+        .maybeSingle();
+
+      if (error) {
+        console.warn("Erro ao buscar configurações institucionais:", error);
+        return null;
+      }
+      return (data?.valor as InstitucionalConfig) ?? null;
+    },
+  });
+
+  const instImagemUrl =
+    institucionalDB?.imagem_url ||
+    "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80";
+  const instTitulo = institucionalDB?.titulo || "Preparando vidas para servir o Reino de Deus";
+  const instBotaoTexto = institucionalDB?.botao_texto || "ASSISTA NOSSO VÍDEO INSTITUCIONAL";
+  const instVideoUrl = institucionalDB?.video_url || "";
+  const instCard1Titulo = institucionalDB?.card1_titulo || "Certificação";
+  const instCard1Descricao =
+    institucionalDB?.card1_descricao ||
+    "Diploma e certificado reconhecidos pelo SETE, com formação bíblica sólida para capacitar obreiros e líderes no Brasil e no exterior.";
+  const instCard2Titulo = institucionalDB?.card2_titulo || "Docentes";
+  const instCard2Descricao =
+    institucionalDB?.card2_descricao ||
+    "Nosso corpo docente é altamente qualificado, composto por pastores, mestres e líderes com vasta experiência ministerial e teológica.";
+  const instCard3Titulo = institucionalDB?.card3_titulo || "Biblioteca";
+  const instCard3Descricao =
+    institucionalDB?.card3_descricao ||
+    "Conteúdo didático completo, apostilas exclusivas em PDF e acervo digital para enriquecer o estudo de cada disciplina.";
+  const instCard4Titulo = institucionalDB?.card4_titulo || "Comunidade";
+  const instCard4Descricao =
+    institucionalDB?.card4_descricao ||
+    "O SETE é reconhecido pela comunhão e acolhimento, promovendo intercâmbio e edificação entre estudantes, igrejas e ministérios.";
 
   const getCurso = (slug: string) => {
     return cursosDB?.find((c) => c.slug === slug);
@@ -754,6 +839,108 @@ function Home() {
           </div>
         </section>
 
+        {/* NOVA SEÇÃO INSTITUCIONAL — ESTILO FTSA COM FOTO DO CAMPUS E BARRA LARANJA DOS 4 PILARES */}
+        <section className="relative overflow-hidden w-full border-t border-black/10">
+          {/* PARTE SUPERIOR: FOTO DO CAMPUS COM OVERLAY E CHAMADA DO VÍDEO */}
+          <div
+            className="relative min-h-[460px] md:min-h-[520px] flex items-center bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage: `url(${instImagemUrl})`,
+            }}
+          >
+            {/* Gradiente escuro para legibilidade perfeita do texto branco */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/35 backdrop-blur-[0.5px]" />
+
+            <div className="relative mx-auto max-w-6xl w-full px-4 py-16 sm:py-24">
+              <div className="max-w-2xl space-y-6">
+                <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-[1.12] drop-shadow-md">
+                  {instTitulo}
+                </h2>
+
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setIsVideoModalOpen(true)}
+                    className="inline-flex items-center gap-3 rounded-full bg-white text-[#ea4310] hover:bg-white/95 font-black text-xs sm:text-sm uppercase tracking-wider px-7 py-4 shadow-xl hover:shadow-2xl hover:scale-105 transition-all cursor-pointer group"
+                  >
+                    <span>{instBotaoTexto}</span>
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#ea4310] text-white group-hover:scale-110 transition-transform shadow-xs">
+                      <Play className="h-3 w-3 fill-current ml-0.5" />
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* PARTE INFERIOR: BARRA LARANJA INTENSO COM OS 4 PILARES */}
+          <div className="bg-[#ea4310] text-white py-12 md:py-16">
+            <div className="mx-auto max-w-6xl px-4">
+              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                {/* 01: Certificação */}
+                <div className="space-y-3 border-l-2 border-white/20 pl-4 sm:border-l-0 sm:pl-0">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white backdrop-blur-xs">
+                      <Award className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-serif text-lg font-bold text-white tracking-tight">
+                      {instCard1Titulo}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-white/90 leading-relaxed font-normal">
+                    {instCard1Descricao}
+                  </p>
+                </div>
+
+                {/* 02: Docentes */}
+                <div className="space-y-3 border-l-2 border-white/20 pl-4 sm:border-l-0 sm:pl-0">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white backdrop-blur-xs">
+                      <GraduationCap className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-serif text-lg font-bold text-white tracking-tight">
+                      {instCard2Titulo}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-white/90 leading-relaxed font-normal">
+                    {instCard2Descricao}
+                  </p>
+                </div>
+
+                {/* 03: Biblioteca */}
+                <div className="space-y-3 border-l-2 border-white/20 pl-4 sm:border-l-0 sm:pl-0">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white backdrop-blur-xs">
+                      <BookOpen className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-serif text-lg font-bold text-white tracking-tight">
+                      {instCard3Titulo}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-white/90 leading-relaxed font-normal">
+                    {instCard3Descricao}
+                  </p>
+                </div>
+
+                {/* 04: Comunidade */}
+                <div className="space-y-3 border-l-2 border-white/20 pl-4 sm:border-l-0 sm:pl-0">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white backdrop-blur-xs">
+                      <Globe className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-serif text-lg font-bold text-white tracking-tight">
+                      {instCard4Titulo}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-white/90 leading-relaxed font-normal">
+                    {instCard4Descricao}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* SEÇÃO INSTITUCIONAL / BANNER INFERIOR — CLARA SUAVE */}
         <section className="bg-[#f3eee5] text-[#1c1917] py-20 border-t border-[#e2ddd3]">
           <div className="mx-auto max-w-6xl px-4 text-center">
@@ -776,6 +963,36 @@ function Home() {
       </main>
 
       <SiteFooter />
+
+      {/* MODAL DE VÍDEO INSTITUCIONAL */}
+      <Dialog open={isVideoModalOpen} onOpenChange={setIsVideoModalOpen}>
+        <DialogContent className="max-w-4xl bg-black border-zinc-800 p-2 sm:p-4 text-white rounded-2xl overflow-hidden shadow-2xl">
+          <DialogHeader className="p-2 sm:p-3">
+            <DialogTitle className="text-base font-bold text-white flex items-center gap-2">
+              <Play className="h-4 w-4 text-[#ea4310]" /> Vídeo Institucional — SETE
+            </DialogTitle>
+          </DialogHeader>
+          <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-zinc-900">
+            {getVideoEmbedUrl(instVideoUrl) ? (
+              <iframe
+                src={getVideoEmbedUrl(instVideoUrl)}
+                title="Vídeo Institucional"
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <div className="flex h-full w-full flex-col items-center justify-center text-center p-8 text-zinc-400">
+                <Play className="h-12 w-12 mb-3 text-[#ea4310]/70" />
+                <p className="text-base font-bold text-white">Nenhum vídeo institucional configurado.</p>
+                <p className="text-xs mt-1 text-zinc-400">
+                  Insira a URL do vídeo do YouTube ou Vimeo no Painel Admin (Configurações &rarr; Banner Institucional).
+                </p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* MODAL / ASSISTENTE: QUAL FORMAÇÃO É PARA MIM? — ESTILO FTSA */}
       <Dialog open={isQuizOpen} onOpenChange={setIsQuizOpen}>
