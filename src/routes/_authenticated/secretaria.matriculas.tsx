@@ -55,7 +55,7 @@ function MatriculasSecretaria() {
   const { data: cursos } = useQuery({
     queryKey: ["secretaria-cursos-select"],
     queryFn: async () => {
-      const { data } = await supabase.from("cursos").select("id, titulo, modalidade, modalidades_disponiveis").eq("ativo", true).order("titulo");
+      const { data } = await supabase.from("cursos").select("id, titulo, modalidade, modalidades_disponiveis, preco").eq("ativo", true).order("titulo");
       return data ?? [];
     },
   });
@@ -84,6 +84,7 @@ function MatriculasSecretaria() {
 
       if (existing) throw new Error("O aluno já possui matrícula neste curso.");
 
+      const preco = Number((selectedCourseObj as any)?.preco ?? 0);
       // Insert enrollment
       const { data: mat, error: matError } = await supabase
         .from("matriculas")
