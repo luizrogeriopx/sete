@@ -293,7 +293,7 @@ function CursoAluno() {
     );
   }
 
-  const doneMap = new Map(data.progresso.map((p) => [p.aula_id, p.concluida]));
+  const doneMap = new Map((data?.progresso ?? []).map((p) => [p.aula_id, p.concluida]));
   const modulos = [...(curso?.modulos ?? [])].sort((a, b) => a.ordem - b.ordem);
 
   const tentativasMap = new Map();
@@ -581,9 +581,9 @@ function CursoAluno() {
               {/* Conteúdo do Módulo (Exibido apenas quando aberto) */}
               {isModOpen && (
                 <div className="p-4 sm:p-6 border-t border-border/60 bg-muted/10 space-y-5 animate-in fade-in-50 duration-200">
-                  {m.descricao && (
+                  {(m as any).descricao && (
                     <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      {m.descricao}
+                      {(m as any).descricao}
                     </p>
                   )}
 

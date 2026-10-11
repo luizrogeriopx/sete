@@ -222,7 +222,7 @@ function Home() {
         console.warn("Erro ao buscar configurações institucionais:", error);
         return null;
       }
-      return (data?.valor as InstitucionalConfig) ?? null;
+      return (data?.valor as unknown as InstitucionalConfig) ?? null;
     },
   });
 
@@ -263,7 +263,7 @@ function Home() {
         console.warn("Erro ao buscar configurações do Somos o SETE:", error);
         return null;
       }
-      return (data?.valor as SomosSeteConfig) ?? null;
+      return (data?.valor as unknown as SomosSeteConfig) ?? null;
     },
   });
 
