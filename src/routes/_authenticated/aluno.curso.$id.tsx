@@ -293,7 +293,7 @@ function CursoAluno() {
     );
   }
 
-  const doneMap = new Map(data.progresso.map((p) => [p.aula_id, p.concluida]));
+  const doneMap = new Map((data?.progresso ?? []).map((p) => [p.aula_id, p.concluida]));
   const modulos = [...(curso?.modulos ?? [])].sort((a, b) => a.ordem - b.ordem);
 
   const tentativasMap = new Map();
@@ -581,9 +581,9 @@ function CursoAluno() {
               {/* Conteúdo do Módulo (Exibido apenas quando aberto) */}
               {isModOpen && (
                 <div className="p-4 sm:p-6 border-t border-border/60 bg-muted/10 space-y-5 animate-in fade-in-50 duration-200">
-                  {m.descricao && (
+                  {(m as any).descricao && (
                     <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      {m.descricao}
+                      {(m as any).descricao}
                     </p>
                   )}
 
@@ -769,18 +769,34 @@ function CursoAluno() {
                               )}
 
                               {/* Material Complementar */}
-                              {a.material_url && (
-                                <div className="pt-2">
-                                  <a
-                                    href={a.material_url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="inline-flex items-center gap-2 text-sm font-medium text-[#ff3403] hover:underline bg-[#ff3403]/10 px-3.5 py-2 rounded-lg transition-colors"
-                                  >
-                                    <FileText className="h-4 w-4" /> Acessar Material de Apoio (PDF / Link)
-                                  </a>
-                                </div>
-                              )}
+                              {a.material_url && (() => {
+                                const url: string = a.material_url;
+                                const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                                const isDrive = /drive\.google\.com|docs\.google\.com/.test(url);
+                                const src = isDrive && m
+                                  ? `https://drive.google.com/file/d/${m[1]}/preview`
+                                  : `${url}#toolbar=0&navpanes=0&scrollbar=1`;
+                                return (
+                                  <div className="pt-2 space-y-2">
+                                    <div className="flex items-center gap-2 text-sm font-medium">
+                                      <FileText className="h-4 w-4" /> Material de Apoio
+                                    </div>
+                                    <div
+                                      className="relative w-full overflow-hidden rounded-lg border border-border select-none"
+                                      onContextMenu={(e) => e.preventDefault()}
+                                    >
+                                      <iframe
+                                        src={src}
+                                        title="Material de apoio"
+                                        className="w-full h-[75vh] bg-muted"
+                                        allow="autoplay"
+                                      />
+                                      {/* Bloqueia o botão de abrir/baixar no canto superior */}
+                                      <div className="absolute top-0 right-0 h-14 w-20 bg-transparent" />
+                                    </div>
+                                  </div>
+                                );
+                              })()}
 
                               {/* Barra Inferior da Aula: Botão de Conclusão e Fechar */}
                               <div className="pt-4 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-3">
