@@ -8,9 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Key, Search, GraduationCap, UserPlus } from "lucide-react";
+import { Key, Search, GraduationCap, UserPlus, Pencil } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
-import { criarAdmin } from "@/lib/admin-users.functions";
+import { criarAdmin, listarEmails, editarUsuario } from "@/lib/admin-users.functions";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -32,6 +32,25 @@ function UsuariosSuperAdmin() {
   const [novoAdminNome, setNovoAdminNome] = useState("");
   const [novoAdminRole, setNovoAdminRole] = useState<"admin" | "secretaria" | "professor" | "super_admin">("admin");
   const criarAdminFn = useServerFn(criarAdmin);
+  const listarEmailsFn = useServerFn(listarEmails);
+  const editarUsuarioFn = useServerFn(editarUsuario);
+  const { data: emails } = useQuery({ queryKey: ["super-admin-emails"], queryFn: () => listarEmailsFn() });
+  const [editUser, setEditUser] = useState<any>(null);
+  const [form, setForm] = useState({ nome_completo: "", email: "", telefone: "", cpf: "", nova_senha: "" });
+  const editarMut = useMutation({
+    mutationFn: async () => editarUsuarioFn({ data: { id: editUser.id, ...form } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["super-admin-users-list"] });
+      qc.invalidateQueries({ queryKey: ["super-admin-emails"] });
+      toast.success("Dados atualizados.");
+      setEditUser(null);
+    },
+    onError: (err: Error) => toast.error(`Erro ao salvar: ${err.message}`),
+  });
+  function abrirEdicao(u: any) {
+    setEditUser(u);
+    setForm({ nome_completo: u.nome_completo ?? "", email: emails?.[u.id] ?? "", telefone: u.telefone ?? "", cpf: u.cpf ?? "", nova_senha: "" });
+  }
 
   const criarAdminMut = useMutation({
     mutationFn: async () =>
@@ -265,7 +284,8 @@ function UsuariosSuperAdmin() {
   }
 
   const filtered = (users ?? []).filter((u) =>
-    (u.nome_completo ?? "").toLowerCase().includes(search.toLowerCase())
+    (u.nome_completo ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    (emails?.[u.id] ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
   if (isLoading) {
@@ -282,7 +302,7 @@ function UsuariosSuperAdmin() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 max-w-sm flex-1">
           <Search className="h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar usuário por nome..." value={search} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)} />
+          <Input placeholder="Buscar por nome ou e-mail..." value={search} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)} />
         </div>
 
         <Dialog open={novoAdminOpen} onOpenChange={setNovoAdminOpen}>
@@ -345,6 +365,7 @@ function UsuariosSuperAdmin() {
           <TableHeader>
             <TableRow>
               <TableHead>Nome Completo</TableHead>
+              <TableHead>E-mail</TableHead>
               <TableHead>Nível de Acesso (Cargo)</TableHead>
               <TableHead>Situação Acadêmica</TableHead>
               <TableHead>Telefone</TableHead>
@@ -355,6 +376,7 @@ function UsuariosSuperAdmin() {
             {filtered.map((u) => (
               <TableRow key={u.id}>
                 <TableCell className="font-semibold">{u.nome_completo}</TableCell>
+                <TableCell className="text-sm">{emails?.[u.id] || "—"}</TableCell>
                 <TableCell>
                   <div className="flex gap-1">
                     {u.roles.length === 0 ? (
@@ -386,6 +408,9 @@ function UsuariosSuperAdmin() {
                 </TableCell>
                 <TableCell>{u.telefone || "—"}</TableCell>
                 <TableCell className="text-right space-x-1">
+                  <Button variant="ghost" size="icon" title="Editar dados" onClick={() => abrirEdicao(u)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -588,6 +613,33 @@ function UsuariosSuperAdmin() {
               Fechar
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!editUser} onOpenChange={(o) => !o && setEditUser(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-2xl">Editar usuário</DialogTitle>
+            <DialogDescription>
+              Por segurança, a senha atual não pode ser vista. Para trocá-la, defina uma nova abaixo — o usuário terá que alterá-la no próximo acesso.
+            </DialogDescription>
+          </DialogHeader>
+          <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); editarMut.mutate(); }}>
+            {([
+              ["nome_completo", "Nome completo", "text"],
+              ["email", "E-mail", "email"],
+              ["telefone", "Telefone", "text"],
+              ["cpf", "CPF", "text"],
+              ["nova_senha", "Nova senha (deixe vazio para manter)", "text"],
+            ] as const).map(([k, label, type]) => (
+              <div key={k} className="space-y-1">
+                <Label>{label}</Label>
+                <Input type={type} value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })} />
+              </div>
+            ))}
+            <Button type="submit" className="w-full" disabled={editarMut.isPending}>
+              {editarMut.isPending ? "Salvando…" : "Salvar alterações"}
+            </Button>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
