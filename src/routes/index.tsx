@@ -267,6 +267,19 @@ function Home() {
     },
   });
 
+  const { data: heroDB } = useQuery({
+    queryKey: ["landing-hero-settings"],
+    queryFn: async () => {
+      const { data } = await supabase.from("app_settings").select("valor").eq("chave", "landing_hero").maybeSingle();
+      return (data?.valor as unknown as { badge?: string; title?: string; description?: string }) ?? null;
+    },
+  });
+  const heroBadge = heroDB?.badge || "SEMINÁRIO TEOLÓGICO ESPERANÇA";
+  const heroLines = (heroDB?.title || "Ensino que Transforma,\nMinistérios que Edificam").split("\n").filter((l) => l.trim());
+  const heroDescription =
+    heroDB?.description ||
+    "Escolha uma das três áreas de formação para conhecer a grade curricular, percursos ministeriais e requisitos.";
+
   const somosTitulo = somosDB?.titulo || "Somos o SETE";
   const somosSubtitulo =
     somosDB?.subtitulo || "e celebramos sua presença conosco nesta jornada de fé e conhecimento";
@@ -304,16 +317,17 @@ function Home() {
           <div className="pointer-events-none absolute inset-0 opacity-10 [background-image:radial-gradient(circle_at_1px_1px,#ffffff_1px,transparent_0)] [background-size:28px_28px]" />
           <div className="relative mx-auto max-w-6xl px-4 text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 text-white text-xs font-black uppercase tracking-[0.25em] px-4 py-1.5 mb-5 shadow-xs backdrop-blur-xs">
-              SEMINÁRIO TEOLÓGICO ESPERANÇA
+              {heroBadge}
             </div>
 
             <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-white max-w-4xl mx-auto leading-[1.15]">
-              Ensino que Transforma, <br className="hidden sm:inline" />
-              <span className="text-amber-200">Ministérios que Edificam</span>
+              {heroLines.map((line, i) => (
+                <span key={i} className={cn("block", i > 0 && "text-amber-200")}>{line}</span>
+              ))}
             </h1>
 
             <p className="mt-5 text-base sm:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed font-medium">
-              Escolha uma das três áreas de formação para conhecer a grade curricular, percursos ministeriais e requisitos.
+              {heroDescription}
             </p>
 
             {/* OS TRÊS GRANDES CARDS ESTILO FTSA (CARDS BRANCOS EM DESTAQUE) */}

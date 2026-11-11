@@ -174,8 +174,8 @@ function ConfigSite() {
       // Hero
       const hero = allSettings.find((s) => s.chave === "landing_hero")?.valor as HeroConfig | undefined;
       setHeroBadge(hero?.badge ?? "SEMINÁRIO TEOLÓGICO ESPERANÇA");
-      setHeroTitle(hero?.title ?? "Ensino que transforma\nMinistérios que edificam");
-      setHeroDescription(hero?.description ?? "Teologia fundamentada, formação prática e comunidade que apoia seu chamado.");
+      setHeroTitle(hero?.title ?? "Ensino que Transforma,\nMinistérios que Edificam");
+      setHeroDescription(hero?.description ?? "Escolha uma das três áreas de formação para conhecer a grade curricular, percursos ministeriais e requisitos.");
 
       // Sobre
       const sobre = allSettings.find((s) => s.chave === "site_sobre")?.valor as SobreConfig | undefined;
@@ -476,25 +476,27 @@ function ConfigSite() {
           </Card>
 
           {/* Preview Hero */}
-          <Card className="border-border/50 bg-slate-950 text-white overflow-hidden flex flex-col justify-between">
-            <CardHeader className="bg-slate-900 border-b border-border/10">
-              <CardTitle className="font-serif text-lg flex items-center gap-2 text-gold">
-                <Eye className="h-5 w-5" /> Visualização (Landing Hero)
+          <Card className="border-border/50 overflow-hidden flex flex-col">
+            <CardHeader className="border-b">
+              <CardTitle className="font-serif text-lg flex items-center gap-2">
+                <Eye className="h-5 w-5 text-gold" /> Visualização (Landing Hero)
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-8 flex-1 flex flex-col justify-center bg-[radial-gradient(circle_at_1px_1px,#ffffff08_1px,transparent_0)] bg-[size:16px_16px]">
-              <div className="space-y-6">
-                <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-gold">{heroBadge}</p>
-                <h1 className="font-serif text-3xl leading-tight text-slate-100">
-                  {heroTitle.split("\n").map((line, i) => (
-                    <span key={i} className="block">{line}</span>
+            <CardContent className="relative p-8 flex-1 flex flex-col justify-center bg-[#ea4310] text-white text-center">
+              <div className="space-y-4">
+                <div className="inline-flex rounded-full border border-white/30 bg-white/15 text-[10px] font-black uppercase tracking-[0.25em] px-3 py-1">{heroBadge}</div>
+                <h1 className="font-serif text-2xl font-black leading-tight">
+                  {heroTitle.split("\n").filter((l) => l.trim()).map((line, i) => (
+                    <span key={i} className={i > 0 ? "block text-amber-200" : "block"}>{line}</span>
                   ))}
                 </h1>
-                <p className="text-sm text-slate-400 max-w-md leading-relaxed">{heroDescription}</p>
-                <div className="flex gap-2 pt-2">
-                  <div className="h-9 w-24 bg-gold/90 rounded-md" />
-                  <div className="h-9 w-28 bg-transparent border border-slate-700 rounded-md" />
+                <p className="text-sm text-white/90 leading-relaxed">{heroDescription}</p>
+                <div className="grid grid-cols-3 gap-2 pt-2">
+                  <div className="h-14 rounded-xl bg-white" />
+                  <div className="h-14 rounded-xl bg-white" />
+                  <div className="h-14 rounded-xl bg-white" />
                 </div>
+                <div className="mx-auto h-8 w-40 rounded-full bg-white" />
               </div>
             </CardContent>
           </Card>
