@@ -151,7 +151,7 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "ora
                   : "rounded-full bg-[#161922] text-white hover:bg-black font-bold text-xs uppercase tracking-wider px-5"
               }
             >
-              <Link to={primaryPanelPath(roles)}>Meu painel</Link>
+              <Link to="/aluno">Painel do Aluno</Link>
             </Button>
           ) : (
             <>
