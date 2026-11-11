@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useAuth, primaryPanelPath } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { BookOpen, ChevronDown } from "lucide-react";
 import {
@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function SiteHeader({ variant = "default" }: { variant?: "default" | "orange" } = {}) {
-  const { user, roles } = useAuth();
+  const { user } = useAuth();
   const isOrange = variant === "orange";
 
   return (
@@ -151,7 +151,7 @@ export function SiteHeader({ variant = "default" }: { variant?: "default" | "ora
                   : "rounded-full bg-[#161922] text-white hover:bg-black font-bold text-xs uppercase tracking-wider px-5"
               }
             >
-              <Link to={primaryPanelPath(roles)}>Meu painel</Link>
+              <Link to="/aluno">Painel do Aluno</Link>
             </Button>
           ) : (
             <>
