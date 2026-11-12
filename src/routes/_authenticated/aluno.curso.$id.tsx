@@ -965,14 +965,14 @@ function CursoAluno() {
                   : `Você tirou nota ${evalResult.nota}. A nota mínima exigida para este módulo é ${activeEval?.nota_minima}.`}
               </p>
               
-              <div className="py-4 border rounded-lg bg-slate-950/20 max-w-sm mx-auto grid grid-cols-2 gap-4">
+              <div className="py-4 border rounded-lg bg-muted max-w-sm mx-auto grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Nota Final</div>
                   <div className="text-3xl font-bold text-gold mt-1">{evalResult.nota}</div>
                 </div>
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Respostas</div>
-                  <div className="text-3xl font-bold mt-1 text-slate-100">{evalResult.corretas} / {evalResult.total}</div>
+                  <div className="text-3xl font-bold mt-1 text-foreground">{evalResult.corretas} / {evalResult.total}</div>
                 </div>
               </div>
 
@@ -991,9 +991,9 @@ function CursoAluno() {
             /* Questions Form Screen */
             <div className="space-y-6 py-2">
               {questions.map((q, idx) => (
-                <div key={q.id} className="p-4 border rounded-lg bg-slate-950/10 space-y-3">
+                <div key={q.id} className="p-4 border rounded-lg bg-card space-y-3">
                   <div className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Questão {idx + 1} de {questions.length}</div>
-                  <p className="font-medium text-slate-100">{q.enunciado}</p>
+                  <p className="font-medium text-foreground">{q.enunciado}</p>
                   
                   <div className="grid gap-2 pt-2">
                     {(q.shuffledAlternatives ?? []).map((alt: string, aIdx: number) => {
@@ -1005,13 +1005,13 @@ function CursoAluno() {
                           onClick={() => setSelectedAnswers(prev => ({ ...prev, [q.id]: alt }))}
                           className={`w-full text-left p-3 rounded-lg border text-sm font-medium transition flex items-center justify-between ${
                             isSelected 
-                              ? "border-gold bg-gold/5 text-gold" 
-                              : "border-border hover:border-slate-700 hover:bg-slate-900/50 text-slate-300"
+                              ? "border-gold bg-gold/10 text-foreground font-semibold" 
+                              : "border-border hover:border-gold/60 hover:bg-muted text-foreground"
                           }`}
                         >
                           <span>{alt}</span>
                           <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${isSelected ? "border-gold bg-gold" : "border-muted-foreground"}`}>
-                            {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-slate-950" />}
+                            {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-background" />}
                           </div>
                         </button>
                       );
